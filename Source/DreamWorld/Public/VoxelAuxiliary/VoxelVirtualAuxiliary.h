@@ -1,0 +1,43 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "DreamWorld.h"
+#include "VoxelAuxiliary/VoxelAuxiliary.h"
+#include "VoxelVirtualAuxiliary.generated.h"
+
+class UVoxel;
+class UBoxComponent;
+
+/**
+ * –Èƒ‚ÃÂÀÿ∏®÷˙ŒÔ
+ */
+UCLASS()
+class DREAMWORLD_API AVoxelVirtualAuxiliary : public AVoxelAuxiliary
+{
+	GENERATED_BODY()
+	
+public:
+	// Sets default values for this actor's properties
+	AVoxelVirtualAuxiliary();
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UBoxComponent* BoxComponent;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	virtual void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void Initialize(UVoxel* InOwner, FVector InLocaltion) override;
+};
