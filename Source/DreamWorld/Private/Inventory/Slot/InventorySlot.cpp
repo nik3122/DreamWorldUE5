@@ -1,6 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Slot/InventorySlot.h"
 #include "Inventory/Inventory.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "World/WorldManager.h"
@@ -9,7 +9,7 @@
 #include "InventoryEquipSlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Vitality/Vitality.h"
-#include "Widget/Inventory/WidgetInventorySlot.h"
+#include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "Abilities/Item/DWItemAbility.h"
 
 UInventorySlot::UInventorySlot()

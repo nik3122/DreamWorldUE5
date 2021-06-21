@@ -8,7 +8,7 @@
 #include "World/Chunk.h"
 #include "Inventory/Inventory.h"
 #include "Character/DWCharacter.h"
-#include "Inventory/CharacterInventory.h"
+#include "Inventory/Character/CharacterInventory.h"
 
 // Sets default values
 APickUp::APickUp()

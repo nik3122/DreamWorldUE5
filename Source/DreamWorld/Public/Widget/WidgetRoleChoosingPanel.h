@@ -7,7 +7,7 @@
 #include "WidgetRoleChoosingPanel.generated.h"
 
 /**
- * ½ÇÉ«Ñ¡ÔñÃæ°å
+ * ï¿½ï¿½É«Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UWidgetRoleChoosingPanel : public UWidgetPanelBase
@@ -18,8 +18,8 @@ public:
 	UWidgetRoleChoosingPanel(const FObjectInitializer& ObjectInitializer);
 	
 public:
+	void RefreshPanel() override; 
+	
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void RefreshList();
-
-	void OnShowPanel() override;
 };

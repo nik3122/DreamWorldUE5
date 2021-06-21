@@ -7,7 +7,7 @@
 #include "WidgetWorldCreatingPanel.generated.h"
 
 /**
- * ÊÀ½ç´´½¨Ãæ°å
+ * ï¿½ï¿½ï¿½ç´´ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UWidgetWorldCreatingPanel : public UWidgetPanelBase
@@ -18,8 +18,8 @@ public:
 	UWidgetWorldCreatingPanel(const FObjectInitializer& ObjectInitializer);
 
 public:
+	void RefreshPanel() override;
+
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void ResetData();
-
-	void OnShowPanel() override;
 };

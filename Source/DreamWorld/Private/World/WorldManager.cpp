@@ -19,7 +19,7 @@
 #include "TimerManager.h"
 #include "DWGameInstance.h"
 #include "DataSaves/WorldDataSave.h"
-#include "Inventory/CharacterInventory.h"
+#include "Inventory/Character/CharacterInventory.h"
 #include "DWGameState.h"
 #include "DataSaves/PlayerDataSave.h"
 #include "World/Components/WorldTimerComponent.h"

@@ -32,10 +32,4 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetDamaging(bool bInDamaging) override;
-
-	virtual bool Attack(int32 InAbilityIndex = -1) override;
-
-	virtual bool SkillAttack(int32 InAbilityIndex = -1) override;
-
-	virtual void Defend() override;
 };

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Inventory/InventoryEquipSlot.h"
+#include "Inventory/Slot/InventoryEquipSlot.h"
 #include "Inventory/Inventory.h"
 #include "Character/DWCharacter.h"
 

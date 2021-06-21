@@ -22,21 +22,21 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Widget/Components/WidgetCharacterHPComponent.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
-#include "Widget/Inventory/WidgetInventorySlot.h"
+#include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
 #include "DWGameInstance.h"
 #include "DataSaves/PlayerDataSave.h"
-#include "Inventory/CharacterInventory.h"
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/Slot/InventorySlot.h"
 #include "DWGameState.h"
 #include "Kismet/GameplayStatics.h"
-#include "Inventory/PlayerInventory.h"
+#include "Inventory/Character/PlayerInventory.h"
 #include "Equip/EquipWeapon.h"
 #include "Equip/EquipShield.h"
-#include "Inventory/InventorySkillSlot.h"
+#include "Inventory/Slot/InventorySkillSlot.h"
 #include "Character/Player/DWPlayerCharacterCameraManager.h"
 #include "Widget/WidgetPrimaryPanel.h"
-#include "Inventory/InventoryEquipSlot.h"
+#include "Inventory/Slot/InventoryEquipSlot.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ADWPlayerCharacter
@@ -99,6 +99,15 @@ ADWPlayerCharacter::ADWPlayerCharacter()
 	MiniMapCapture->SetRelativeLocationAndRotation(FVector(0, 0, 500), FRotator(0, 90, 0));
 
 	Inventory = nullptr;
+	
+	InventoryData = FInventoryData();
+	InventoryData.Items.SetNumZeroed(70);
+	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 40));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Shortcut, FSplitSlotInfo(40, 10));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Auxiliary, FSplitSlotInfo(50, 1));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Generate, FSplitSlotInfo(51, 9));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(60, 6));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Skill, FSplitSlotInfo(66, 4));
 
 	// camera
 	CameraTurnRate = 45;

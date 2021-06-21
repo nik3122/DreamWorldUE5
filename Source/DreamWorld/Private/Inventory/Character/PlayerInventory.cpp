@@ -1,9 +1,9 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "Inventory/PlayerInventory.h"
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Character/PlayerInventory.h"
+#include "Inventory/Slot/InventorySlot.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
-#include "Inventory/InventoryEquipSlot.h"
+#include "Inventory/Slot/InventoryEquipSlot.h"
 #include "DWGameInstance.h"
 
 UPlayerInventory::UPlayerInventory()

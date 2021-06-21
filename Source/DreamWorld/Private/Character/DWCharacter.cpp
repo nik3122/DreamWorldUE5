@@ -16,7 +16,7 @@
 #include "Widget/Components/WidgetCharacterHPComponent.h"
 #include "Widget/Worlds/WidgetCharacterHP.h"
 #include "Widget/Worlds/WidgetWorldText.h"
-#include "Inventory/CharacterInventory.h"
+#include "Inventory/Character/CharacterInventory.h"
 #include "World/Chunk.h"
 #include "Skill/Skill.h"
 #include "AIModule/Classes/Perception/AIPerceptionStimuliSourceComponent.h"
@@ -34,9 +34,9 @@
 #include "Equip/EquipWeapon.h"
 #include "Equip/EquipShield.h"
 #include "Equip/EquipArmor.h"
-#include "Inventory/InventoryEquipSlot.h"
+#include "Inventory/Slot/InventoryEquipSlot.h"
 #include "Abilities/DWGameplayAbility.h"
-#include "Inventory/InventorySkillSlot.h"
+#include "Inventory/Slot/InventorySkillSlot.h"
 #include "AIController.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
 #include "AI/DWAIBlackboard.h"
@@ -144,7 +144,7 @@ ADWCharacter::ADWCharacter()
 
 	// local
 	AttackAbilityIndex = 0;
-	SkillAbilityIndex = -1;
+	SkillAbilityIndex = NAME_None;
 	AttackType = EAttackType::None;
 	ActionType = ECharacterActionType::None;
 	LockedTarget = nullptr;
@@ -154,10 +154,10 @@ ADWCharacter::ADWCharacter()
 	DodgeRemainTime = 0;
 	InterruptRemainTime = 0;
 
-	PassiveEffects = TArray<FDWCharacterPassiveEffectData>();
+	PassiveEffects = TArray<FCharacterPassiveEffectData>();
 	AttackAbilitys = TArray<FCharacterAttackAbilityData>();
-	SkillAbilitys = TArray<FDWCharacterSkillAbilityData>();
-	ActionAbilitys = TMap<ECharacterActionType, FDWCharacterActionAbilityData>();
+	SkillAbilitys = TMap<FName, FCharacterSkillAbilityData>();
+	ActionAbilitys = TMap<ECharacterActionType, FCharacterActionAbilityData>();
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -194,14 +194,12 @@ void ADWCharacter::BeginPlay()
 
 	if (SkillAbilityTable != nullptr)
 	{
-		TArray<FDWCharacterSkillAbilityData*> skillAbilitys;
+		TArray<FCharacterSkillAbilityData*> skillAbilitys;
 		SkillAbilityTable->GetAllRows(contextString, skillAbilitys);
 		for (int i = 0; i < skillAbilitys.Num(); i++)
 		{
 			auto abilityData = *skillAbilitys[i];
-			abilityData.AbilityHandle = AcquireAbility(abilityData.AbilityClass);
-			abilityData.bHasLearned = true;
-			SkillAbilitys.Add(abilityData);
+			SkillAbilitys.Add(abilityData.SkillID, abilityData);
 		}
 	}
 	
@@ -212,7 +210,7 @@ void ADWCharacter::BeginPlay()
 
 	if (ActionAbilityTable != nullptr)
 	{
-		TArray<FDWCharacterActionAbilityData*> actionAbilitys;
+		TArray<FCharacterActionAbilityData*> actionAbilitys;
 		ActionAbilityTable->GetAllRows(contextString, actionAbilitys);
 		for (int i = 0; i < actionAbilitys.Num(); i++)
 		{
@@ -224,7 +222,7 @@ void ADWCharacter::BeginPlay()
 
 	if (PassiveEffectTable != nullptr)
 	{
-		TArray<FDWCharacterPassiveEffectData*> passiveEffects;
+		TArray<FCharacterPassiveEffectData*> passiveEffects;
 		PassiveEffectTable->GetAllRows(contextString, passiveEffects);
 		for (int i = 0; i < passiveEffects.Num(); i++)
 		{
@@ -471,30 +469,42 @@ bool ADWCharacter::HasAttackAbility(int32 InAbilityIndex /*= -1*/)
 	}
 }
 
-bool ADWCharacter::HasSkillAbility(int32 InAbilityIndex /*= -1*/, bool bInNeedLearned /*= false*/)
+bool ADWCharacter::HasSkillAbility(const FName& InSkillID)
 {
-	if (InAbilityIndex != -1)
+	if(SkillAbilitys.Contains(InSkillID))
 	{
-		return SkillAbilitys.Num() > InAbilityIndex && (!bInNeedLearned || SkillAbilitys[InAbilityIndex].bHasLearned);
+		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
+		for (int32 i = 0; i < SkillSlots.Num(); i++)
+		{
+			if(SkillSlots[i]->GetItem().ID == InSkillID)
+			{
+				return true;
+			}
+		}
 	}
-	else
-	{
-		return SkillAbilitys.Num() > 0;
-	}
+	return false;
 }
 
-bool ADWCharacter::RandomSkillAbility(int32& InAbilityIndex)
+bool ADWCharacter::HasSkillAbility(ESkillType InSkillType, int32 InAbilityIndex)
 {
-	return RandomSkillAbility(InAbilityIndex, 0, SkillAbilitys.Num() - 1);
-}
-
-bool ADWCharacter::RandomSkillAbility(int32& InAbilityIndex, int32 InStartAbilityIndex, int32 InEndAbilityIndex)
-{
-	int32 tmpAbilityIndex = FMath::RandRange(InStartAbilityIndex, InEndAbilityIndex);
-	if (HasSkillAbility(tmpAbilityIndex, true))
+	TArray<FCharacterSkillAbilityData> Abilitys = TArray<FCharacterSkillAbilityData>();
+	for (auto Iter : SkillAbilitys)
 	{
-		InAbilityIndex = tmpAbilityIndex;
-		return true;
+		if(Iter.Value.GetData().SkillType == InSkillType)
+		{
+			Abilitys.Add(Iter.Value);
+		}
+	}
+	if(InAbilityIndex != -1 ? Abilitys.IsValidIndex(InAbilityIndex) : Abilitys.Num() > 0)
+	{
+		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
+		for (int32 i = 0; i < SkillSlots.Num(); i++)
+		{
+			if(SkillSlots[i]->GetItem().ID == Abilitys[InAbilityIndex != -1 ? InAbilityIndex : 0].SkillID)
+			{
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -1016,21 +1026,48 @@ bool ADWCharacter::Attack(int32 InAbilityIndex /*= -1*/)
 	return false;
 }
 
-bool ADWCharacter::SkillAttack(int32 InAbilityIndex /*= -1*/)
+bool ADWCharacter::SkillAttack(const FName& InSkillID)
 {
 	if (bFreeToAnimate)
 	{
-		if (InAbilityIndex == -1) RandomSkillAbility(InAbilityIndex);
-		if (HasSkillAbility(InAbilityIndex, true) && (!GetSkillAbility(InAbilityIndex).bNeedWeapon || HasWeapon()))
+		if (HasSkillAbility(InSkillID))
 		{
-			if (ActiveAbility(GetSkillAbility(InAbilityIndex).AbilityHandle))
+			auto AbilityData = GetSkillAbility(InSkillID);
+			if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
 			{
-				bAttacking = true;
-				LimitToAnim(true, true);
-				SetMotionRate(0, 0);
-				SkillAbilityIndex = InAbilityIndex;
-				AttackType = EAttackType::SkillAttack;
-				return true;
+				if (ActiveAbility(AbilityData.AbilityHandle))
+				{
+					bAttacking = true;
+					LimitToAnim(true, true);
+					SetMotionRate(0, 0);
+					SkillAbilityIndex = InSkillID;
+					AttackType = EAttackType::SkillAttack;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool ADWCharacter::SkillAttack(ESkillType InSkillType, int32 InAbilityIndex)
+{
+	if (bFreeToAnimate)
+	{
+		if (HasSkillAbility(InSkillType, InAbilityIndex))
+		{
+			auto AbilityData = GetSkillAbility(InSkillType, InAbilityIndex);
+			if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
+			{
+				if (ActiveAbility(AbilityData.AbilityHandle))
+				{
+					bAttacking = true;
+					LimitToAnim(true, true);
+					SetMotionRate(0, 0);
+					SkillAbilityIndex = AbilityData.SkillID;
+					AttackType = EAttackType::SkillAttack;
+					return true;
+				}
 			}
 		}
 	}
@@ -1061,11 +1098,11 @@ void ADWCharacter::AttackStart()
 			SetDamaging(true);
 			break;
 		case EAttackType::SkillAttack:
-			if (GetSkillAbility().SkillClass != nullptr)
+			if (GetSkillAbility(SkillAbilityIndex).GetData().SkillClass != nullptr)
 			{
 				FActorSpawnParameters spawnParams = FActorSpawnParameters();
 				spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				ASkill* tmpSkill = GetWorld()->SpawnActor<ASkill>(GetSkillAbility().SkillClass, spawnParams);
+				ASkill* tmpSkill = GetWorld()->SpawnActor<ASkill>(GetSkillAbility(SkillAbilityIndex).GetData().SkillClass, spawnParams);
 				if(tmpSkill) tmpSkill->Initlize(this, SkillAbilityIndex);
 			}
 			break;
@@ -1104,7 +1141,7 @@ void ADWCharacter::UnAttack()
 		FreeToAnim(true);
 		SetDamaging(false);
 		AttackAbilityIndex = 0;
-		SkillAbilityIndex = -1;
+		SkillAbilityIndex = NAME_None;
 		AttackType = EAttackType::None;
 	}
 }
@@ -1966,23 +2003,60 @@ FCharacterAttackAbilityData ADWCharacter::GetAttackAbility(int32 InAbilityIndex 
 	return FCharacterAttackAbilityData();
 }
 
-FDWCharacterSkillAbilityData ADWCharacter::GetSkillAbility(int32 InAbilityIndex /*= -1*/)
+FCharacterSkillAbilityData ADWCharacter::GetSkillAbility(const FName& InSkillID)
 {
-	if (HasSkillAbility(InAbilityIndex == -1 ? SkillAbilityIndex : InAbilityIndex))
+	if(HasSkillAbility(InSkillID))
 	{
-		//return SkillAbilitys[InAbilityIndex == -1 ? SkillAbilityIndex : InAbilityIndex];
+		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
+		for (int32 i = 0; i < SkillSlots.Num(); i++)
+		{
+			if(SkillSlots[i]->GetItem().ID == InSkillID)
+			{
+				SkillAbilitys[InSkillID].AbilityHandle = SkillSlots[i]->GetAbilityHandle();
+				break;
+			}
+		}
+		return SkillAbilitys[InSkillID];
 	}
-	return FDWCharacterSkillAbilityData();
+	return FCharacterSkillAbilityData();
 }
 
-FDWCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionType InActionType /*= ECharacterActionType::None*/)
+FCharacterSkillAbilityData ADWCharacter::GetSkillAbility(ESkillType InSkillType, int32 InAbilityIndex)
+{
+	if(HasSkillAbility(InSkillType, InAbilityIndex))
+	{
+		TArray<FCharacterSkillAbilityData> Abilitys = TArray<FCharacterSkillAbilityData>();
+		for (auto Iter : SkillAbilitys)
+		{
+			if(Iter.Value.GetData().SkillType == InSkillType)
+			{
+				Abilitys.Add(Iter.Value);
+			}
+		}
+		auto& AblilityData = InAbilityIndex != -1 ? Abilitys[InAbilityIndex] : Abilitys[0];
+		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
+		for (int32 i = 0; i < SkillSlots.Num(); i++)
+		{
+			if(SkillSlots[i]->GetItem().ID == AblilityData.SkillID)
+			{
+				AblilityData.AbilityHandle = SkillSlots[i]->GetAbilityHandle();
+				break;
+			}
+		}
+		return AblilityData;
+	}
+
+	return FCharacterSkillAbilityData();
+}
+
+FCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionType InActionType /*= ECharacterActionType::None*/)
 {
 	if(InActionType == ECharacterActionType::None) InActionType = ActionType;
 	if (HasActionAbility(InActionType))
 	{
 		return ActionAbilitys[InActionType];
 	}
-	return FDWCharacterActionAbilityData();
+	return FCharacterActionAbilityData();
 }
 
 bool ADWCharacter::RaycastStep(FHitResult& OutHitResult)

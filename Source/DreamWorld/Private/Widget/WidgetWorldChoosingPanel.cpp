@@ -10,7 +10,10 @@ UWidgetWorldChoosingPanel::UWidgetWorldChoosingPanel(const FObjectInitializer& O
 	InputMode = EInputMode::UIOnly;
 }
 
-void UWidgetWorldChoosingPanel::OnShowPanel()
+void UWidgetWorldChoosingPanel::RefreshPanel()
 {
-	RefreshList();
+	if(IsVisible())
+	{
+		RefreshList();
+	}
 }

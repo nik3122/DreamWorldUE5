@@ -7,7 +7,7 @@
 #include "WidgetWorldChoosingPanel.generated.h"
 
 /**
- * ÊÀ½çÑ¡ÔñÃæ°å
+ * ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UWidgetWorldChoosingPanel : public UWidgetPanelBase
@@ -18,8 +18,8 @@ public:
 	UWidgetWorldChoosingPanel(const FObjectInitializer& ObjectInitializer);
 
 public:
+	void RefreshPanel() override;
+	
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void RefreshList();
-
-	void OnShowPanel() override;
 };

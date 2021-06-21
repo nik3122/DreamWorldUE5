@@ -10,7 +10,10 @@ UWidgetRoleChoosingPanel::UWidgetRoleChoosingPanel(const FObjectInitializer& Obj
 	InputMode = EInputMode::UIOnly;
 }
 
-void UWidgetRoleChoosingPanel::OnShowPanel()
+void UWidgetRoleChoosingPanel::RefreshPanel()
 {
-	RefreshList();
+	if(IsVisible())
+	{
+		RefreshList();
+	}
 }

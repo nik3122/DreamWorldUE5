@@ -10,7 +10,10 @@ UWidgetWorldCreatingPanel::UWidgetWorldCreatingPanel(const FObjectInitializer& O
 	InputMode = EInputMode::UIOnly;
 }
 
-void UWidgetWorldCreatingPanel::OnShowPanel()
+void UWidgetWorldCreatingPanel::RefreshPanel()
 {
-	ResetData();
+	if(IsVisible())
+	{
+		ResetData();
+	}
 }

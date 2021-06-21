@@ -1,16 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Widget/Inventory/WidgetInventorySkillSlot.h"
-#include "Widget/Inventory/WidgetInventoryBase.h"
+#include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
+#include "Widget/Inventory/WidgetInventory.h"
 #include "DragDropOperation.h"
 #include "Character/DWCharacter.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "DWGameMode.h"
-#include "Inventory/InventorySlot.h"
-#include "Inventory/InventorySkillSlot.h"
+#include "Inventory/Slot/InventorySlot.h"
+#include "Inventory/Slot/InventorySkillSlot.h"
 #include "Abilities/Character/DWCharacterSkillAbility.h"
-#include "Public/Inventory/CharacterInventory.h"
+#include "Public/Inventory/Character/CharacterInventory.h"
 
 UWidgetInventorySkillSlot::UWidgetInventorySkillSlot(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -25,7 +25,7 @@ void UWidgetInventorySkillSlot::InitSlot(UInventorySlot* InOwnerSlot)
 	ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(OwnerSlot->GetOwner()->GetOwnerActor());
 	if (OwnerCharacter && !OwnerSlot->IsEmpty())
 	{
-		//OwnerCharacter->GetAbilityInfo(Cast<UInventorySkillSlot>(OwnerSlot)->GetSkillData().AbilityClass, AbilityInfo);
+		//OwnerCharacter->GetAbilityInfo(Cast<UInventorySkillSlot>(OwnerSlot)->GetData().AbilityClass, AbilityInfo);
 	}
 }
 

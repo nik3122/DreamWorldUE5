@@ -1,11 +1,11 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "Inventory/CharacterInventory.h"
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/Slot/InventorySlot.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
-#include "Inventory/InventorySlot.h"
-#include "Inventory/InventoryEquipSlot.h"
-#include "Inventory/InventorySkillSlot.h"
+#include "Inventory/Slot/InventorySlot.h"
+#include "Inventory/Slot/InventoryEquipSlot.h"
+#include "Inventory/Slot/InventorySkillSlot.h"
 #include "Character/DWCharacter.h"
 #include "Vitality/Vitality.h"
 #include "Abilities/Item/DWItemAbility.h"

@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "WidgetInventorySlot.generated.h"
 
-class UWidgetInventoryBase;
+class UWidgetInventory;
 class UInventorySlot;
 
 /**

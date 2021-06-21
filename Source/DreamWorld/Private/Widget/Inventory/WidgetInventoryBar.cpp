@@ -2,47 +2,20 @@
 
 
 #include "Widget/Inventory/WidgetInventoryBar.h"
-#include "Widget/Inventory/WidgetInventorySlot.h"
+#include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
 #include "Inventory/Inventory.h"
-#include "Inventory/CharacterInventory.h"
-#include "Inventory/InventorySlot.h"
-#include "Widget/Inventory/WidgetInventorySkillSlot.h"
+#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/Slot/InventorySlot.h"
+#include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
 
 UWidgetInventoryBar::UWidgetInventoryBar(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	WidgetName = FName("InventoryBar");
 	WidgetType = EWidgetPanelType::Permanent;
 	InputMode = EInputMode::GameOnly;
-	UISkillSlots = TArray<UWidgetInventorySkillSlot*>();
 	SelectedSlotIndex = 0;
-	OwnerCharacter = nullptr;
-}
-
-void UWidgetInventoryBar::SetActive(bool bActive)
-{
-	if (OwnerCharacter)
-	{
-		Super::SetActive(bActive);
-	}
-	else
-	{
-		Super::SetActive(false);
-	}
-}
-
-void UWidgetInventoryBar::SetOwnerCharacter(ADWPlayerCharacter* InOwnerCharacter)
-{
-	OwnerCharacter = InOwnerCharacter;
-	if (OwnerCharacter)
-	{
-		InitInventory(OwnerCharacter->GetInventory());
-	}
-	else
-	{
-		SetActive(false);
-	}
 }
 
 void UWidgetInventoryBar::PrevInventorySlot()
@@ -69,6 +42,7 @@ void UWidgetInventoryBar::SelectInventorySlot(int32 InSlotIndex)
 
 UInventorySlot* UWidgetInventoryBar::GetSelectedSlot()
 {
+	auto UISlots = GetSplitUISlots(ESplitSlotType::Shortcut);
 	if(UISlots.Num() > SelectedSlotIndex)
 	{
 		return UISlots[SelectedSlotIndex]->GetSlot();

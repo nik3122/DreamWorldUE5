@@ -9,7 +9,7 @@
 class ADWPlayerCharacter;
 
 /**
- * ÷˜ΩÁ√Ê
+ * ‰∏ªÁïåÈù¢
  */
 UCLASS()
 class DREAMWORLD_API UWidgetPrimaryPanel : public UWidgetPanelBase
@@ -18,12 +18,10 @@ class DREAMWORLD_API UWidgetPrimaryPanel : public UWidgetPanelBase
 
 public:
 	UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitializer);
-	
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	ADWPlayerCharacter* OwnerCharacter;
 
 public:
+	AActor* GetOwnerActor() const override;
+
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetHeadInfo(const FString& InHeadInfo);
 	
@@ -35,7 +33,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetStaminaPercent(float InStamina, float InMaxStamina);
-
-	UFUNCTION(BlueprintCallable)
-	void SetOwnerCharacter(ADWPlayerCharacter* InOwnerCharacter);
 };

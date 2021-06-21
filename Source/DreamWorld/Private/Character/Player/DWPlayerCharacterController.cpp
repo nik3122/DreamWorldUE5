@@ -2,6 +2,8 @@
 
 
 #include "Character/Player/DWPlayerCharacterController.h"
+
+#include "CharacterInventory.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "World/WorldManager.h"
 #include "Engine/World.h"
@@ -37,9 +39,8 @@ void ADWPlayerCharacterController::OnPossess(APawn* InPawn)
 	PossessedCharacter = Cast<ADWPlayerCharacter>(InPawn);
 	if (PossessedCharacter)
 	{
-		UDWHelper::GetWidgetPrimaryPanel()->SetOwnerCharacter(PossessedCharacter);
-		UDWHelper::GetWidgetInventoryBar()->SetOwnerCharacter(PossessedCharacter);
-		UDWHelper::GetWidgetInventoryPanel()->SetOwnerCharacter(PossessedCharacter);
+		UDWHelper::GetWidgetInventoryBar()->InitInventory(PossessedCharacter->GetInventory());
+		UDWHelper::GetWidgetInventoryPanel()->InitInventory(PossessedCharacter->GetInventory());
 		PossessedCharacter->Refresh();
 	}
 }
@@ -49,9 +50,8 @@ void ADWPlayerCharacterController::OnUnPossess()
 	Super::OnUnPossess();
 	if (PossessedCharacter)
 	{
-		UDWHelper::GetWidgetPrimaryPanel()->SetOwnerCharacter(nullptr);
-		UDWHelper::GetWidgetInventoryBar()->SetOwnerCharacter(nullptr);
-		UDWHelper::GetWidgetInventoryPanel()->SetOwnerCharacter(nullptr);
+		UDWHelper::GetWidgetInventoryBar()->InitInventory(nullptr);
+		UDWHelper::GetWidgetInventoryPanel()->InitInventory(nullptr);
 		PossessedCharacter = nullptr;
 	}
 }

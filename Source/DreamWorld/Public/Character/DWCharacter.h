@@ -8,6 +8,9 @@
 #include "AbilitySystemInterface.h"
 #include "DWCharacter.generated.h"
 
+class AEquipArmor;
+class AEquipShield;
+class AEquipWeapon;
 class UInventoryEquipSlot;
 class AChunk;
 class UVoxel;
@@ -220,7 +223,7 @@ protected:
 
 	int32 AttackAbilityIndex;
 
-	int32 SkillAbilityIndex;
+	FName SkillAbilityIndex;
 
 	EAttackType AttackType;
 
@@ -230,13 +233,13 @@ protected:
 	
 	TMap<EEquipPartType, AEquip*> Equips;
 
-	TArray<FDWCharacterPassiveEffectData> PassiveEffects;
+	TArray<FCharacterPassiveEffectData> PassiveEffects;
 
 	TArray<FCharacterAttackAbilityData> AttackAbilitys;
 
-	TArray<FDWCharacterSkillAbilityData> SkillAbilitys;
+	TMap<FName, FCharacterSkillAbilityData> SkillAbilitys;
 
-	TMap<ECharacterActionType, FDWCharacterActionAbilityData> ActionAbilitys;
+	TMap<ECharacterActionType, FCharacterActionAbilityData> ActionAbilitys;
 
 protected:
 	virtual void BeginPlay() override;
@@ -260,12 +263,9 @@ public:
 	bool HasAttackAbility(int32 InAbilityIndex = -1);
 
 	UFUNCTION(BlueprintCallable)
-	bool HasSkillAbility(int32 InAbilityIndex = -1, bool bInNeedLearned = false);
-		
-	UFUNCTION(BlueprintCallable)
-	bool RandomSkillAbility(int32& InAbilityIndex);
+	bool HasSkillAbility(const FName& InSkillID);
 
-	bool RandomSkillAbility(int32& InAbilityIndex, int32 InStartAbilityIndex, int32 InEndAbilityIndex);
+	bool HasSkillAbility(ESkillType InSkillType, int32 InAbilityIndex = -1);
 	
 	UFUNCTION(BlueprintCallable)
 	bool HasActionAbility(ECharacterActionType InActionType);
@@ -384,7 +384,9 @@ public:
 	virtual bool Attack(int32 InAbilityIndex = -1);
 
 	UFUNCTION(BlueprintCallable)
-	virtual bool SkillAttack(int32 InAbilityIndex = -1);
+	virtual bool SkillAttack(const FName& InSkillID);
+
+	virtual bool SkillAttack(ESkillType InSkillType, int32 InAbilityIndex = -1);
 		
 	UFUNCTION(BlueprintCallable)
 	virtual bool FallingAttack();
@@ -874,19 +876,21 @@ public:
 	FCharacterAttackAbilityData GetAttackAbility(int32 InAbilityIndex = -1);
 		
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FDWCharacterSkillAbilityData GetSkillAbility(int32 InAbilityIndex = -1);
+	FCharacterSkillAbilityData GetSkillAbility(const FName& InSkillID);
+		
+	FCharacterSkillAbilityData GetSkillAbility(ESkillType InSkillType, int32 InAbilityIndex = -1);
 			
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FDWCharacterActionAbilityData GetActionAbility(ECharacterActionType InActionType = ECharacterActionType::None);
+	FCharacterActionAbilityData GetActionAbility(ECharacterActionType InActionType = ECharacterActionType::None);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<FCharacterAttackAbilityData> GetAttackAbilitys() const { return AttackAbilitys; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FDWCharacterSkillAbilityData> GetSkillAbilitys() const { return SkillAbilitys; }
+	TMap<FName, FCharacterSkillAbilityData> GetSkillAbilitys() const { return SkillAbilitys; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TMap<ECharacterActionType, FDWCharacterActionAbilityData> GetActionAbilitys() const { return ActionAbilitys; }
+	TMap<ECharacterActionType, FCharacterActionAbilityData> GetActionAbilitys() const { return ActionAbilitys; }
 
 public:
 	virtual void HandleDamage(const float LocalDamageDone, FHitResult HitResult, const struct FGameplayTagContainer& SourceTags, ADWCharacter* SourceCharacter, AActor* SourceActor) override;

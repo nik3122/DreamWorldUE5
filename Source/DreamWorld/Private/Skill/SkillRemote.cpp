@@ -43,7 +43,7 @@ void ASkillRemote::BeginPlay()
 
 }
 
-void ASkillRemote::Initlize(ADWCharacter* InOwnerCharacter, int32 InSkillIndex)
+void ASkillRemote::Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex)
 {
 	Super::Initlize(InOwnerCharacter, InSkillIndex);
 

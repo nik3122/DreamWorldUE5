@@ -17,6 +17,11 @@ FItemData FItem::GetData() const
 	return UDWHelper::LoadItemData(ID);
 }
 
+FSkillData FCharacterSkillAbilityData::GetData() const
+{
+	return UDWHelper::LoadSkillData(SkillID);
+}
+
 FVoxelItem::FVoxelItem(UVoxel* InVoxel)
 {
 	VoxelData = InVoxel->ToData();

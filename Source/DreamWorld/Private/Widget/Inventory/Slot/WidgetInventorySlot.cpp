@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Widget/Inventory/WidgetInventorySlot.h"
-#include "Widget/Inventory/WidgetInventoryBase.h"
+#include "Widget/Inventory/Slot/WidgetInventorySlot.h"
+#include "Widget/Inventory/WidgetInventory.h"
 #include "DragDropOperation.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "DWGameMode.h"
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Slot/InventorySlot.h"
 
 UWidgetInventorySlot::UWidgetInventorySlot(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

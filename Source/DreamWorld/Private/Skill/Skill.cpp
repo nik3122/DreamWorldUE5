@@ -15,7 +15,7 @@ ASkill::ASkill()
 
 	DurationTime = 0;
 	SocketName = NAME_None;
-	SkillAbilityIndex = 0;
+	SkillAbilityIndex = NAME_None;
 	OwnerCharacter = nullptr;
 }
 
@@ -34,7 +34,7 @@ void ASkill::Tick(float DeltaTime)
 
 }
 
-void ASkill::Initlize(ADWCharacter* InOwnerCharacter, int32 InSkillAbilityIndex)
+void ASkill::Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillAbilityIndex)
 {
 	if (InOwnerCharacter)
 	{
@@ -51,7 +51,7 @@ void ASkill::Destroyed()
 	GetWorld()->GetTimerManager().ClearTimer(DestroyTimer);
 }
 
-FDWCharacterSkillAbilityData ASkill::GetSkillData()
+FCharacterSkillAbilityData ASkill::GetSkillData()
 {
 	return OwnerCharacter->GetSkillAbility(SkillAbilityIndex);
 }

@@ -17,9 +17,9 @@
 #include "Inventory/Inventory.h"
 #include "Abilities/DWAbilitySystemComponent.h"
 #include "Abilities/DWAttributeSet.h"
-#include "Inventory/InventorySkillSlot.h"
+#include "Inventory/Slot/InventorySkillSlot.h"
 #include "Abilities/DWGameplayAbility.h"
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Slot/InventorySlot.h"
 
 // Sets default values
 AVitalityObject::AVitalityObject()

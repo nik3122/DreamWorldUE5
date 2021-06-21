@@ -3,7 +3,7 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/Inventory/WidgetInventorySlot.h"
+#include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "WidgetInventoryEquipSlot.generated.h"
 
 /**

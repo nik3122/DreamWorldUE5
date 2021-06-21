@@ -28,13 +28,12 @@ ADWHumanCharacter::ADWHumanCharacter()
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -70));
 
 	InventoryData = FInventoryData();
-	InventoryData.Items.SetNumZeroed(70);
-	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 40));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Shortcut, FSplitSlotInfo(40, 10));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Auxiliary, FSplitSlotInfo(50, 1));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Generate, FSplitSlotInfo(51, 9));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(60, 6));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Skill, FSplitSlotInfo(66, 4));
+	InventoryData.Items.SetNumZeroed(22);
+	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 10));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Shortcut, FSplitSlotInfo(10, 1));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Auxiliary, FSplitSlotInfo(11, 1));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(12, 6));
+	InventoryData.SplitInfos.Add(ESplitSlotType::Skill, FSplitSlotInfo(18, 4));
 
 	BehaviorTreeAsset = LoadObject<UBehaviorTree>(nullptr, TEXT("BehaviorTree'/Game/Blueprints/Character/Human/BT_Human_Sample.BT_Human_Sample'"));
 	BlackboardAsset = LoadObject<UDWAIBlackboard>(nullptr, TEXT("Blackboard'/Game/Blueprints/Character/Human/BD_Human_Base.BD_Human_Base'"));
@@ -61,21 +60,4 @@ void ADWHumanCharacter::SetDamaging(bool bInDamaging)
 	Super::SetDamaging(bInDamaging);
 
 	if(HasWeapon()) GetWeapon()->SetCollisonEnable(bInDamaging);
-}
-
-bool ADWHumanCharacter::Attack(int32 InAbilityIndex /*= -1*/)
-{
-	return Super::Attack(InAbilityIndex);
-}
-
-bool ADWHumanCharacter::SkillAttack(int32 InAbilityIndex /*= -1*/)
-{
-	return Super::SkillAttack(InAbilityIndex);
-}
-
-void ADWHumanCharacter::Defend()
-{
-	if(!HasShield()) return;
-
-	Super::Defend();
 }

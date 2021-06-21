@@ -66,6 +66,8 @@ TMap<FName, FEquipArmorData> UDWHelper::ArmorDatas = TMap<FName, FEquipArmorData
 
 TMap<FName, FPropData> UDWHelper::PropDatas = TMap<FName, FPropData>();
 
+TMap<FName, FSkillData> UDWHelper::SkillDatas = TMap<FName, FSkillData>();
+
 TMap<FName, FVitalityRaceData> UDWHelper::VitalityRaceDatas = TMap<FName, FVitalityRaceData>();
 
 TMap<FName, FCharacterRaceData> UDWHelper::CharacterRaceDatas = TMap<FName, FCharacterRaceData>();
@@ -495,7 +497,7 @@ FEquipShieldData UDWHelper::LoadShieldData(const FName& InShieldID)
 	{
 		return ShieldDatas[InShieldID];
 	}
-	return static FEquipShieldData();
+	return FEquipShieldData();
 }
 
 TArray<FEquipArmorData> UDWHelper::LoadArmorDatas()
@@ -561,6 +563,38 @@ FPropData UDWHelper::LoadPropData(const FName& InPropID)
 		return PropDatas[InPropID];
 	}
 	return FPropData();
+}
+
+TArray<FSkillData> UDWHelper::LoadSkillDatas()
+{
+	if (SkillDatas.Num() == 0)
+	{
+		UDataTable* dataTable = LoadObject<UDataTable>(nullptr, TEXT("DataTable'/Game/DataTables/Skill/DT_Skills.DT_Skills'"));
+		if (dataTable != nullptr)
+		{
+			FString contextString;
+			dataTable->ForeachRow<FSkillData>(contextString, [](FName key, FSkillData value) {
+				value.ID = key;
+				value.Type = EItemType::Skill;
+				SkillDatas.Add(key, value);
+				ItemDatas.Add(key, value);
+			});
+		}
+	}
+	TArray<FSkillData> tmpArr;
+	SkillDatas.GenerateValueArray(tmpArr);
+	return tmpArr;
+}
+
+FSkillData UDWHelper::LoadSkillData(const FName& InSkillID)
+{
+	if (SkillDatas.Num() == 0) LoadSkillDatas();
+
+	if (SkillDatas.Contains(InSkillID))
+	{
+		return SkillDatas[InSkillID];
+	}
+	return FSkillData();
 }
 
 TArray<FVitalityRaceData> UDWHelper::LoadVitalityRaceDatas()

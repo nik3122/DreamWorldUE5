@@ -12,11 +12,6 @@ UWidgetPanelBase::UWidgetPanelBase(const FObjectInitializer& ObjectInitializer) 
 	InputMode = EInputMode::GameOnly;
 }
 
-bool UWidgetPanelBase::IsActive()
-{
-	return IsInViewport() && GetVisibility() != ESlateVisibility::Hidden;
-}
-
 void UWidgetPanelBase::SetActive(bool bActive)
 {
 	if (bActive)
@@ -27,7 +22,6 @@ void UWidgetPanelBase::SetActive(bool bActive)
 		{
 			UDWHelper::GetGameMode()->SetTemporaryPanel(this);
 		}
-		OnShowPanel();
 	}
 	else
 	{
@@ -37,9 +31,9 @@ void UWidgetPanelBase::SetActive(bool bActive)
 			if(IsInViewport()) RemoveFromViewport();
 			UDWHelper::GetGameMode()->SetTemporaryPanel(nullptr);
 		}
-		OnHidePanel();
 	}
 	UDWHelper::GetGameMode()->UpdateInputMode();
+	RefreshPanel();
 }
 
 void UWidgetPanelBase::ShowPanel_Implementation()
@@ -64,12 +58,17 @@ void UWidgetPanelBase::TogglePanel()
 	}
 }
 
-void UWidgetPanelBase::OnShowPanel()
+void UWidgetPanelBase::RefreshPanel()
 {
-	
+	K2_RefreshPanel();
 }
 
-void UWidgetPanelBase::OnHidePanel()
+bool UWidgetPanelBase::IsActive()
 {
+	return IsInViewport() && GetVisibility() != ESlateVisibility::Hidden;
+}
 
+AActor* UWidgetPanelBase::GetOwnerActor() const
+{
+	return nullptr;
 }

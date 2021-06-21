@@ -10,7 +10,7 @@ class ADWCharacter;
 class UStaticMeshComponent;
 
 /**
- * ¼¼ÄÜ
+ * æŠ€èƒ½
  */
 UCLASS()
 class DREAMWORLD_API ASkill : public AActor
@@ -29,7 +29,7 @@ protected:
 	float DurationTime;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	int32 SkillAbilityIndex;
+	FName SkillAbilityIndex;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
 	ADWCharacter* OwnerCharacter;
@@ -46,15 +46,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void Initlize(ADWCharacter* InOwnerCharacter, int32 InSkillIndex);
+	virtual void Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex);
 
 	virtual void Destroyed();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FDWCharacterSkillAbilityData GetSkillData();
+	FCharacterSkillAbilityData GetSkillData();
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetSkillIndex() const { return SkillAbilityIndex; }
+	FName GetSkillIndex() const { return SkillAbilityIndex; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	ADWCharacter* GetOwnerCharacter() const { return OwnerCharacter; }

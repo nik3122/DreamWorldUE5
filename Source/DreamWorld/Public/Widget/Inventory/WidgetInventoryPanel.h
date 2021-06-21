@@ -3,14 +3,16 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/Inventory/WidgetInventoryBase.h"
+#include "Widget/Inventory/WidgetInventory.h"
 #include "WidgetInventoryPanel.generated.h"
 
+class UWidgetInventoryEquipSlot;
+
 /**
- * ½ÇÉ«Ãæ°å
+ * ï¿½ï¿½É«ï¿½ï¿½ï¿½
  */
 UCLASS()
-class DREAMWORLD_API UWidgetInventoryPanel : public UWidgetInventoryBase
+class DREAMWORLD_API UWidgetInventoryPanel : public UWidgetInventory
 {
 	GENERATED_BODY()
 
@@ -18,18 +20,7 @@ public:
 	UWidgetInventoryPanel(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<UWidgetInventorySlot*> UIEquipSlots;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	ADWPlayerCharacter* OwnerCharacter;
-
 public:
-	void SetActive(bool bActive) override;
-
-	UFUNCTION(BlueprintCallable)
-	void SetOwnerCharacter(ADWPlayerCharacter* InOwnerCharacter);
-
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetHeadInfo(const FString& InHeadInfo);
 	
@@ -80,7 +71,4 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetFlySpeed(const FString& InValue);
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<UWidgetInventorySlot*> GetUIEquipSlots() const { return UIEquipSlots; }
 };

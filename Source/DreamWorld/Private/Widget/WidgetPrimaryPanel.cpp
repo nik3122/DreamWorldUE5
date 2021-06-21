@@ -3,6 +3,8 @@
 
 #include "Widget/WidgetPrimaryPanel.h"
 
+#include "DWPlayerCharacter.h"
+
 UWidgetPrimaryPanel::UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	WidgetName = FName("PrimaryPanel");
@@ -10,7 +12,7 @@ UWidgetPrimaryPanel::UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitial
 	InputMode = EInputMode::GameOnly;
 }
 
-void UWidgetPrimaryPanel::SetOwnerCharacter(ADWPlayerCharacter* InOwnerCharacter)
+AActor* UWidgetPrimaryPanel::GetOwnerActor() const
 {
-	OwnerCharacter = InOwnerCharacter;
+	return UDWHelper::GetPlayerCharacter();
 }

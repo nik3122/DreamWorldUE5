@@ -5,7 +5,7 @@
 			"app_key": "application.generated.ue.dreamworld-16433597.unrealeditor.exe",
 			"launch_type": "url",
 			"url": "steam://launch/",
-			"action_manifest_path": "C:/Wuhao/1.UE4/1.Projects/DreamWorldUE5/Config/SteamVRBindings/steamvr_manifest.json",
+			"action_manifest_path": "C:/Wuhao/1.UE4/1.Projects/_MyProjects/DreamWorldUE5/Config/SteamVRBindings/steamvr_manifest.json",
 			"strings":
 			{
 				"en_us":

@@ -7,7 +7,7 @@
 #include "WidgetPanelBase.generated.h"
 
 /**
- * UI面板基类
+ * UI闈㈡澘鍩虹被
  */
 UCLASS()
 class DREAMWORLD_API UWidgetPanelBase : public UUserWidget
@@ -28,11 +28,8 @@ protected:
 	EWidgetPanelType WidgetType;
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool IsActive();
-
 	UFUNCTION(BlueprintCallable)
-	virtual void SetActive(bool bActive);
+	void SetActive(bool bActive);
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ShowPanel();
@@ -42,12 +39,19 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void TogglePanel();
-
+	
 	UFUNCTION(BlueprintCallable)
-	virtual void OnShowPanel();
+	virtual void RefreshPanel();
+	
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "RefreshPanel"))
+	void K2_RefreshPanel();
 
-	UFUNCTION(BlueprintCallable)
-	virtual void OnHidePanel();
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsActive();
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	virtual AActor* GetOwnerActor() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FName GetWidgetName() const { return WidgetName; }

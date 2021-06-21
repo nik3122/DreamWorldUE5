@@ -3,17 +3,17 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/Inventory/WidgetInventoryBase.h"
+#include "Widget/Inventory/WidgetInventory.h"
 #include "WidgetInventoryBar.generated.h"
 
 class UWidgetInventorySkillSlot;
 class ADWPlayerCharacter;
 
 /**
- * ÎïÆ·À¸
+ * ï¿½ï¿½Æ·ï¿½ï¿½
  */
 UCLASS()
-class DREAMWORLD_API UWidgetInventoryBar : public UWidgetInventoryBase
+class DREAMWORLD_API UWidgetInventoryBar : public UWidgetInventory
 {
 	GENERATED_BODY()
 
@@ -22,20 +22,9 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<UWidgetInventorySkillSlot*> UISkillSlots;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
 	int32 SelectedSlotIndex;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	ADWPlayerCharacter* OwnerCharacter;
-
 public:
-	void SetActive(bool bActive) override;
-
-	UFUNCTION(BlueprintCallable)
-	void SetOwnerCharacter(ADWPlayerCharacter* InOwnerCharacter);
-
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void UpdateSelectBox();
 
@@ -56,7 +45,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	int32 GetSelectedSlotIndex() const { return SelectedSlotIndex; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<UWidgetInventorySkillSlot*> GetUISkillSlots() const { return UISkillSlots; }
 };

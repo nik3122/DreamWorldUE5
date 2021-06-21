@@ -3,7 +3,7 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/Inventory/WidgetInventoryBase.h"
+#include "Widget/Inventory/WidgetInventory.h"
 #include "WidgetInventoryBox.generated.h"
 
 class UWidgetInventorySlot;
@@ -12,7 +12,7 @@ class UWidgetInventorySlot;
  * ÎïÆ·¿ò
  */
 UCLASS()
-class DREAMWORLD_API UWidgetInventoryBox : public UWidgetInventoryBase
+class DREAMWORLD_API UWidgetInventoryBox : public UWidgetInventory
 {
 	GENERATED_BODY()
 

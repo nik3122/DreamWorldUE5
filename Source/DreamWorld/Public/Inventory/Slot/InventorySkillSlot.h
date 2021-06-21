@@ -19,10 +19,6 @@ class DREAMWORLD_API UInventorySkillSlot : public UInventorySlot
 public:
 	UInventorySkillSlot();
 
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	int32 SkillIndex;
-
 public:
 	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::NoZne */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
 
@@ -37,8 +33,5 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FDWCharacterSkillAbilityData GetSkillData();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetSkillIndex() const { return SkillIndex; }
+	FCharacterSkillAbilityData GetSkillData();
 };

@@ -45,33 +45,33 @@ class UInventorySlot;
 #define Vector_Empty FVector(MAX_flt)
 
 /**
- * ��Ϸ״̬
+ * 游戏状态
  */
 UENUM(BlueprintType)
 enum class EGameState : uint8
 {
-	// ��
+	// ??
 	None,
-	// ��ʼ��
+	// ?????
 	Initializing,
-	// ���˵�
+	// ?????
 	MainMenu,
-	// ѡ���ɫ
+	// ?????
 	ChoosingRole,
-	// ѡ������
+	// ???????
 	ChoosingWorld,
-	// ������
+	// ??????
 	Loading,
-	// ������
+	// ??????
 	Playing,
-	// ��ͣ��
+	// ?????
 	Pausing,
-	// �ѽ���
+	// ?????
 	Finished
 };
 
 /**
- * ����ģʽ
+ * ??????
  */
 UENUM(BlueprintType)
 enum class EInputMode : uint8
@@ -83,19 +83,19 @@ enum class EInputMode : uint8
 };
 
 /**
- * UI�������
+ * UI???????
  */
 UENUM(BlueprintType)
 enum class EWidgetPanelType : uint8
 {
-	// ��ʱ
+	// ???
 	Temporary,
-	// ��פ
+	// ???
 	Permanent
 };
 
 /**
- * ��갴ť
+ * ????
  */
 UENUM(BlueprintType)
 enum class EMouseButton : uint8
@@ -106,99 +106,99 @@ enum class EMouseButton : uint8
 };
 
 /**
- * ����ģʽ
+ * ??????
  */
 UENUM(BlueprintType)
 enum class EControlMode : uint8
 {
-	// ս��
+	// ???
 	Fighting,
-	// ����
+	// ????
 	Creating
 };
 
 /**
- * ��ɫ����
+ * ???????
  */
 UENUM(BlueprintType)
 enum class ECharacterNature : uint8
 {
-	// ���
+	// ???
 	Player,
-	// ����ҽ�ɫ
+	// ???????
 	NPC,
-	// �Ѻõ�AI
+	// ????AI
 	AIFriendly,
-	// ������AI
+	// ??????AI
 	AINeutral,
-	// �жԵ�AI
+	// ?ж??AI
 	AIHostile
 };
 
 /**
- * ��ɫ��������
+ * ???????????
  */
 UENUM(BlueprintType)
 enum class ECharacterInteract : uint8
 {
-	// ս��
+	// ???
 	Fighting,
-	// �˺�
+	// ???
 	Damage,
-	// �Ի�
+	// ???
 	Dialogue,
-	// ����
+	// ????
 	Transaction
 };
 
 /**
- * ��Ʒ����
+ * ???????
  */
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-	// ��
+	// ??
 	None,
-	// ����
+	// ????
 	Voxel,
-	// ����
+	// ????
 	Prop,
-	// װ��
+	// ???
 	Equip,
-	// ����
+	// ????
 	Skill
 };
 
 /**
- * ��������
+ * ????????
  */
 UENUM(BlueprintType)
 enum class EVoxelType : uint8
 {
-	Empty, //��
-	Bedrock, //����
-	Dirt, //����
-	Stone, //ʯͷ
-	Sand, //ɳ��
-	Grass, //�ݵ�
-	Snow, //ѩ��
-	Oak, //��ľ
-	Birch, //����ľ
-	Oak_Plank, //��ľ��
-	Birch_Plank, //����ľ��
-	Cobble_Stone, //Բʯ
-	Stone_Brick, //ʯש
-	Red_Brick, //��ש
-	Sand_Stone, //ɰʯ
-	Oak_Leaves, //����Ҷ
-	Birch_Leaves, //������Ҷ
-	Ice, //����
-	Glass, //����
-	Oak_Door, //��ľ��
-	Birch_Door, //����ľ��
-	Torch, //���
-	Water, // ˮ
-	Tall_Grass, //�߾���
+	Empty, //??
+	Bedrock, //????
+	Dirt, //????
+	Stone, //??
+	Sand, //???
+	Grass, //???
+	Snow, //???
+	Oak, //???
+	Birch, //?????
+	Oak_Plank, //?????
+	Birch_Plank, //???????
+	Cobble_Stone, //??
+	Stone_Brick, //??
+	Red_Brick, //???
+	Sand_Stone, //??
+	Oak_Leaves, //?????
+	Birch_Leaves, //???????
+	Ice, //????
+	Glass, //????
+	Oak_Door, //?????
+	Birch_Door, //???????
+	Torch, //???
+	Water, // ?
+	Tall_Grass, //?????
 	Flower_Allium, 
 	Flower_Blue_Orchid,
 	Flower_Dandelion,
@@ -210,45 +210,45 @@ enum class EVoxelType : uint8
 	Flower_Tulip_Pink,
 	Flower_Tulip_Red,
 	Flower_Tulip_White,
-	Unknown //δ֪
+	Unknown //δ?
 };
 
 UENUM(BlueprintType)
 enum class EPropType : uint8
 {
-	// ҩˮ
+	// ??
 	Potion,
-	// ʳ��
+	// ???
 	Food,
-	// ����
+	// ????
 	Container
 };
 
 UENUM(BlueprintType)
 enum class EEquipType : uint8
 {
-	// ����
+	// ????
 	Weapon,
-	// ����
+	// ????
 	Shield,
-	// ����
+	// ????
 	Armor
 };
 
 UENUM(BlueprintType)
 enum class EEquipPartType : uint8
 {
-	// ͷ��
+	// ???
 	Head,
-	// �ز�
+	// ???
 	Chest,
-	// �ֱ�
+	// ???
 	Arm,
-	// �Ȳ�
+	// ???
 	Leg,
-	// ����
+	// ????
 	LeftHand,
-	// ����
+	// ????
 	RightHand
 };
 
@@ -256,32 +256,32 @@ UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
 	None,
-	// ��
+	// ??
 	Sword,
-	// ��
+	// ??
 	Knife,
-	// ����
+	// ????
 	CDA,
-	// ����
+	// ????
 	Wand,
-	// ��
+	// ??
 	Stick,
 	Axe,
-	// ��
+	// ??
 	Hammer
 };
 
 UENUM(BlueprintType)
 enum class EWeaponHandType : uint8
 {
-	// ����
+	// ????
 	Single,
-	// ˫��
+	// ???
 	Both
 };
 
 /**
- * ����
+ * ????
  */
 UENUM(BlueprintType)
 enum class EFacing : uint8
@@ -295,7 +295,7 @@ enum class EFacing : uint8
 };
 
 /**
- * ����
+ * ????
  */
 UENUM(BlueprintType)
 enum class EDirection : uint8
@@ -309,179 +309,195 @@ enum class EDirection : uint8
 };
 
 /**
- * ͸����
+ * ?????
  */
 UENUM(BlueprintType)
 enum class ETransparency : uint8
 {
-	// ʵ��
+	// ???
 	Solid,
-	// ��͸��
+	// ?????
 	SemiTransparent,
-	// ͸��
+	// ???
 	Transparent
 };
 
 /**
- * ������������
+ * ????????????
  */
 UENUM(BlueprintType)
 enum class EVoxelMeshType : uint8
 {
-	// ���ؿ�
+	// ?????
 	Chunk,
-	// ��ʰȡ��
+	// ??????
 	PickUp,
-	// Ԥ����
+	// ?????
 	PreviewItem,
-	// ��������
+	// ????????
 	VitalityVoxel
 };
 
 /**
- * �˺�����
+ * ???????
  */
 UENUM(BlueprintType)
 enum class EDWDamageType : uint8
 {
-	// ����
+	// ????
 	Any,
-	// ����
+	// ????
 	Physics,
-	// ħ��
+	// ???
 	Magic
 };
 
 /**
- * ��Ʒ����������
+ * ?????????????
  */
 UENUM(BlueprintType)
 enum class EInventoryActionType : uint8
 {
-	// ���
+	// ???
 	Addition,
-	// �Ƴ�
+	// ???
 	Remove,
-	// ���
+	// ???
 	Clear
 };
 
 /**
- * ��Ϸ��������
+ * ???????????
  */
 UENUM(BlueprintType)
 enum class EGameTraceType : uint8
 {
-	// ��
+	// ??
 	None = 0,
-	// ���ؿ�
+	// ?????
 	Chunk = (int)ECC_GameTraceChannel6,
-	// ����
+	// ????
 	Voxel = (int)ECC_GameTraceChannel7,
-	// ����
+	// ????
 	Sight = (int)ECC_GameTraceChannel8,
-	// ̨��
+	// ???
 	Step = (int)ECC_GameTraceChannel9
 };
 
 /**
- * �����ı�����
+ * ???????????
  */
 UENUM(BlueprintType)
 enum class EWorldTextType : uint8
 {
-	// ����˺�
+	// ??????
 	DamagePlayer,
-	// �����˺�
+	// ???????
 	DamageOther,
-	// �ָ�
+	// ???
 	Recover
 };
 
 /**
- * ��������
+ * ????????
  */
 UENUM(BlueprintType)
 enum class EAttackType : uint8
 {
-	// ��
+	// ??
 	None,
-	// ��ͨ����
+	// ???????
 	NormalAttack,
-	// ���ܹ���
-	SkillAttack,
-	// ׹�乥��
-	FallingAttack
+	// ??乥??
+	FallingAttack,
+	// ??乥??
+	RemoteAttack,
+	// ???????
+	SkillAttack
 };
 
 /**
- * ��ɫAI״̬
+* 技能类型
+*/
+UENUM(BlueprintType)
+enum class ESkillType : uint8
+{
+	// 无
+	None,
+	// 近战
+	Melee,
+	// ???????
+	Remote
+};
+
+/**
+ * ???AI??
  */
 UENUM(BlueprintType)
 enum class ECharacterAIState : uint8
 {
-	// ��
+	// ??
 	None,
-	// AIѲ��
+	// AI???
 	AIPatrol,
-	// AI����
+	// AI????
 	AIFollow,
-	// AI׷��
+	// AI???
 	AITrack,
-	// AI����
+	// AI????
 	AIAttack,
-	// AI����
+	// AI????
 	AIDefend
 };
 
 /**
- * ��ɫ��Ϊ����
+ * ??????????
  */
 UENUM(BlueprintType)
 enum class ECharacterActionType : uint8
 {
-	// ��
+	// ??
 	None,
-	// ����
+	// ????
 	Death,
-	// ����
+	// ????
 	Revive,
-	// ��Ծ
+	// ???
 	Jump,
-	// �׷�
+	// ???
 	Crouch,
-	// ����
+	// ????
 	Dodge,
-	// ����
+	// ????
 	Climb,
-	// ��Ӿ
+	// ???
 	Swim,
-	// ���
+	// ???
 	Ride,
-	// ����
+	// ????
 	Fly,
-	// ��ȡ
+	// ???
 	Take,
-	// ʹ��
+	// ???
 	Use,
-	// ����
+	// ????
 	Discard,
-	// ����
+	// ????
 	Generate,
-	// ����
+	// ????
 	Destroy,
-	// ��������
+	// ????????
 	AttackHit,
-	// ����ʧ��
+	// ???????
 	AttackMiss,
-	// �����ɹ�
+	// ???????
 	DefendBlock,
-	// ���
+	// ???
 	Interrupt
 };
 
 ///**
-// * ��ɫ����Effect����
+// * ???????Effect????
 // */
 //UENUM(BlueprintType)
 //enum class ECharacterPassiveEffectType : uint8
@@ -490,18 +506,18 @@ enum class ECharacterActionType : uint8
 //};
 
 /**
- * �����ķ�����
+ * ???????????
  */
 UENUM(BlueprintType)
 enum class EAbilityCostType : uint8
 {
-	// ��
+	// ??
 	None,
-	// ����ֵ
+	// ?????
 	Health,
-	// ħ��ֵ
+	// ????
 	Mana,
-	// ����ֵ
+	// ?????
 	Stamina
 };
 
@@ -618,7 +634,7 @@ FORCEINLINE uint32 GetTypeHash(const FIndex& InIndex)
 }
 
 /**
- * ����
+ * ????
  */
 USTRUCT(BlueprintType)
 struct DREAMWORLD_API FRaceItem
@@ -636,7 +652,7 @@ public:
 };
 
 /**
- * ��������������
+ * ??????????????
  */
 USTRUCT(BlueprintType)
 struct DREAMWORLD_API FVitalityRaceItem : public FRaceItem
@@ -654,7 +670,7 @@ public:
 };
 
 /**
- * ��ɫ����
+ * ???????
  */
 USTRUCT(BlueprintType)
 struct DREAMWORLD_API FCharacterRaceItem : public FRaceItem
@@ -672,7 +688,7 @@ public:
 };
 
 /**
- * ������Ϣ
+ * ???????
  */
 USTRUCT(BlueprintType)
 struct DREAMWORLD_API FRaceData : public FTableRowBase
@@ -889,19 +905,15 @@ struct DREAMWORLD_API FSkillData : public FItemData
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ASkill> SkillClass;
+	ESkillType SkillType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EWeaponType WeaponType;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCancelAble;
+	TSubclassOf<ASkill> SkillClass;
 
 	FORCEINLINE FSkillData()
 	{
+		SkillType = ESkillType::None;
 		SkillClass = nullptr;
-		WeaponType = EWeaponType::None;
-		bCancelAble = false;
 	}
 };
 
@@ -1532,7 +1544,7 @@ public:
 };
 
 /**
- * GameplayEffect����
+ * GameplayEffect????
  */
 USTRUCT(BlueprintType)
 struct FDWGameplayEffectContainer
@@ -1543,17 +1555,17 @@ public:
     FDWGameplayEffectContainer() {}
 
 public:
-    /** Ŀ������ */
+    /** ??????? */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayEffectContainer")
     TSubclassOf<UDWTargetType> TargetType;
 
-    /** ������Ŀ���GameplayEffect�б� */
+    /** ??????????GameplayEffect?б? */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayEffectContainer")
     TArray<TSubclassOf<UGameplayEffect>> TargetGameplayEffectClasses;
 };
 
 /**
- * GameplayEffect�����淶
+ * GameplayEffect?????淶
  */
 USTRUCT(BlueprintType)
 struct FDWGameplayEffectContainerSpec
@@ -1564,21 +1576,21 @@ public:
     FDWGameplayEffectContainerSpec() {}
 
 public:
-    /** Ŀ������ */
+    /** ??????? */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayEffectContainer")
     FGameplayAbilityTargetDataHandle TargetData;
 
-    /** ҪӦ�õ�Ŀ���GameplayEffect�б� */
+    /** ?????????GameplayEffect?б? */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayEffectContainer")
     TArray<FGameplayEffectSpecHandle> TargetGameplayEffectSpecs;
     
-    /** �Ƿ�����Ч��Ŀ��*/
+    /** ???????Ч?????*/
     bool HasValidTargets() const;
 
-    /** �Ƿ�����Ч��Effect*/
+    /** ???????Ч??Effect*/
     bool HasValidEffects() const;
 
-    /** ����µ�Ŀ�굽Ŀ������ */
+    /** ???????????????? */
     void AddTargets(const TArray<FHitResult>& HitResults, const TArray<AActor*>& TargetActors);
 };
 
@@ -1639,11 +1651,83 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FDWCharacterSkillAbilityData : public FTableRowBase
+struct DREAMWORLD_API FCharacterSkillAbilityData : public FTableRowBase
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName SkillID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EWeaponType WeaponType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCancelAble;
+	
+	FGameplayAbilitySpecHandle AbilityHandle;
+
+	FORCEINLINE FCharacterSkillAbilityData()
+	{
+		SkillID = NAME_None;
+		bCancelAble = false;
+		WeaponType = EWeaponType::None;
+		AbilityHandle = FGameplayAbilitySpecHandle();
+	}
+	
+	FORCEINLINE FSkillData GetData() const;
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FCharacterActionAbilityData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ECharacterActionType ActionType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UDWCharacterActionAbility> AbilityClass;
+		
+	FGameplayAbilitySpecHandle AbilityHandle;
+
+	FORCEINLINE FCharacterActionAbilityData()
+	{
+		ActionType = ECharacterActionType::None;
+		AbilityClass = nullptr;
+		AbilityHandle = FGameplayAbilitySpecHandle();
+	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FCharacterPassiveEffectData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName EffectName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UGameplayEffect> EffectClass;
+
+	FActiveGameplayEffectHandle EffectHandle;
+
+	FORCEINLINE FCharacterPassiveEffectData()
+	{
+		EffectName = NAME_None;
+		EffectClass = nullptr;
+		EffectHandle = FActiveGameplayEffectHandle();
+	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FDWCharacterSkillAbilityData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName AbilityName;
 
@@ -1686,7 +1770,7 @@ struct DREAMWORLD_API FDWCharacterActionAbilityData : public FTableRowBase
 {
 	GENERATED_BODY()
 
-public:
+	public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ECharacterActionType ActionType;
 	
@@ -1708,7 +1792,7 @@ struct DREAMWORLD_API FDWCharacterPassiveEffectData : public FTableRowBase
 {
 	GENERATED_BODY()
 
-public:
+	public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName EffectName;
 

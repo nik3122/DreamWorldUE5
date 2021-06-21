@@ -70,6 +70,8 @@ private:
 
 	static TMap<FName, FPropData> PropDatas;
 		
+	static TMap<FName, FSkillData> SkillDatas;
+
 	static TMap<FName, FVitalityRaceData> VitalityRaceDatas;
 
 	static TMap<FName, FCharacterRaceData> CharacterRaceDatas;
@@ -206,6 +208,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DWHelper")
 	static FPropData LoadPropData(const FName& InPropID);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DWHelper")
+	static TArray<FSkillData> LoadSkillDatas();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DWHelper")
+	static FSkillData LoadSkillData(const FName& InSkillID);
 		
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DWHelper")
 	static TArray<FVitalityRaceData> LoadVitalityRaceDatas();

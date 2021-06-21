@@ -10,7 +10,10 @@ UWidgetRoleCreatingPanel::UWidgetRoleCreatingPanel(const FObjectInitializer& Obj
 	InputMode = EInputMode::UIOnly;
 }
 
-void UWidgetRoleCreatingPanel::OnShowPanel()
+void UWidgetRoleCreatingPanel::RefreshPanel()
 {
-	ResetData();
+	if(IsVisible())
+	{
+		ResetData();
+	}
 }

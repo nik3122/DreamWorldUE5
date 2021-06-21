@@ -1,11 +1,15 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "Inventory/Inventory.h"
+
+#include "InventoryAuxiliarySlot.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
-#include "Inventory/InventorySlot.h"
+#include "Inventory/Slot/InventorySlot.h"
 #include "Vitality/Vitality.h"
 #include "Abilities/Item/DWItemAbility.h"
 #include "InventoryEquipSlot.h"
+#include "InventoryGenerateSlot.h"
+#include "InventoryShortcutSlot.h"
 #include "InventorySkillSlot.h"
 
 UInventory::UInventory()
@@ -27,13 +31,28 @@ void UInventory::Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSlotInfo
 			switch(Iter.Key)
 			{
 				case ESplitSlotType::Default:
-				case ESplitSlotType::Shortcut:
-				case ESplitSlotType::Auxiliary:
-				case ESplitSlotType::Generate:
 				{
 					Slot = NewObject<UInventorySlot>(OwnerActor);
 					Slot->InitSlot(this, FItem::Empty, EItemType::None, Iter.Key);
-				break;
+					break;
+				}
+				case ESplitSlotType::Shortcut:
+				{
+					Slot = NewObject<UInventoryShortcutSlot>(OwnerActor);
+					Slot->InitSlot(this, FItem::Empty, EItemType::None, Iter.Key);
+					break;
+				}
+				case ESplitSlotType::Auxiliary:
+				{
+					Slot = NewObject<UInventoryAuxiliarySlot>(OwnerActor);
+					Slot->InitSlot(this, FItem::Empty, EItemType::None, Iter.Key);
+					break;
+				}
+				case ESplitSlotType::Generate:
+				{
+					Slot = NewObject<UInventoryGenerateSlot>(OwnerActor);
+					Slot->InitSlot(this, FItem::Empty, EItemType::None, Iter.Key);
+					break;
 				}
 				case ESplitSlotType::Equip:
 				{
@@ -59,7 +78,7 @@ void UInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
 	Initialize(InOwner, InInventoryData.SplitInfos);
 	for (int32 i = 0; i < Slots.Num(); i++)
 	{
-		Slots[i]->SetItem(InInventoryData.Items[i]);
+		Slots[i]->SetItem(InInventoryData.Items.IsValidIndex(i) ? InInventoryData.Items[i] : FItem::Empty);
 		IVitality* tmpVitality = Cast<IVitality>(OwnerActor);
 		if (tmpVitality && InInventoryData.Items[i].GetData().AbilityClass)
 		{
