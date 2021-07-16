@@ -9,7 +9,7 @@
 class ADWPlayerCharacter;
 
 /**
- * Íæ¼Ò½ÇÉ«¿ØÖÆÆ÷
+ * çŽ©å®¶è§’è‰²æŽ§åˆ¶å™¨
  */
 UCLASS()
 class DREAMWORLD_API ADWPlayerCharacterController : public APlayerController

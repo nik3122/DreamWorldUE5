@@ -39,12 +39,49 @@ bool UWidgetInventorySlot::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return true;
 }
 
+FReply UWidgetInventorySlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	return FReply::Handled();
+}
+
 void UWidgetInventorySlot::InitSlot(UInventorySlot* InOwnerSlot)
 {
 	OwnerSlot = InOwnerSlot;
 	if(OwnerSlot)
 	{
 		OwnerSlot->SetUISlot(this);
+	}
+}
+
+void UWidgetInventorySlot::SplitItem(int InCount)
+{
+	if(OwnerSlot)
+	{
+		OwnerSlot->SplitItem(InCount);
+	}
+}
+
+void UWidgetInventorySlot::MoveItem(int InCount)
+{
+	if(OwnerSlot)
+	{
+		OwnerSlot->MoveItem(InCount);
+	}
+}
+
+void UWidgetInventorySlot::UseItem(int InCount)
+{
+	if(OwnerSlot)
+	{
+		OwnerSlot->UseItem(InCount);
+	}
+}
+
+void UWidgetInventorySlot::DiscardItem(int InCount)
+{
+	if(OwnerSlot)
+	{
+		OwnerSlot->DiscardItem(InCount);
 	}
 }
 

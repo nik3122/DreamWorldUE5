@@ -932,9 +932,9 @@ void ADWPlayerCharacter::OnDefendGenerateReleased()
 
 void ADWPlayerCharacter::ReleaseSkillAbility1()
 {
-	if(Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill).IsValidIndex(1))
+	if(Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill).IsValidIndex(0))
 	{
-		Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill)[1]->Active();
+		Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill)[0]->Active();
 	}
 }
 

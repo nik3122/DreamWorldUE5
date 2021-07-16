@@ -27,18 +27,33 @@ protected:
 protected:
 	virtual bool NativeOnDrop( const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation ) override;
 
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual void InitSlot(UInventorySlot* InOwnerSlot);
-
-	UFUNCTION(BlueprintCallable)
-	bool IsEmpty();
 		
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void Refresh();
 		
+	UFUNCTION(BlueprintCallable)
+	void SplitItem(int InCount = -1);
+			
+	UFUNCTION(BlueprintCallable)
+	void MoveItem(int InCount = -1);
+
+	UFUNCTION(BlueprintCallable)
+	void UseItem(int InCount = -1);
+
+	UFUNCTION(BlueprintCallable)
+	void DiscardItem(int InCount = -1);
+		
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetBorderColor(FLinearColor InColor);
+
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsEmpty();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FItem& GetItem();

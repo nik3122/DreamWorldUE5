@@ -21,4 +21,6 @@ public:
 
 public:
 	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::NoZne */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
+
+	virtual void Refresh() override;
 };

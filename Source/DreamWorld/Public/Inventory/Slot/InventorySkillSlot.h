@@ -21,9 +21,6 @@ public:
 
 public:
 	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::NoZne */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
-
-	UFUNCTION(BlueprintCallable)
-	void Clear();
 	
 	UFUNCTION(BlueprintCallable)
 	bool Active();

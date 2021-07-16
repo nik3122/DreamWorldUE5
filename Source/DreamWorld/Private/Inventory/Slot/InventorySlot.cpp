@@ -55,10 +55,6 @@ void UInventorySlot::Refresh()
 {
 	if (Item.Count == 0) Item = FItem::Empty;
 	if (UISlot) UISlot->Refresh();
-	if (UDWHelper::GetWidgetInventoryBar()->GetSelectedSlot() == this)
-	{
-		UDWHelper::GetPlayerCharacter()->UpdateVoxelMesh();
-	}
 }
 
 void UInventorySlot::SetItem(FItem& InItem, bool bReplace)

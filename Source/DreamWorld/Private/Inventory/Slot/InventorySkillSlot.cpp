@@ -21,12 +21,6 @@ void UInventorySkillSlot::InitSlot(UInventory* InOwner, FItem InItem, EItemType 
 	Super::InitSlot(InOwner, InItem, InLimitType, InSplitType);
 }
 
-void UInventorySkillSlot::Clear()
-{
-	if (IsEmpty()) return;
-
-}
-
 bool UInventorySkillSlot::Active()
 {
 	if (Cast<ADWCharacter>(Owner->GetOwnerActor())->SkillAttack(Item.ID))
