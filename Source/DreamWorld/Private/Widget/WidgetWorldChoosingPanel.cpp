@@ -9,11 +9,3 @@ UWidgetWorldChoosingPanel::UWidgetWorldChoosingPanel(const FObjectInitializer& O
 	WidgetType = EWidgetPanelType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }
-
-void UWidgetWorldChoosingPanel::RefreshPanel()
-{
-	if(IsVisible())
-	{
-		RefreshList();
-	}
-}

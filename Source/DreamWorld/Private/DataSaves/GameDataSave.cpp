@@ -147,7 +147,10 @@ TArray<FWorldData> UGameDataSave::GetWorldDatas()
 TArray<FCharacterData> UGameDataSave::GetPlayerDatas()
 {
 	TArray<FCharacterData> playerDatas;
-	PlayerDatas.GenerateValueArray(playerDatas);
+	if(PlayerDatas.Num() > 0)
+	{
+		PlayerDatas.GenerateValueArray(playerDatas);
+	}
 	return playerDatas;
 }
 

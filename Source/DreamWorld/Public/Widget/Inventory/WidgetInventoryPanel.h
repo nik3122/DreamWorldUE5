@@ -19,7 +19,6 @@ class DREAMWORLD_API UWidgetInventoryPanel : public UWidgetInventory
 public:
 	UWidgetInventoryPanel(const FObjectInitializer& ObjectInitializer);
 
-protected:
 public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetHeadInfo(const FString& InHeadInfo);

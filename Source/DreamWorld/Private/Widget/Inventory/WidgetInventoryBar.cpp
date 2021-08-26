@@ -5,10 +5,7 @@
 #include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
-#include "Inventory/Inventory.h"
-#include "Inventory/Character/CharacterInventory.h"
 #include "Inventory/Slot/InventorySlot.h"
-#include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
 
 UWidgetInventoryBar::UWidgetInventoryBar(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

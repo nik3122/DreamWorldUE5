@@ -11,9 +11,10 @@ UWidgetInventory::UWidgetInventory(const FObjectInitializer& ObjectInitializer) 
 
 void UWidgetInventory::RefreshPanel()
 {
+	Super::RefreshPanel();
 	if (!Inventory)
 	{
-		Super::SetActive(false);
+		SetActive(false);
 	}
 }
 

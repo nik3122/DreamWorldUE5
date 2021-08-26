@@ -10,13 +10,10 @@
 #include "PickUp/PickUpVoxel.h"
 #include "Voxel/Components/VoxelMeshComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
-#include "GameFramework/RotatingMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
-#include "DWGameMode.h"
 #include "Vitality/VitalityObject.h"
-#include "TimerManager.h"
 #include "DWGameInstance.h"
 #include "DataSaves/WorldDataSave.h"
 #include "Inventory/Character/CharacterInventory.h"
@@ -24,7 +21,6 @@
 #include "DataSaves/PlayerDataSave.h"
 #include "World/Components/WorldTimerComponent.h"
 #include "World/Components/WorldWeatherComponent.h"
-#include "Engine/DataTable.h"
 #include "ConstructorHelpers.h"
 
 // Sets default values
@@ -135,58 +131,68 @@ void AWorldManager::LoadWorld()
 {
 	UDWHelper::GetGameState()->SetCurrentState(EGameState::Loading);
 
-	WorldName = UDWHelper::GetWorldDataSave()->GetWorldData().Name;
-	WorldSeed = UDWHelper::GetWorldDataSave()->GetWorldData().Seed;
-	if(WorldSeed == 0) WorldSeed = FMath::Rand();
-	RandomStream = FRandomStream(WorldSeed);
-	UDWHelper::Debug(FString::FromInt(WorldSeed), EDebugType::Console);
-	UDWHelper::Debug(FString::SanitizeFloat(RandomStream.FRand()), EDebugType::Console);
-
-	FActorSpawnParameters spawnParams = FActorSpawnParameters();
-	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	
-	auto playerCharacter = GetWorld()->SpawnActor<ADWPlayerCharacter>(UDWHelper::GetPlayerDataSave()->GetPlayerData().Class, spawnParams);
-
-	if (playerCharacter)
+	if(UDWHelper::GetWorldDataSave())
 	{
-		playerCharacter->LoadData(UDWHelper::GetPlayerDataSave()->GetPlayerData());
-		UDWHelper::GetPlayerController()->Possess(playerCharacter);
+		WorldName = UDWHelper::GetWorldDataSave()->GetWorldData().Name;
+		WorldSeed = UDWHelper::GetWorldDataSave()->GetWorldData().Seed;
+		if(WorldSeed == 0) WorldSeed = FMath::Rand();
+		RandomStream = FRandomStream(WorldSeed);
+		UDWHelper::Debug(FString::FromInt(WorldSeed), EDebugType::Console);
+		UDWHelper::Debug(FString::SanitizeFloat(RandomStream.FRand()), EDebugType::Console);
 
-		if (UDWHelper::GetPlayerDataSave()->IsExistWorldRecord(WorldName))
-		{
-			auto worldRecord = UDWHelper::GetPlayerDataSave()->LoadWorldRecord(WorldName);
-			if(WorldTimer) WorldTimer->SetTimeSeconds(worldRecord.TimeSeconds);
-			UDWHelper::GetPlayerCharacter()->SetActorLocationAndRotation(worldRecord.PlayerLocation, worldRecord.PlayerRotation);
-		}
-		else
-		{
-			if(WorldTimer) WorldTimer->SetTimeSeconds(0);
-			playerCharacter->SetActorLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
-		}
-		if (!UDWHelper::GetPlayerDataSave()->GetPlayerData().InventoryData.bInitialized)
-		{
-			auto voxelDatas = UDWHelper::LoadVoxelDatas();
-			for (int32 i = 0; i < voxelDatas.Num(); i++)
-			{
-				FItem tmpItem = FItem(voxelDatas[i].ID, voxelDatas[i].MaxCount);
-				playerCharacter->GetInventory()->AdditionItems(tmpItem);
-			}
+		FActorSpawnParameters spawnParams = FActorSpawnParameters();
+		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		
+		auto playerCharacter = GetWorld()->SpawnActor<ADWPlayerCharacter>(UDWHelper::GetPlayerDataSave()->GetPlayerData().Class, spawnParams);
 
-			auto equipDatas = UDWHelper::LoadEquipDatas();
-			for (int32 i = 0; i < equipDatas.Num(); i++)
-			{
-				FItem tmpItem = FItem(equipDatas[i].ID, equipDatas[i].MaxCount);
-				playerCharacter->GetInventory()->AdditionItems(tmpItem);
-			}
+		if (playerCharacter)
+		{
+			playerCharacter->LoadData(UDWHelper::GetPlayerDataSave()->GetPlayerData());
+			UDWHelper::GetPlayerController()->Possess(playerCharacter);
 
-			auto propDatas = UDWHelper::LoadPropDatas();
-			for (int32 i = 0; i < propDatas.Num(); i++)
+			if (UDWHelper::GetPlayerDataSave()->IsExistWorldRecord(WorldName))
 			{
-				FItem tmpItem = FItem(propDatas[i].ID, propDatas[i].MaxCount);
-				playerCharacter->GetInventory()->AdditionItems(tmpItem);
+				auto worldRecord = UDWHelper::GetPlayerDataSave()->LoadWorldRecord(WorldName);
+				if(WorldTimer) WorldTimer->SetTimeSeconds(worldRecord.TimeSeconds);
+				UDWHelper::GetPlayerCharacter()->SetActorLocationAndRotation(worldRecord.PlayerLocation, worldRecord.PlayerRotation);
 			}
+			else
+			{
+				if(WorldTimer) WorldTimer->SetTimeSeconds(0);
+				playerCharacter->SetActorLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
+			}
+			if (!UDWHelper::GetPlayerDataSave()->GetPlayerData().InventoryData.bInitialized)
+			{
+				auto VoxelDatas = UDWHelper::LoadVoxelDatas();
+				for (int32 i = 0; i < VoxelDatas.Num(); i++)
+				{
+					FItem tmpItem = FItem(VoxelDatas[i].ID, VoxelDatas[i].MaxCount);
+					playerCharacter->GetInventory()->AdditionItems(tmpItem);
+				}
+
+				auto EquipDatas = UDWHelper::LoadEquipDatas();
+				for (int32 i = 0; i < EquipDatas.Num(); i++)
+				{
+					FItem tmpItem = FItem(EquipDatas[i].ID, EquipDatas[i].MaxCount);
+					playerCharacter->GetInventory()->AdditionItems(tmpItem);
+				}
+
+				auto PropDatas = UDWHelper::LoadPropDatas();
+				for (int32 i = 0; i < PropDatas.Num(); i++)
+				{
+					FItem tmpItem = FItem(PropDatas[i].ID, PropDatas[i].MaxCount);
+					playerCharacter->GetInventory()->AdditionItems(tmpItem);
+				}
+
+				auto SkillDatas = UDWHelper::LoadSkillDatas();
+				for (int32 i = 0; i < SkillDatas.Num(); i++)
+				{
+					FItem tmpItem = FItem(SkillDatas[i].ID, SkillDatas[i].MaxCount);
+					playerCharacter->GetInventory()->AdditionItems(tmpItem);
+				}
+			}
+			GenerateChunks(LocationToChunkIndex(playerCharacter->GetActorLocation(), true));
 		}
-		GenerateChunks(LocationToChunkIndex(playerCharacter->GetActorLocation(), true));
 	}
 }
 

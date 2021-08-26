@@ -16,10 +16,4 @@ class DREAMWORLD_API UWidgetWorldChoosingPanel : public UWidgetPanelBase
 	
 public:
 	UWidgetWorldChoosingPanel(const FObjectInitializer& ObjectInitializer);
-
-public:
-	void RefreshPanel() override;
-	
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void RefreshList();
 };

@@ -10,7 +10,7 @@ class UWorldDataSave;
 class UPlayerDataSave;
 
 /**
- * ÓÎÏ·Êı¾İ´æÈ¡Àà
+ * æ¸¸æˆæ•°æ®å­˜å–ç±»
  */
 UCLASS()
 class UGameDataSave : public USaveGame

@@ -2,7 +2,6 @@
 
 
 #include "Widget/WidgetPanelBase.h"
-#include "DWGameInstance.h"
 #include "DWGameMode.h"
 
 UWidgetPanelBase::UWidgetPanelBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -22,6 +21,7 @@ void UWidgetPanelBase::SetActive(bool bActive)
 		{
 			UDWHelper::GetGameMode()->SetTemporaryPanel(this);
 		}
+		RefreshPanel();
 	}
 	else
 	{
@@ -33,7 +33,6 @@ void UWidgetPanelBase::SetActive(bool bActive)
 		}
 	}
 	UDWHelper::GetGameMode()->UpdateInputMode();
-	RefreshPanel();
 }
 
 void UWidgetPanelBase::ShowPanel_Implementation()

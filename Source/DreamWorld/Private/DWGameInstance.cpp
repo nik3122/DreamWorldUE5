@@ -70,7 +70,7 @@ void UDWGameInstance::SavePlayerData()
 
 void UDWGameInstance::LoadGameData(const int32 InUserIndex)
 {
-	if (GameDataSave) return;
+	if (GameDataSave && GameDataSave->IsValidLowLevel()) return;
 
 	if (UGameplayStatics::DoesSaveGameExist(TEXT("GameData"), InUserIndex))
 	{

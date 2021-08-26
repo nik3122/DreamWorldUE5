@@ -36,7 +36,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UInventory* GetInventory() const { return Inventory; }
 	
-	AActor* GetOwnerActor() const override;
+	virtual AActor* GetOwnerActor() const override;
 		
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	TArray<UWidgetInventorySlot*> GetSplitUISlots(ESplitSlotType InSplitSlotType);

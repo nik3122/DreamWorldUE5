@@ -110,6 +110,7 @@ UWidgetPanelBase* ADWGameMode::CreateWidgetPanel(TSubclassOf<UWidgetPanelBase> I
 		}
 		return WidgetPanel;
 	}
+	
 	return nullptr;
 }
 
@@ -211,7 +212,7 @@ void ADWGameMode::UpdateInputMode()
 	for (auto iter = WidgetPanels.CreateConstIterator(); iter; ++iter)
 	{
 		UWidgetPanelBase* widgetPanel = iter->Value;
-		if (widgetPanel->IsActive() && (int)widgetPanel->GetInputMode() < (int)inputMode)
+		if (widgetPanel && widgetPanel->IsActive() && (int32)widgetPanel->GetInputMode() < (int32)inputMode)
 		{
 			inputMode = widgetPanel->GetInputMode();
 		}

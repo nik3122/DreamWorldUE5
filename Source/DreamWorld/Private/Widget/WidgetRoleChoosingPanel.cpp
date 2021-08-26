@@ -9,11 +9,3 @@ UWidgetRoleChoosingPanel::UWidgetRoleChoosingPanel(const FObjectInitializer& Obj
 	WidgetType = EWidgetPanelType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }
-
-void UWidgetRoleChoosingPanel::RefreshPanel()
-{
-	if(IsVisible())
-	{
-		RefreshList();
-	}
-}

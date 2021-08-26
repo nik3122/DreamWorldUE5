@@ -16,10 +16,4 @@ class DREAMWORLD_API UWidgetRoleChoosingPanel : public UWidgetPanelBase
 
 public:
 	UWidgetRoleChoosingPanel(const FObjectInitializer& ObjectInitializer);
-	
-public:
-	void RefreshPanel() override; 
-	
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void RefreshList();
 };
