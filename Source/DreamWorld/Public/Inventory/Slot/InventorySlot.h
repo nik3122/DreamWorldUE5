@@ -54,9 +54,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void Refresh();
-	
+
 	UFUNCTION(BlueprintCallable)
-	virtual void SetItem(FItem& InItem, bool bReplace = false);
+	virtual void PreSet(FItem& InItem);
+		
+	UFUNCTION(BlueprintCallable)
+	virtual void EndSet();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetItem(FItem& InItem, bool bReplace);
+		
+	virtual void SetItem(FItem& InItem);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AddItem(FItem& InItem);
@@ -75,6 +83,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void DiscardItem(int InCount = -1);
+	
+	UFUNCTION(BlueprintCallable)
+	virtual bool ActiveItem();
+		
+	UFUNCTION(BlueprintCallable)
+	virtual bool CancelItem();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ClearItem();
@@ -89,22 +103,25 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetMaxVolume() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FItem& GetItem()  { return Item; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UInventory* GetOwner() const { return Owner; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UWidgetInventorySlot* GetUISlot() const { return UISlot; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	EItemType GetLimitType() const { return LimitType; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetLimitType(EItemType val) { LimitType = val; }
+	
+	UFUNCTION(BlueprintPure)
+	ESplitSlotType GetSplitType() const { return SplitType; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FGameplayAbilitySpecHandle& GetAbilityHandle() { return AbilityHandle; }
 
 	UFUNCTION(BlueprintCallable)

@@ -13,7 +13,7 @@ class UBehaviorTreeComponent;
 DECLARE_DELEGATE_TwoParams(FDWAIPerceptionUpdated, ADWCharacter*, bool)
 
 /**
- * AI¿ØÖÆÆ÷»ùÀà
+ * AIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API ADWAIController : public AAIController
@@ -46,43 +46,43 @@ public:
 	UFUNCTION()
 	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ECharacterNature GetCharacterNature() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterNature(ECharacterNature InCharacterNature);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetAttackDistance() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetAttackDistance(float InAttackDistance);
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetFollowDistance() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetFollowDistance(float InFollowDistance);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPatrolDistance() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetPatrolDistance(float InPatrolDistance);
 				
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPatrolDuration() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetPatrolDuration(float InPatrolDuration);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetTargetCharacter() const;
 	
 	UFUNCTION(BlueprintCallable)
 	void SetTargetCharacter(ADWCharacter* InTargetCharacter);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool GetIsLostTarget() const;
 	
 	UFUNCTION(BlueprintCallable)

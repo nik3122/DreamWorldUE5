@@ -5,7 +5,7 @@
 #include "DWCharacterActionAbility.generated.h"
 
 /**
- * ½ÇÉ«ÐÐÎªAbility»ùÀà
+ * ï¿½ï¿½É«ï¿½ï¿½ÎªAbilityï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UDWCharacterActionAbility : public UDWCharacterAbility
@@ -14,11 +14,4 @@ class DREAMWORLD_API UDWCharacterActionAbility : public UDWCharacterAbility
 
 public:
 	UDWCharacterActionAbility();
-
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ability|Action")
-	UAnimMontage* AnimMontage;
-
-protected:
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 };

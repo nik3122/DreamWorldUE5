@@ -9,7 +9,7 @@
 class ADWPlayerCharacter;
 
 /**
- * Íæ¼ÒÊı¾İ´æÈ¡Àà
+ * ç©å®¶æ•°æ®å­˜å–ç±»
  */
 UCLASS()
 class UPlayerDataSave : public USaveGame
@@ -28,7 +28,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SavePlayerData(AWorldManager* InWorldManager, ADWPlayerCharacter* InPlayerCharacter);
+	void SavePlayerData(ADWPlayerCharacter* InPlayerCharacter);
 	
 	UFUNCTION(BlueprintCallable)
 	bool IsExistWorldRecord(const FString& InWorldName);

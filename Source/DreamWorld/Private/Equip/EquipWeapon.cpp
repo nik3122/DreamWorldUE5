@@ -41,7 +41,7 @@ void AEquipWeapon::Tick(float DeltaTime)
 
 }
 
-void AEquipWeapon::SetCollisonEnable(bool InValue)
+void AEquipWeapon::SetCollisionEnable(bool InValue)
 {
 	BoxComponent->SetGenerateOverlapEvents(InValue);
 }

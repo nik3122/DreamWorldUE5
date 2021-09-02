@@ -13,26 +13,29 @@ UWidgetPanelBase::UWidgetPanelBase(const FObjectInitializer& ObjectInitializer) 
 
 void UWidgetPanelBase::SetActive(bool bActive)
 {
-	if (bActive)
+	if(ADWGameMode* GameMode = UDWHelper::GetGameMode(this))
 	{
-		if(!IsInViewport()) AddToViewport();
-		SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		if(WidgetType == EWidgetPanelType::Temporary)
+		if (bActive)
 		{
-			UDWHelper::GetGameMode()->SetTemporaryPanel(this);
+			if(!IsInViewport()) AddToViewport();
+			SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			if(WidgetType == EWidgetPanelType::Temporary)
+			{
+				GameMode->SetTemporaryPanel(this);
+			}
+			RefreshPanel();
 		}
-		RefreshPanel();
-	}
-	else
-	{
-		SetVisibility(ESlateVisibility::Hidden);
-		if(WidgetType == EWidgetPanelType::Temporary)
+		else
 		{
-			if(IsInViewport()) RemoveFromViewport();
-			UDWHelper::GetGameMode()->SetTemporaryPanel(nullptr);
+			SetVisibility(ESlateVisibility::Hidden);
+			if(WidgetType == EWidgetPanelType::Temporary)
+			{
+				if(IsInViewport()) RemoveFromViewport();
+				GameMode->SetTemporaryPanel(nullptr);
+			}
 		}
+		GameMode->UpdateInputMode();
 	}
-	UDWHelper::GetGameMode()->UpdateInputMode();
 }
 
 void UWidgetPanelBase::ShowPanel_Implementation()

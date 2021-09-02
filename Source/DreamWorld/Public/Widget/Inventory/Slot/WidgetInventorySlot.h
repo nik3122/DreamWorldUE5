@@ -52,12 +52,12 @@ public:
 	void SetBorderColor(FLinearColor InColor);
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsEmpty();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FItem& GetItem();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UInventorySlot* GetSlot() const { return OwnerSlot; }
 };

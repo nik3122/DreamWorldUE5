@@ -2,9 +2,12 @@
 
 
 #include "Equip/Equip.h"
+
+#include "CharacterInventory.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Character/DWCharacter.h"
+#include "Inventory/Slot/InventoryEquipSlot.h"
 
 // Sets default values
 AEquip::AEquip()
@@ -35,13 +38,13 @@ void AEquip::Tick(float DeltaTime)
 
 }
 
-void AEquip::Initlize(ADWCharacter* InOwnerCharacter)
+void AEquip::Initialize(ADWCharacter* InOwnerCharacter)
 {
-	if (InOwnerCharacter)
+	OwnerCharacter = InOwnerCharacter;
+	if (OwnerCharacter)
 	{
-		OwnerCharacter = InOwnerCharacter;
-		UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EEquipPartType"), true);
-		AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, *EnumPtr->GetAuthoredNameStringByValue((int)GetEquipData().PartType));
+		OwnerCharacter->GetInventory()->GetSplitSlots<UInventoryEquipSlot>(ESplitSlotType::Equip)[(int32)GetEquipData().PartType];
+		AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, *UDWHelper::EnumValueToString(TEXT("EEquipPartType"), (int32)GetEquipData().PartType));
 	}
 }
 
@@ -52,15 +55,15 @@ void AEquip::SetVisible_Implementation(bool bVisible)
 
 void AEquip::OnAssemble_Implementation()
 {
-	EffectHandle = OwnerCharacter->ApplyEffect(GetEquipData().EffectClass);
+	
 }
 
 void AEquip::OnDischarge_Implementation()
 {
-	OwnerCharacter->RemoveEffect(EffectHandle);
+	
 }
 
-FEquipData AEquip::GetEquipData()
+FEquipData AEquip::GetEquipData() const
 {
 	return UDWHelper::LoadEquipData(EquipID);
 }

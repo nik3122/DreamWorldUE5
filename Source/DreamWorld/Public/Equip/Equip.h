@@ -10,7 +10,7 @@ class ADWCharacter;
 class UStaticMeshComponent;
 
 /**
- * ×°±¸
+ * ×°ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API AEquip : public AActor
@@ -31,8 +31,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Default")
 	ADWCharacter* OwnerCharacter;
 
-	FActiveGameplayEffectHandle EffectHandle;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -42,7 +40,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 		
 	UFUNCTION(BlueprintCallable)
-	virtual void Initlize(ADWCharacter* InOwnerCharacter);
+	virtual void Initialize(ADWCharacter* InOwnerCharacter);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void SetVisible(bool bVisible);
@@ -53,15 +51,15 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnDischarge();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FEquipData GetEquipData();
+	UFUNCTION(BlueprintPure)
+	FEquipData GetEquipData() const;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FName GetEquipID() const { return EquipID; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetOwnerCharacter() const { return OwnerCharacter; }
 };

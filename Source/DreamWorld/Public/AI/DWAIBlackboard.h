@@ -7,7 +7,7 @@
 #include "DWAIBlackboard.generated.h"
 
 /**
- * AIºÚ°å»ùÀà
+ * AIé»‘æ¿åŸºç±»
  */
 UCLASS()
 class DREAMWORLD_API UDWAIBlackboard : public UBlackboardData

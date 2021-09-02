@@ -10,7 +10,7 @@ class ASkyLight;
 class ADirectionalLight;
 
 /**
- * Ê±¼ä¹ÜÀí×é¼þ
+ * Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
 class DREAMWORLD_API UWorldTimerComponent : public UActorComponent
@@ -61,27 +61,27 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetTimeSeconds(int InTimeSeconds, bool bUpdateTimer = true);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetSecondsOfDay() const { return SecondsOfDay; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetSunriseTime() const { return SunriseTime; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetSunsetTime() const { return SunsetTime; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetTimeSeconds() const { return TimeSeconds; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetCurrentDay() const { return CurrentDay; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetCurrentHour() const { return CurrentHour; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetCurrentMinute() const { return CurrentMinute; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetCurrentSeconds() const { return CurrentSeconds; }
 };

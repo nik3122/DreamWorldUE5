@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "DreamWorld.h"
+#include "WidgetPanelBase.h"
 #include "GameFramework/GameModeBase.h"
 #include "DWGameMode.generated.h"
 
-class UWidgetPanelBase;
 /**
  * 游戏模式基类
  */
@@ -17,19 +16,6 @@ class ADWGameMode : public AGameModeBase
 
 public:
 	ADWGameMode();
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EInputMode InputMode;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UWidgetPanelBase* TemporaryPanel;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TArray<UWidgetPanelBase*> PermanentPanels;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TMap<FName, UWidgetPanelBase*> WidgetPanels;
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,39 +31,80 @@ public:
 	void PauseGame();
 	
 	UFUNCTION(BlueprintCallable)
-	void ContinueGame();
+	void UnPauseGame();
 	
 	UFUNCTION(BlueprintCallable)
 	void BackMainMenu();
 		
 	UFUNCTION(BlueprintCallable)
-	void ExitGame();
-				
+	void QuitGame();
+	
+	//////////////////////////////////////////////////////////////////////////
+	// InputMode
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EInputMode InputMode;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void UpdateInputMode();
+
+	UFUNCTION(BlueprintCallable)
+	void SetInputMode(EInputMode InInputMode);
+
+	UFUNCTION(BlueprintPure)
+	EInputMode GetInputMode() const { return InputMode; }
+
+	//////////////////////////////////////////////////////////////////////////
+	// WidgetPanels
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UWidgetPanelBase* TemporaryPanel;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<class UWidgetPanelBase*> PermanentPanels;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FName, class UWidgetPanelBase*> WidgetPanels;
+			
+public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void GenerateWidgets();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool IsExistWidgetPanel(FName InWidgetName);
+	UFUNCTION(BlueprintPure)
+	bool IsExistWidgetPanel(FName InWidgetName) const;
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UWidgetPanelBase* GetWidgetPanel(FName InWidgetName);
-
 	UFUNCTION(BlueprintCallable)
 	UWidgetPanelBase* CreateWidgetPanel(TSubclassOf<UWidgetPanelBase> InWidgetClass, bool bShowPanel = false);
 
-	UFUNCTION(BlueprintCallable)
-	bool RemoveWidgetPanel(UWidgetPanelBase* InWidgetPanel);
+	UFUNCTION(BlueprintPure)
+	UWidgetPanelBase* GetWidgetPanelByName(FName InWidgetName);
 
-	bool RemoveWidgetPanel(FName InWidgetName);
+	template<class T>
+	T* GetWidgetPanelByClass()
+	{
+		FName TmpName;
+		if(UWidgetPanelBase* TmpObject = Cast<UWidgetPanelBase>(T::StaticClass()->GetDefaultObject()))
+		{
+			TmpName = TmpObject->GetWidgetName();
+		}
+		return Cast<T>(GetWidgetPanelByName(TmpName));
+	}
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "GetWidgetPanelByClass", DeterminesOutputType = "InWidgetPanelClass"))
+	UWidgetPanelBase* K2_GetWidgetPanelByClass(TSubclassOf<UWidgetPanelBase> InWidgetPanelClass);
 
 	UFUNCTION(BlueprintCallable)
-	bool ToggleWidgetPanel(FName InWidgetName);
+	bool RemoveWidgetPanelByName(FName InWidgetName);
 
 	UFUNCTION(BlueprintCallable)
-	bool ShowWidgetPanel(FName InWidgetName);
+	bool ToggleWidgetPanelByName(FName InWidgetName);
 
 	UFUNCTION(BlueprintCallable)
-	bool HideWidgetPanel(FName InWidgetName);
+	bool ShowWidgetPanelByName(FName InWidgetName);
+
+	UFUNCTION(BlueprintCallable)
+	bool HideWidgetPanelByName(FName InWidgetName);
 		
 	UFUNCTION(BlueprintCallable)
 	void ActiveTemporaryPanel(bool bActive);
@@ -88,24 +115,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ActiveWidgetPanels(bool bActive);
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateInputMode();
-
-	UFUNCTION(BlueprintCallable)
-	void SetInputMode(EInputMode InInputMode);
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	EInputMode GetInputMode() const { return InputMode; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UWidgetPanelBase* GetTemporaryPanel() const { return TemporaryPanel; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetTemporaryPanel(UWidgetPanelBase* InTemporaryPanel);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<UWidgetPanelBase*> GetPermanentPanels() const { return PermanentPanels; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TMap<FName, UWidgetPanelBase*> GetWidgetPanels() const { return WidgetPanels; }
+	UFUNCTION(BlueprintPure)
+	TArray<UWidgetPanelBase*> GetWidgetPanels() const;
 };

@@ -8,21 +8,31 @@ UDWGameplayAbility::UDWGameplayAbility()
 	EffectContainerMap = TMap<FGameplayTag, FDWGameplayEffectContainer>();
 }
 
-void UDWGameplayAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData /*= nullptr*/)
+void UDWGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
-	Super::PreActivate(Handle, ActorInfo, ActivationInfo, OnGameplayAbilityEndedDelegate, TriggerEventData);
+	Super::OnGiveAbility(ActorInfo, Spec);
+}
+
+void UDWGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+}
+
+void UDWGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 FDWGameplayEffectContainerSpec UDWGameplayAbility::MakeEffectContainerSpecFromContainer(const FDWGameplayEffectContainer& Container, const FGameplayEventData& EventData, int32 OverrideGameplayLevel /*= -1*/)
 {
-	// »ñÈ¡Êı¾İ
+	// è·å–æ•°æ®
 	FDWGameplayEffectContainerSpec ReturnSpec;
 	AActor* OwningActor = GetOwningActorFromActorInfo();
 	UDWAbilitySystemComponent* OwningASC = UDWAbilitySystemComponent::GetAbilitySystemComponentFormActor(OwningActor);
 
 	if (OwningASC)
 	{
-		// Èç¹ûÓĞÄ¿±êÀàĞÍ£¬ÔËĞĞÄ¿±êÂß¼­
+		// å¦‚æœæœ‰ç›®æ ‡ç±»å‹ï¼Œè¿è¡Œç›®æ ‡é€»è¾‘
 		if (Container.TargetType.Get())
 		{
 			TArray<FHitResult> HitResults;
@@ -32,12 +42,12 @@ FDWGameplayEffectContainerSpec UDWGameplayAbility::MakeEffectContainerSpecFromCo
 			TargetType->GetTargets(OwningActor, AvatarActor, EventData, HitResults, TargetActors);
 			ReturnSpec.AddTargets(HitResults, TargetActors);
 		}
-		// Èç¹ûÃ»ÓĞ¸´Ğ´GameplayLevel¾ÍÊ¹ÓÃ×ÔÉíµÄ
+		// å¦‚æœæ²¡æœ‰å¤å†™GameplayLevelå°±ä½¿ç”¨è‡ªèº«çš„
 		if (OverrideGameplayLevel == INDEX_NONE)
 		{
 			OverrideGameplayLevel = GetAbilityLevel();
 		}
-		// ´ÓGameplayEffectÁĞ±í´´½¨GameplayEffectSpecs
+		// ä»GameplayEffectåˆ—è¡¨åˆ›å»ºGameplayEffectSpecs
 		for (const TSubclassOf<UGameplayEffect>& EffectClass : Container.TargetGameplayEffectClasses)
 		{
 			ReturnSpec.TargetGameplayEffectSpecs.Add(MakeOutgoingGameplayEffectSpec(EffectClass, OverrideGameplayLevel));
@@ -59,7 +69,7 @@ FDWGameplayEffectContainerSpec UDWGameplayAbility::MakeEffectContainerSpec(FGame
 TArray<FActiveGameplayEffectHandle> UDWGameplayAbility::ApplyEffectContainerSpec(const FDWGameplayEffectContainerSpec& ContainerSpec)
 {
 	TArray<FActiveGameplayEffectHandle> AllEffects;
-	// ½«GameplayEffectÓ¦ÓÃµ½Ä¿±ê
+	// å°†GameplayEffectåº”ç”¨åˆ°ç›®æ ‡
 	for (const FGameplayEffectSpecHandle& SpecHandle : ContainerSpec.TargetGameplayEffectSpecs)
 	{
 		AllEffects.Append(K2_ApplyGameplayEffectSpecToTarget(SpecHandle, ContainerSpec.TargetData));

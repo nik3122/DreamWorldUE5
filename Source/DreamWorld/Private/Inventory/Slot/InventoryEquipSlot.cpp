@@ -31,9 +31,14 @@ void UInventoryEquipSlot::Refresh()
 	}
 }
 
-void UInventoryEquipSlot::UseItem(int InCount /*= -1*/)
+void UInventoryEquipSlot::PreSet(FItem& InItem)
 {
-	if (IsEmpty()) return;
+	Super::PreSet(InItem);
+	CancelItem();
+}
 
-	MoveItem(InCount);
+void UInventoryEquipSlot::EndSet()
+{
+	Super::EndSet();
+	ActiveItem();
 }

@@ -6,13 +6,8 @@
 #include "Engine/GameInstance.h"
 #include "DWGameInstance.generated.h"
 
-class UWidgetPanelBase;
-class UWorldDataSave;
-class UGameDataSave;
-class UPlayerDataSave;
-
 /**
- * 游戏实例基类
+ * 娓告垙瀹炰緥鍩虹被
  */
 UCLASS()
 class UDWGameInstance : public UGameInstance
@@ -24,16 +19,16 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	UGameDataSave* GameDataSave;
+	class UGameDataSave* GameDataSave;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	UWorldDataSave* WorldDataSave;
+	class UWorldDataSave* WorldDataSave;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	UPlayerDataSave* PlayerDataSave;
+	class UPlayerDataSave* PlayerDataSave;
 
 public:
-	void Init() override;
+	virtual void Init() override;
 	
 	UFUNCTION(BlueprintCallable)
 	void SaveGameData();
@@ -78,30 +73,30 @@ public:
 	void RemovePlayerData(const FString& InPlayerName);
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<FString> GetWorldNames();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<FString> GetPlayerNames();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<FWorldData> GetWorldDatas();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<FCharacterData> GetPlayerDatas();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<UWorldDataSave*> GetWorldDataSaves();
+	UFUNCTION(BlueprintPure)
+	TArray<class UWorldDataSave*> GetWorldDataSaves();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<UPlayerDataSave*> GetPlayerDataSaves();
+	UFUNCTION(BlueprintPure)
+	TArray<class UPlayerDataSave*> GetPlayerDataSaves();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UGameDataSave* GetGameDataSave() const { return GameDataSave; }
+	UFUNCTION(BlueprintPure)
+	class UGameDataSave* GetGameDataSave() const { return GameDataSave; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UWorldDataSave* GetWorldDataSave() const { return WorldDataSave; }
+	UFUNCTION(BlueprintPure)
+	class UWorldDataSave* GetWorldDataSave() const { return WorldDataSave; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UPlayerDataSave* GetPlayerDataSave() const { return PlayerDataSave; }
+	UFUNCTION(BlueprintPure)
+	class UPlayerDataSave* GetPlayerDataSave() const { return PlayerDataSave; }
 };

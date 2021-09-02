@@ -7,7 +7,7 @@
 #include "PickUpEquip.generated.h"
 
 /**
- * 可拾取装备
+ * 锟斤拷拾取装锟斤拷
  */
 UCLASS()
 class DREAMWORLD_API APickUpEquip : public APickUp
@@ -30,6 +30,6 @@ public:
 
 	virtual void Initialize(FItem InItem, bool bPreview = false) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FEquipData GetEquipData();
 };

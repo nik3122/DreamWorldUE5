@@ -1,6 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "DataSaves/WorldDataSave.h"
+#include "DataSave/WorldDataSave.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Engine/World.h"
 #include "World/Chunk.h"
@@ -21,8 +21,8 @@ bool UWorldDataSave::IsExistChunkData(FIndex InChunkIndex)
 
 void UWorldDataSave::SaveWorldData(AWorldManager* InWorldManager)
 {
-	WorldData.Name = InWorldManager->GetWorldName();
-	WorldData.Seed = InWorldManager->GetWorldSeed();
+	WorldData.Name = AWorldManager::GetWorldInfo().WorldName;
+	WorldData.Seed = AWorldManager::GetWorldInfo().WorldSeed;
 }
 
 void UWorldDataSave::SaveChunkData(FIndex InChunkIndex, FChunkData InChunkData)

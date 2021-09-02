@@ -9,18 +9,18 @@ UDWAbilitySystemComponent::UDWAbilitySystemComponent() { }
 
 void UDWAbilitySystemComponent::GetActiveAbilitiesWithTags(const FGameplayTagContainer& AbilityTags, TArray<UDWGameplayAbility*>& ActiveAbilities)
 {
-	// »ñÈ¡±êÇ©¶ÔÓ¦µÄÒÑ¼¤»îµÄAbilityÁĞ±í
+	// è·å–æ ‡ç­¾å¯¹åº”çš„å·²æ¿€æ´»çš„Abilityåˆ—è¡¨
 	TArray<FGameplayAbilitySpec*> AbilitiesToActivate;
 	GetActivatableGameplayAbilitySpecsByAllMatchingTags(AbilityTags, AbilitiesToActivate, false);
 
 	for (FGameplayAbilitySpec* Spec : AbilitiesToActivate)
 	{
-		// »ñÈ¡AbilityÊµÀıÁĞ±í
+		// è·å–Abilityå®ä¾‹åˆ—è¡¨
 		TArray<UGameplayAbility*> AbilityInstances = Spec->GetAbilityInstances();
 
 		for (UGameplayAbility* ActiveAbility : AbilityInstances)
 		{
-			// ½«AbilityÊµÀı¼ÓÈë·µ»ØÁĞ±íÖĞ
+			// å°†Abilityå®ä¾‹åŠ å…¥è¿”å›åˆ—è¡¨ä¸­
 			ActiveAbilities.Add(Cast<UDWGameplayAbility>(ActiveAbility));
 		}
 	}

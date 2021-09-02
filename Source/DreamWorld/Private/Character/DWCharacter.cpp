@@ -2,13 +2,11 @@
 
 #include "Character/DWCharacter.h"
 #include "Character/DWCharacterAnim.h"
-#include "Character/Player/DWPlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "World/WorldManager.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "WidgetComponent.h"
 #include "AI/DWAIController.h"
@@ -23,12 +21,8 @@
 #include "AIModule/Classes/Perception/AISense_Sight.h"
 #include "AIModule/Classes/Perception/AISense_Damage.h"
 #include "AIModule/Classes/BehaviorTree/BehaviorTree.h"
-#include "AIModule/Classes/BehaviorTree/BlackboardData.h"
 #include "Abilities/DWAbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "Abilities/Character/DWCharacterAttackAbility.h"
-#include "Abilities/Character/DWCharacterSkillAbility.h"
-#include "Abilities/Character/DWCharacterActionAbility.h"
 #include "Abilities/Character/DWCharacterAttributeSet.h"
 #include "Equip/Equip.h"
 #include "Equip/EquipWeapon.h"
@@ -38,10 +32,12 @@
 #include "Abilities/DWGameplayAbility.h"
 #include "Inventory/Slot/InventorySkillSlot.h"
 #include "AIController.h"
-#include "Widget/Inventory/WidgetInventoryPanel.h"
 #include "AI/DWAIBlackboard.h"
 #include "GameFramework/PhysicsVolume.h"
 #include "Voxel/Voxel.h"
+#include "Abilities/Character/DWCharacterActionAbility.h"
+#include "Abilities/Character/DWCharacterAttackAbility.h"
+#include "Abilities/Character/DWCharacterSkillAbility.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ADWCharacter
@@ -154,10 +150,10 @@ ADWCharacter::ADWCharacter()
 	DodgeRemainTime = 0;
 	InterruptRemainTime = 0;
 
-	PassiveEffects = TArray<FCharacterPassiveEffectData>();
-	AttackAbilitys = TArray<FCharacterAttackAbilityData>();
-	SkillAbilitys = TMap<FName, FCharacterSkillAbilityData>();
-	ActionAbilitys = TMap<ECharacterActionType, FCharacterActionAbilityData>();
+	PassiveEffects = TArray<FDWCharacterPassiveEffectData>();
+	AttackAbilitys = TArray<FDWCharacterAttackAbilityData>();
+	SkillAbilitys = TMap<FName, FDWCharacterSkillAbilityData>();
+	ActionAbilitys = TMap<ECharacterActionType, FDWCharacterActionAbilityData>();
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -182,47 +178,48 @@ void ADWCharacter::BeginPlay()
 
 	if (AttackAbilityTable != nullptr)
 	{
-		TArray<FCharacterAttackAbilityData*> attackAbilitys;
+		TArray<FDWCharacterAttackAbilityData*> attackAbilitys;
 		AttackAbilityTable->GetAllRows(contextString, attackAbilitys);
 		for (int i = 0; i < attackAbilitys.Num(); i++)
 		{
 			auto abilityData = *attackAbilitys[i];
-			abilityData.AbilityHandle = AcquireAbility(abilityData.AbilityClass);
+			abilityData.AbilityHandle = AcquireAbility(abilityData.AbilityClass, abilityData.AbilityLevel);
 			AttackAbilitys.Add(abilityData);
 		}
 	}
 
 	if (SkillAbilityTable != nullptr)
 	{
-		TArray<FCharacterSkillAbilityData*> skillAbilitys;
+		TArray<FDWCharacterSkillAbilityData*> skillAbilitys;
 		SkillAbilityTable->GetAllRows(contextString, skillAbilitys);
 		for (int i = 0; i < skillAbilitys.Num(); i++)
 		{
 			auto abilityData = *skillAbilitys[i];
-			SkillAbilitys.Add(abilityData.SkillID, abilityData);
+			abilityData.AbilityHandle = AcquireAbility(abilityData.AbilityClass, abilityData.AbilityLevel);
+			SkillAbilitys.Add(abilityData.AbilityName, abilityData);
 		}
 	}
 	
 	if (FallingAttackAbility.AbilityClass != nullptr)
 	{
-		FallingAttackAbility.AbilityHandle = AcquireAbility(FallingAttackAbility.AbilityClass);
+		FallingAttackAbility.AbilityHandle = AcquireAbility(FallingAttackAbility.AbilityClass, FallingAttackAbility.AbilityLevel);
 	}
 
 	if (ActionAbilityTable != nullptr)
 	{
-		TArray<FCharacterActionAbilityData*> actionAbilitys;
+		TArray<FDWCharacterActionAbilityData*> actionAbilitys;
 		ActionAbilityTable->GetAllRows(contextString, actionAbilitys);
 		for (int i = 0; i < actionAbilitys.Num(); i++)
 		{
 			auto abilityData = *actionAbilitys[i];
-			abilityData.AbilityHandle = AcquireAbility(abilityData.AbilityClass);
+			abilityData.AbilityHandle = AcquireAbility(abilityData.AbilityClass, abilityData.AbilityLevel);
 			ActionAbilitys.Add(abilityData.ActionType, abilityData);
 		}
 	}
 
 	if (PassiveEffectTable != nullptr)
 	{
-		TArray<FCharacterPassiveEffectData*> passiveEffects;
+		TArray<FDWCharacterPassiveEffectData*> passiveEffects;
 		PassiveEffectTable->GetAllRows(contextString, passiveEffects);
 		for (int i = 0; i < passiveEffects.Num(); i++)
 		{
@@ -300,7 +297,7 @@ void ADWCharacter::Tick(float DeltaTime)
 
 		FVector Location = GetMesh()->GetSocketLocation(FName("Foot"));
 		
-		AChunk* Chunk = UDWHelper::GetWorldManager()->FindChunk(Location);
+		AChunk* Chunk = AWorldManager::GetCurrent()->FindChunk(Location);
 		if(Chunk != nullptr)
 		{
 			if(OwnerChunk != nullptr)
@@ -487,10 +484,10 @@ bool ADWCharacter::HasSkillAbility(const FName& InSkillID)
 
 bool ADWCharacter::HasSkillAbility(ESkillType InSkillType, int32 InAbilityIndex)
 {
-	TArray<FCharacterSkillAbilityData> Abilitys = TArray<FCharacterSkillAbilityData>();
+	TArray<FDWCharacterSkillAbilityData> Abilitys = TArray<FDWCharacterSkillAbilityData>();
 	for (auto Iter : SkillAbilitys)
 	{
-		if(Iter.Value.GetData().SkillType == InSkillType)
+		if(Iter.Value.GetItemData().SkillType == InSkillType)
 		{
 			Abilitys.Add(Iter.Value);
 		}
@@ -500,7 +497,7 @@ bool ADWCharacter::HasSkillAbility(ESkillType InSkillType, int32 InAbilityIndex)
 		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
 		for (int32 i = 0; i < SkillSlots.Num(); i++)
 		{
-			if(SkillSlots[i]->GetItem().ID == Abilitys[InAbilityIndex != -1 ? InAbilityIndex : 0].SkillID)
+			if(SkillSlots[i]->GetItem().ID == Abilitys[InAbilityIndex != -1 ? InAbilityIndex : 0].AbilityName)
 			{
 				return true;
 			}
@@ -520,19 +517,19 @@ bool ADWCharacter::HasActionAbility(ECharacterActionType InActionType)
 
 bool ADWCharacter::CreateTeam(const FName& InTeamName /*= MANE_None*/, FString InTeamDetail /*= TEXT("")*/)
 {
-	return UDWHelper::GetWorldManager()->CreateTeam(this, InTeamName, InTeamDetail);
+	return AWorldManager::GetCurrent()->CreateTeam(this, InTeamName, InTeamDetail);
 }
 
 bool ADWCharacter::DissolveTeam()
 {
-	return UDWHelper::GetWorldManager()->DissolveTeam(*TeamID, this);
+	return AWorldManager::GetCurrent()->DissolveTeam(*TeamID, this);
 }
 
 bool ADWCharacter::JoinTeam(const FName& InTeamID)
 {
-	if (UDWHelper::GetWorldManager()->IsExistTeam(InTeamID))
+	if (AWorldManager::GetCurrent()->IsExistTeam(InTeamID))
 	{
-		UDWHelper::GetWorldManager()->GetTeamData(InTeamID)->AddMember(this);
+		AWorldManager::GetCurrent()->GetTeamData(InTeamID)->AddMember(this);
 		return true;
 	}
 	return false;
@@ -1002,7 +999,7 @@ bool ADWCharacter::Attack(int32 InAbilityIndex /*= -1*/)
 	if (bFreeToAnimate)
 	{
 		if(InAbilityIndex == -1) InAbilityIndex = AttackAbilityIndex;
-		if (HasAttackAbility(InAbilityIndex) && (!GetAttackAbility(InAbilityIndex).bNeedWeapon || HasWeapon()))
+		if (HasAttackAbility(InAbilityIndex) && HasWeapon(GetAttackAbility(InAbilityIndex).WeaponType))
 		{
 			if (ActiveAbility(GetAttackAbility(InAbilityIndex).AbilityHandle))
 			{
@@ -1033,17 +1030,32 @@ bool ADWCharacter::SkillAttack(const FName& InSkillID)
 		if (HasSkillAbility(InSkillID))
 		{
 			auto AbilityData = GetSkillAbility(InSkillID);
-			if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
+			switch(AbilityData.GetItemData().SkillMode)
 			{
-				if (ActiveAbility(AbilityData.AbilityHandle))
+				case ESkillMode::Initiative:
 				{
-					bAttacking = true;
-					LimitToAnim(true, true);
-					SetMotionRate(0, 0);
-					SkillAbilityIndex = InSkillID;
-					AttackType = EAttackType::SkillAttack;
+					if(AbilityData.GetItemData().SkillMode == ESkillMode::Initiative)
+					{
+						if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
+						{
+							if(ActiveAbility(AbilityData.AbilityHandle))
+							{
+								bAttacking = true;
+								LimitToAnim(true, true);
+								SetMotionRate(0, 0);
+								SkillAbilityIndex = InSkillID;
+								AttackType = EAttackType::SkillAttack;
+								return true;
+							}
+						}
+					}
+					break;
+				}
+				case ESkillMode::Passive:
+				{
 					return true;
 				}
+				default: break;
 			}
 		}
 	}
@@ -1057,14 +1069,14 @@ bool ADWCharacter::SkillAttack(ESkillType InSkillType, int32 InAbilityIndex)
 		if (HasSkillAbility(InSkillType, InAbilityIndex))
 		{
 			auto AbilityData = GetSkillAbility(InSkillType, InAbilityIndex);
-			if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
+			if(HasWeapon(AbilityData.WeaponType))
 			{
 				if (ActiveAbility(AbilityData.AbilityHandle))
 				{
 					bAttacking = true;
 					LimitToAnim(true, true);
 					SetMotionRate(0, 0);
-					SkillAbilityIndex = AbilityData.SkillID;
+					SkillAbilityIndex = AbilityData.AbilityName;
 					AttackType = EAttackType::SkillAttack;
 					return true;
 				}
@@ -1076,7 +1088,7 @@ bool ADWCharacter::SkillAttack(ESkillType InSkillType, int32 InAbilityIndex)
 
 bool ADWCharacter::FallingAttack()
 {
-	if (FallingAttackAbility.AbilityClass != nullptr && (!FallingAttackAbility.bNeedWeapon || HasWeapon()))
+	if (FallingAttackAbility.AbilityClass != nullptr && HasWeapon(FallingAttackAbility.WeaponType))
 	{
 		if (ActiveAbility(FallingAttackAbility.AbilityHandle))
 		{
@@ -1098,12 +1110,12 @@ void ADWCharacter::AttackStart()
 			SetDamaging(true);
 			break;
 		case EAttackType::SkillAttack:
-			if (GetSkillAbility(SkillAbilityIndex).GetData().SkillClass != nullptr)
+			if (GetSkillAbility(SkillAbilityIndex).GetItemData().SkillClass != nullptr)
 			{
 				FActorSpawnParameters spawnParams = FActorSpawnParameters();
 				spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				ASkill* tmpSkill = GetWorld()->SpawnActor<ASkill>(GetSkillAbility(SkillAbilityIndex).GetData().SkillClass, spawnParams);
-				if(tmpSkill) tmpSkill->Initlize(this, SkillAbilityIndex);
+				ASkill* tmpSkill = GetWorld()->SpawnActor<ASkill>(GetSkillAbility(SkillAbilityIndex).GetItemData().SkillClass, spawnParams);
+				if(tmpSkill) tmpSkill->Initialize(this, SkillAbilityIndex);
 			}
 			break;
 		case EAttackType::FallingAttack:
@@ -1246,7 +1258,7 @@ void ADWCharacter::RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* 
 		Equips[InPartType] = GetWorld()->SpawnActor<AEquip>(UDWHelper::LoadEquipData(EquipSlot->GetItem().ID).EquipClass, spawnParams);
 		if (Equips[InPartType])
 		{
-			Equips[InPartType]->Initlize(this);
+			Equips[InPartType]->Initialize(this);
 			Equips[InPartType]->OnAssemble();
 		}
 	}
@@ -1258,13 +1270,13 @@ void ADWCharacter::RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* 
 	}
 }
 
-FGameplayAbilitySpecHandle ADWCharacter::AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility)
+FGameplayAbilitySpecHandle ADWCharacter::AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility, int32 InLevel /*= 1*/)
 {
 	if (AbilitySystem && InAbility)
 	{
 		FGameplayAbilitySpecDef SpecDef = FGameplayAbilitySpecDef();
 		SpecDef.Ability = InAbility;
-		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(SpecDef, 1);
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(SpecDef, InLevel);
 		return AbilitySystem->GiveAbility(AbilitySpec);
 	}
 	return FGameplayAbilitySpecHandle();
@@ -1293,15 +1305,6 @@ bool ADWCharacter::ActiveAbility(const FGameplayTagContainer& AbilityTags, bool 
 	if (AbilitySystem)
 	{
 		return AbilitySystem->TryActivateAbilitiesByTag(AbilityTags, bAllowRemoteActivation);
-	}
-	return false;
-}
-
-bool ADWCharacter::ActiveAbility(UInventorySlot* InventorySlot, bool bAllowRemoteActivation /*= false*/)
-{
-	if (AbilitySystem && !InventorySlot->IsEmpty())
-	{
-		return AbilitySystem->TryActivateAbility(InventorySlot->GetAbilityHandle(), bAllowRemoteActivation);
 	}
 	return false;
 }
@@ -1606,7 +1609,7 @@ UWidgetCharacterHP* ADWCharacter::GetWidgetCharacterHPWidget()
 
 FTeamData* ADWCharacter::GetTeamData() const
 {
-	return UDWHelper::GetWorldManager()->GetTeamData(*TeamID);
+	return AWorldManager::GetCurrent()->GetTeamData(*TeamID);
 }
 
 void ADWCharacter::SetName(const FString& InName)
@@ -1938,32 +1941,42 @@ float ADWCharacter::GetHalfHeight() const
 	return GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 }
 
-bool ADWCharacter::HasWeapon()
+bool ADWCharacter::HasWeapon(EWeaponType InWeaponType)
 {
-	return HasEquip(EEquipPartType::RightHand) && GetEquip(EEquipPartType::RightHand)->IsA(AEquipWeapon::StaticClass());
+	if(InWeaponType == EWeaponType::None) return true;
+	
+	if(HasEquip(EEquipPartType::RightHand))
+	{
+		if(AEquipWeapon* Weapon = Cast<AEquipWeapon>(GetEquip(EEquipPartType::RightHand)))
+		{
+			return Weapon->GetWeaponData().WeaponType == InWeaponType;
+		}
+	}
+	return false;
 }
 
-bool ADWCharacter::HasShield()
+bool ADWCharacter::HasShield(EShieldType InShieldType)
 {
-	return HasEquip(EEquipPartType::LeftHand) && GetEquip(EEquipPartType::LeftHand)->IsA(AEquipShield::StaticClass());
+	if(InShieldType == EShieldType::None) return true;
+	
+	if(HasEquip(EEquipPartType::LeftHand))
+	{
+		if(AEquipShield* Weapon = Cast<AEquipShield>(GetEquip(EEquipPartType::LeftHand)))
+		{
+			return Weapon->GetShieldData().ShieldType == InShieldType;
+		}
+	}
+	return false;
 }
 
 AEquipWeapon* ADWCharacter::GetWeapon()
 {
-	if(HasWeapon())
-	{
-		return Cast<AEquipWeapon>(GetEquip(EEquipPartType::RightHand));
-	}
-	return nullptr;
+	return Cast<AEquipWeapon>(GetEquip(EEquipPartType::RightHand));
 }
 
 AEquipShield* ADWCharacter::GetShield()
 {
-	if (HasWeapon())
-	{
-		return Cast<AEquipShield>(GetEquip(EEquipPartType::LeftHand));
-	}
-	return nullptr;
+	return Cast<AEquipShield>(GetEquip(EEquipPartType::LeftHand));
 }
 
 bool ADWCharacter::HasArmor(EEquipPartType InPartType)
@@ -1994,76 +2007,56 @@ AEquip* ADWCharacter::GetEquip(EEquipPartType InPartType)
 	return nullptr;
 }
 
-FCharacterAttackAbilityData ADWCharacter::GetAttackAbility(int32 InAbilityIndex /*= -1*/)
+FDWCharacterAttackAbilityData ADWCharacter::GetAttackAbility(int32 InAbilityIndex /*= -1*/)
 {
 	if (HasAttackAbility(InAbilityIndex == -1 ? AttackAbilityIndex : InAbilityIndex))
 	{
 		return AttackAbilitys[InAbilityIndex == -1 ? AttackAbilityIndex : InAbilityIndex];
 	}
-	return FCharacterAttackAbilityData();
+	return FDWCharacterAttackAbilityData();
 }
 
-FCharacterSkillAbilityData ADWCharacter::GetSkillAbility(const FName& InSkillID)
+FDWCharacterSkillAbilityData ADWCharacter::GetSkillAbility(const FName& InSkillID)
 {
 	if(HasSkillAbility(InSkillID))
 	{
-		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
-		for (int32 i = 0; i < SkillSlots.Num(); i++)
-		{
-			if(SkillSlots[i]->GetItem().ID == InSkillID)
-			{
-				SkillAbilitys[InSkillID].AbilityHandle = SkillSlots[i]->GetAbilityHandle();
-				break;
-			}
-		}
 		return SkillAbilitys[InSkillID];
 	}
-	return FCharacterSkillAbilityData();
+	return FDWCharacterSkillAbilityData();
 }
 
-FCharacterSkillAbilityData ADWCharacter::GetSkillAbility(ESkillType InSkillType, int32 InAbilityIndex)
+FDWCharacterSkillAbilityData ADWCharacter::GetSkillAbility(ESkillType InSkillType, int32 InAbilityIndex)
 {
 	if(HasSkillAbility(InSkillType, InAbilityIndex))
 	{
-		TArray<FCharacterSkillAbilityData> Abilitys = TArray<FCharacterSkillAbilityData>();
+		TArray<FDWCharacterSkillAbilityData> Abilitys = TArray<FDWCharacterSkillAbilityData>();
 		for (auto Iter : SkillAbilitys)
 		{
-			if(Iter.Value.GetData().SkillType == InSkillType)
+			if(Iter.Value.GetItemData().SkillType == InSkillType)
 			{
 				Abilitys.Add(Iter.Value);
 			}
 		}
-		auto& AblilityData = InAbilityIndex != -1 ? Abilitys[InAbilityIndex] : Abilitys[0];
-		auto SkillSlots = Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill);
-		for (int32 i = 0; i < SkillSlots.Num(); i++)
-		{
-			if(SkillSlots[i]->GetItem().ID == AblilityData.SkillID)
-			{
-				AblilityData.AbilityHandle = SkillSlots[i]->GetAbilityHandle();
-				break;
-			}
-		}
-		return AblilityData;
+		return InAbilityIndex != -1 ? Abilitys[InAbilityIndex] : Abilitys[0];
 	}
-
-	return FCharacterSkillAbilityData();
+	return FDWCharacterSkillAbilityData();
 }
 
-FCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionType InActionType /*= ECharacterActionType::None*/)
+FDWCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionType InActionType /*= ECharacterActionType::None*/)
 {
 	if(InActionType == ECharacterActionType::None) InActionType = ActionType;
 	if (HasActionAbility(InActionType))
 	{
 		return ActionAbilitys[InActionType];
 	}
-	return FCharacterActionAbilityData();
+	return FDWCharacterActionAbilityData();
 }
 
 bool ADWCharacter::RaycastStep(FHitResult& OutHitResult)
 {
 	FVector rayStart = GetActorLocation() + FVector::DownVector * (GetHalfHeight() - GetCharacterMovement()->MaxStepHeight);
-	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + UDWHelper::GetWorldManager()->GetBlockSize() * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
-	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, UDWHelper::GetWorldManager()->GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
+	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetWorldInfo().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
+	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, AWorldManager::GetCurrent()->GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 }
 
 void ADWCharacter::HandleDamage(const float LocalDamageDone, FHitResult HitResult, const struct FGameplayTagContainer& SourceTags, ADWCharacter* SourceCharacter, AActor* SourceActor)

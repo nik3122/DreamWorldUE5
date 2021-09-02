@@ -7,7 +7,7 @@
 #include "WorldDataSave.generated.h"
 
 /**
- * ÊÀ½çÊı¾İ´æÈ¡Àà
+ * ä¸–ç•Œæ•°æ®å­˜å–ç±»
  */
 UCLASS()
 class UWorldDataSave : public USaveGame

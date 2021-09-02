@@ -3,7 +3,6 @@
 #include "DWGameMode.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Character/Player/DWPlayerCharacterController.h"
-#include "Engine/World.h"
 #include "DWGameState.h"
 #include "DWGameInstance.h"
 #include "Kismet/GameplayStatics.h"
@@ -26,8 +25,14 @@ void ADWGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	GenerateWidgets();
-	UDWHelper::GetGameState()->SetCurrentState(EGameState::MainMenu);
-	UDWHelper::GetGameInstance()->LoadGameData();
+	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
+	{
+		DWGameState->SetCurrentState(EGameState::MainMenu);
+	}
+	if(UDWGameInstance* DWGameInstance = UDWHelper::GetGameInstance(this))
+	{
+		DWGameInstance->LoadGameData();
+	}
 }
 
 void ADWGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -38,55 +43,58 @@ void ADWGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 
 void ADWGameMode::StartGame()
 {
-	UDWHelper::GetWorldManager()->LoadWorld();
+	AWorldManager::GetCurrent()->LoadWorld();
 }
 
 void ADWGameMode::PauseGame()
 {
 	UGameplayStatics::SetGamePaused(this, true);
-	UDWHelper::GetGameState()->SetCurrentState(EGameState::Pausing);
+	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
+	{
+		GameState->SetCurrentState(EGameState::Pausing);
+	}
 }
 
-void ADWGameMode::ContinueGame()
+void ADWGameMode::UnPauseGame()
 {
 	UGameplayStatics::SetGamePaused(this, false);
-	UDWHelper::GetGameState()->SetCurrentState(EGameState::Playing);
+	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
+	{
+		GameState->SetCurrentState(EGameState::Playing);
+	}
 }
 
 void ADWGameMode::BackMainMenu()
 {
-	if (!UDWHelper::GetWorldManager()->GetWorldName().IsEmpty())
+	if (!AWorldManager::GetWorldInfo().WorldName.IsEmpty())
 	{
-		UDWHelper::GetWorldManager()->UnloadWorld();
+		AWorldManager::GetCurrent()->UnloadWorld();
 	}
-	if (UDWHelper::GetGameState()->GetCurrentState() == EGameState::Pausing)
+	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
 	{
-		UGameplayStatics::SetGamePaused(this, false);
+		if (GameState->GetCurrentState() == EGameState::Pausing)
+		{
+			UGameplayStatics::SetGamePaused(this, false);
+		}
+		GameState->SetCurrentState(EGameState::MainMenu);
 	}
-	UDWHelper::GetGameState()->SetCurrentState(EGameState::MainMenu);
 }
 
-void ADWGameMode::ExitGame()
+void ADWGameMode::QuitGame()
 {
-	if (!UDWHelper::GetWorldManager()->GetWorldName().IsEmpty())
+	if (!AWorldManager::GetWorldInfo().WorldName.IsEmpty())
 	{
-		//UDWHelper::GetWorldManager()->UnloadWorld();
+		//AWorldManager::GetCurrent()->UnloadWorld();
 	}
-	UKismetSystemLibrary::QuitGame(this, UDWHelper::GetPlayerController(), EQuitPreference::Quit, true);
+	if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
+	{
+		UKismetSystemLibrary::QuitGame(this, PlayerController, EQuitPreference::Quit, true);
+	}
 }
 
-bool ADWGameMode::IsExistWidgetPanel(FName InWidgetName)
+bool ADWGameMode::IsExistWidgetPanel(FName InWidgetName) const
 {
 	return WidgetPanels.Contains(InWidgetName);
-}
-
-UWidgetPanelBase* ADWGameMode::GetWidgetPanel(FName InWidgetName)
-{
-	if (IsExistWidgetPanel(InWidgetName))
-	{
-		return WidgetPanels[InWidgetName];
-	}
-	return nullptr;
 }
 
 UWidgetPanelBase* ADWGameMode::CreateWidgetPanel(TSubclassOf<UWidgetPanelBase> InWidgetClass, bool bShowPanel /*= false*/)
@@ -114,20 +122,29 @@ UWidgetPanelBase* ADWGameMode::CreateWidgetPanel(TSubclassOf<UWidgetPanelBase> I
 	return nullptr;
 }
 
-bool ADWGameMode::RemoveWidgetPanel(UWidgetPanelBase* InWidgetPanel)
-{
-	if (InWidgetPanel != nullptr)
-	{
-		return RemoveWidgetPanel(InWidgetPanel->GetWidgetName());
-	}
-	return false;
-}
-
-bool ADWGameMode::RemoveWidgetPanel(FName InWidgetName)
+UWidgetPanelBase* ADWGameMode::GetWidgetPanelByName(FName InWidgetName)
 {
 	if (IsExistWidgetPanel(InWidgetName))
 	{
-		UWidgetPanelBase* WidgetPanel = GetWidgetPanel(InWidgetName);
+		return WidgetPanels[InWidgetName];
+	}
+	return nullptr;
+}
+
+UWidgetPanelBase* ADWGameMode::K2_GetWidgetPanelByClass(TSubclassOf<UWidgetPanelBase> InWidgetPanelClass)
+{
+	if(UWidgetPanelBase* TmpObject = Cast<UWidgetPanelBase>(InWidgetPanelClass->GetDefaultObject()))
+	{
+		return GetWidgetPanelByName(TmpObject->GetWidgetName());
+	}
+	return nullptr;
+}
+
+bool ADWGameMode::RemoveWidgetPanelByName(FName InWidgetName)
+{
+	if (IsExistWidgetPanel(InWidgetName))
+	{
+		UWidgetPanelBase* WidgetPanel = GetWidgetPanelByName(InWidgetName);
 		if (WidgetPanel != nullptr)
 		{
 			switch (WidgetPanel->GetWidgetType())
@@ -152,31 +169,31 @@ bool ADWGameMode::RemoveWidgetPanel(FName InWidgetName)
 	return false;
 }
 
-bool ADWGameMode::ToggleWidgetPanel(FName InWidgetName)
+bool ADWGameMode::ToggleWidgetPanelByName(FName InWidgetName)
 {
 	if (IsExistWidgetPanel(InWidgetName))
 	{
-		GetWidgetPanel(InWidgetName)->TogglePanel();
+		GetWidgetPanelByName(InWidgetName)->TogglePanel();
 		return true;
 	}
 	return false;
 }
 
-bool ADWGameMode::ShowWidgetPanel(FName InWidgetName)
+bool ADWGameMode::ShowWidgetPanelByName(FName InWidgetName)
 {
 	if (IsExistWidgetPanel(InWidgetName))
 	{
-		GetWidgetPanel(InWidgetName)->ShowPanel();
+		GetWidgetPanelByName(InWidgetName)->ShowPanel();
 		return true;
 	}
 	return false;
 }
 
-bool ADWGameMode::HideWidgetPanel(FName InWidgetName)
+bool ADWGameMode::HideWidgetPanelByName(FName InWidgetName)
 {
 	if (IsExistWidgetPanel(InWidgetName))
 	{
-		GetWidgetPanel(InWidgetName)->HidePanel();
+		GetWidgetPanelByName(InWidgetName)->HidePanel();
 		return true;
 	}
 	return false;
@@ -222,35 +239,37 @@ void ADWGameMode::UpdateInputMode()
 
 void ADWGameMode::SetInputMode(EInputMode InInputMode)
 {
-	ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController();
-	if(PlayerController && PlayerController->IsValidLowLevel() && InputMode != InInputMode)
+	if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
 	{
-		InputMode = InInputMode;
-		switch (InInputMode)
+		if(InputMode != InInputMode)
 		{
-			case EInputMode::None:
+			InputMode = InInputMode;
+			switch (InInputMode)
 			{
-				PlayerController->SetInputMode(FInputModeUIOnly());
-				PlayerController->bShowMouseCursor = false;
-				break;
-			}
-			case EInputMode::GameAndUI:
-			{
-				PlayerController->SetInputMode(FInputModeGameAndUI());
-				PlayerController->bShowMouseCursor = true;
-				break;
-			}
-			case EInputMode::GameOnly:
-			{
-				PlayerController->SetInputMode(FInputModeGameOnly());
-				PlayerController->bShowMouseCursor = false;
-				break;
-			}
-			case EInputMode::UIOnly:
-			{
-				PlayerController->SetInputMode(FInputModeUIOnly());
-				PlayerController->bShowMouseCursor = true;
-				break;
+				case EInputMode::None:
+				{
+					PlayerController->SetInputMode(FInputModeUIOnly());
+					PlayerController->bShowMouseCursor = false;
+					break;
+				}
+				case EInputMode::GameAndUI:
+				{
+					PlayerController->SetInputMode(FInputModeGameAndUI());
+					PlayerController->bShowMouseCursor = true;
+					break;
+				}
+				case EInputMode::GameOnly:
+				{
+					PlayerController->SetInputMode(FInputModeGameOnly());
+					PlayerController->bShowMouseCursor = false;
+					break;
+				}
+				case EInputMode::UIOnly:
+				{
+					PlayerController->SetInputMode(FInputModeUIOnly());
+					PlayerController->bShowMouseCursor = true;
+					break;
+				}
 			}
 		}
 	}
@@ -263,4 +282,11 @@ void ADWGameMode::SetTemporaryPanel(UWidgetPanelBase* InTemporaryPanel)
 		TemporaryPanel->SetActive(false);
 	}
 	TemporaryPanel = InTemporaryPanel;
+}
+
+TArray<UWidgetPanelBase*> ADWGameMode::GetWidgetPanels() const
+{
+	TArray<UWidgetPanelBase*> TmpArr;
+	WidgetPanels.GenerateValueArray(TmpArr);
+	return TmpArr;
 }

@@ -46,16 +46,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex);
+	virtual void Initialize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex);
 
-	virtual void Destroyed();
+	virtual void Destroyed() override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterSkillAbilityData GetSkillData();
+	UFUNCTION(BlueprintPure)
+	FDWCharacterSkillAbilityData GetSkillData();
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FName GetSkillIndex() const { return SkillAbilityIndex; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetOwnerCharacter() const { return OwnerCharacter; }
 };

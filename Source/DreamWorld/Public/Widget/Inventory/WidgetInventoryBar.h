@@ -37,12 +37,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SelectInventorySlot(int32 InSlotIndex);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UInventorySlot* GetSelectedSlot();
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FItem GetSelectedItem();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetSelectedSlotIndex() const { return SelectedSlotIndex; }
 };

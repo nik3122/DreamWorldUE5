@@ -33,7 +33,7 @@ class AEquip;
 class ASkill;
 class UPropEffectBase;
 class UEquipEffectBase;
-class UDWItemAbility;
+class UDWGameplayAbility;
 class UDWAttributeSet;
 class UDWCharacterAttributeSet;
 class UDWCharacterAttackAbility;
@@ -67,7 +67,7 @@ enum class EGameState : uint8
 	// ?????
 	Pausing,
 	// ?????
-	Finished
+	Overed
 };
 
 /**
@@ -255,20 +255,27 @@ enum class EEquipPartType : uint8
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
+	// 无
 	None,
-	// ??
-	Sword,
-	// ??
-	Knife,
-	// ????
-	CDA,
-	// ????
-	Wand,
-	// ??
-	Stick,
-	Axe,
-	// ??
-	Hammer
+	// 物理近战
+	PhysicsMelee,
+	// 物理远程
+	PhysicsRemote,
+	// 魔法近战
+	MagicMelee,
+	// 魔法远程
+	MagicRemote,
+};
+
+UENUM(BlueprintType)
+enum class EShieldType : uint8
+{
+	// 无
+	None,
+	// 物理
+	Physics,
+	// 魔法
+	Magic
 };
 
 UENUM(BlueprintType)
@@ -428,6 +435,20 @@ enum class ESkillType : uint8
 	Melee,
 	// ???????
 	Remote
+};
+
+/**
+* 技能模式
+*/
+UENUM(BlueprintType)
+enum class ESkillMode : uint8
+{
+	// 无
+	None,
+	// 被动
+	Passive,
+	// ???????
+	Initiative
 };
 
 /**
@@ -877,7 +898,7 @@ public:
 	int32 MaxLevel;
 		
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UDWItemAbility> AbilityClass;
+	TSubclassOf<class UDWItemAbility> AbilityClass;
 
 	FORCEINLINE FItemData()
 	{
@@ -908,11 +929,15 @@ public:
 	ESkillType SkillType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ESkillMode SkillMode;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ASkill> SkillClass;
 
 	FORCEINLINE FSkillData()
 	{
 		SkillType = ESkillType::None;
+		SkillMode = ESkillMode::None;
 		SkillClass = nullptr;
 	}
 };
@@ -1101,7 +1126,7 @@ public:
 	{
 		EquipType = EEquipType::Weapon;
 		HandType = EWeaponHandType::Single;
-		WeaponType = EWeaponType::Sword;
+		WeaponType = EWeaponType::None;
 	}
 };
 
@@ -1111,9 +1136,13 @@ struct DREAMWORLD_API FEquipShieldData : public FEquipData
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EShieldType ShieldType;
+
 	FORCEINLINE FEquipShieldData()
 	{
 		EquipType = EEquipType::Shield;
+		ShieldType = EShieldType::None;
 	}
 };
 
@@ -1176,7 +1205,7 @@ public:
 		return !ID.IsNone();
 	}
 
-	FORCEINLINE bool Equal(FItem InItem) const
+	FORCEINLINE bool EqualType(FItem InItem) const
 	{
 		return InItem.IsValid() && InItem.ID == ID;
 	}
@@ -1625,7 +1654,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FCharacterAttackAbilityData : public FTableRowBase
+struct DREAMWORLD_API FDWAbilityData : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -1634,52 +1663,20 @@ public:
 	FName AbilityName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UDWCharacterAttackAbility> AbilityClass;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bNeedWeapon;
+	int32 AbilityLevel;
 
 	FGameplayAbilitySpecHandle AbilityHandle;
 
-	FORCEINLINE FCharacterAttackAbilityData()
+	FORCEINLINE FDWAbilityData()
 	{
 		AbilityName = NAME_None;
-		AbilityClass = nullptr;
-		bNeedWeapon = false;
+		AbilityLevel = 1;
 		AbilityHandle = FGameplayAbilitySpecHandle();
 	}
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FCharacterSkillAbilityData : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName SkillID;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EWeaponType WeaponType;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCancelAble;
-	
-	FGameplayAbilitySpecHandle AbilityHandle;
-
-	FORCEINLINE FCharacterSkillAbilityData()
-	{
-		SkillID = NAME_None;
-		bCancelAble = false;
-		WeaponType = EWeaponType::None;
-		AbilityHandle = FGameplayAbilitySpecHandle();
-	}
-	
-	FORCEINLINE FSkillData GetData() const;
-};
-
-USTRUCT(BlueprintType)
-struct DREAMWORLD_API FCharacterActionAbilityData : public FTableRowBase
+struct DREAMWORLD_API FDWCharacterActionAbilityData : public FDWAbilityData
 {
 	GENERATED_BODY()
 
@@ -1689,122 +1686,104 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UDWCharacterActionAbility> AbilityClass;
-		
-	FGameplayAbilitySpecHandle AbilityHandle;
-
-	FORCEINLINE FCharacterActionAbilityData()
-	{
-		ActionType = ECharacterActionType::None;
-		AbilityClass = nullptr;
-		AbilityHandle = FGameplayAbilitySpecHandle();
-	}
-};
-
-USTRUCT(BlueprintType)
-struct DREAMWORLD_API FCharacterPassiveEffectData : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName EffectName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UGameplayEffect> EffectClass;
-
-	FActiveGameplayEffectHandle EffectHandle;
-
-	FORCEINLINE FCharacterPassiveEffectData()
-	{
-		EffectName = NAME_None;
-		EffectClass = nullptr;
-		EffectHandle = FActiveGameplayEffectHandle();
-	}
-};
-
-USTRUCT(BlueprintType)
-struct DREAMWORLD_API FDWCharacterSkillAbilityData : public FTableRowBase
-{
-	GENERATED_BODY()
-
-	public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName AbilityName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UDWCharacterSkillAbility> AbilityClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ASkill> SkillClass;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UTexture2D* SkillIcon;
-	//FSlateBrush Icon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bNeedWeapon;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCancelAble;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bHasLearned;
-			
-	FGameplayAbilitySpecHandle AbilityHandle;
-
-	FORCEINLINE FDWCharacterSkillAbilityData()
-	{
-		AbilityName = NAME_None;
-		AbilityClass = nullptr;
-		SkillClass = nullptr;
-		SkillIcon = nullptr;
-		bNeedWeapon = false;
-		bCancelAble = false;
-		bHasLearned = false;
-		AbilityHandle = FGameplayAbilitySpecHandle();
-	}
-};
-
-USTRUCT(BlueprintType)
-struct DREAMWORLD_API FDWCharacterActionAbilityData : public FTableRowBase
-{
-	GENERATED_BODY()
-
-	public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ECharacterActionType ActionType;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UDWCharacterActionAbility> AbilityClass;
-		
-	FGameplayAbilitySpecHandle AbilityHandle;
 
 	FORCEINLINE FDWCharacterActionAbilityData()
 	{
 		ActionType = ECharacterActionType::None;
 		AbilityClass = nullptr;
-		AbilityHandle = FGameplayAbilitySpecHandle();
 	}
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FDWCharacterPassiveEffectData : public FTableRowBase
+struct DREAMWORLD_API FCharacterAttackAbilityData : public FDWAbilityData
 {
 	GENERATED_BODY()
 
 	public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EWeaponType WeaponType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UDWCharacterAttackAbility> AbilityClass;
+
+	FORCEINLINE FCharacterAttackAbilityData()
+	{
+		WeaponType = EWeaponType::None;
+		AbilityClass = nullptr;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FDWCharacterAttackAbilityData : public FDWAbilityData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EWeaponType WeaponType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UDWCharacterAttackAbility> AbilityClass;
+
+	FORCEINLINE FDWCharacterAttackAbilityData()
+	{
+		WeaponType = EWeaponType::None;
+		AbilityClass = nullptr;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FDWCharacterSkillAbilityData : public FDWAbilityData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EWeaponType WeaponType;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UDWCharacterSkillAbility> AbilityClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCancelAble;
+
+	FORCEINLINE FDWCharacterSkillAbilityData()
+	{
+		WeaponType = EWeaponType::None;
+		AbilityClass = nullptr;
+		bCancelAble = false;
+	}
+	
+	FORCEINLINE FSkillData GetItemData() const;
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FDWEffectData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName EffectName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AbilityLevel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UGameplayEffect> EffectClass;
 
 	FActiveGameplayEffectHandle EffectHandle;
 
-	FORCEINLINE FDWCharacterPassiveEffectData()
+	FORCEINLINE FDWEffectData()
 	{
 		EffectName = NAME_None;
-		EffectClass = nullptr;
+		AbilityLevel = 1;
 		EffectHandle = FActiveGameplayEffectHandle();
 	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FDWCharacterPassiveEffectData : public FDWEffectData
+{
+	GENERATED_BODY()
 };

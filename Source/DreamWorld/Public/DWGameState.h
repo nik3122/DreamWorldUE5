@@ -7,7 +7,7 @@
 #include "DWGameState.generated.h"
 
 /**
- * ÓÎÏ·×´Ì¬»ùÀà
+ * ï¿½ï¿½Ï·×´Ì¬ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class ADWGameState : public AGameStateBase
@@ -18,7 +18,7 @@ public:
 	ADWGameState();
 
 protected:
-	// µ±Ç°×´Ì¬
+	// ï¿½ï¿½Ç°×´Ì¬
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EGameState CurrentState;
 
@@ -26,11 +26,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	/** ÉèÖÃµ±Ç°×´Ì¬ */
+	/** ï¿½ï¿½ï¿½Ãµï¿½Ç°×´Ì¬ */
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentState(EGameState InGameState);
 
-	/** »ñÈ¡µ±Ç°×´Ì¬ */
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	/** ï¿½ï¿½È¡ï¿½ï¿½Ç°×´Ì¬ */
+	UFUNCTION(BlueprintPure)
 	EGameState GetCurrentState() const { return CurrentState; }
 };

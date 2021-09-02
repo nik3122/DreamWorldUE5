@@ -10,7 +10,7 @@ class UInventoryEquipSlot;
 class UInventorySkillSlot;
 
 /**
- * ½ÇÉ«ÎïÆ·À¸
+ * ï¿½ï¿½É«ï¿½ï¿½Æ·ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UCharacterInventory : public UInventory
@@ -32,6 +32,6 @@ public:
 	virtual void ClearAll() override;
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetOwnerCharacter() const;
 };

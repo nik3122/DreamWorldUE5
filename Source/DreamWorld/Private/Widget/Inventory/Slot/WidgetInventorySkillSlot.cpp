@@ -2,11 +2,7 @@
 
 
 #include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
-#include "Widget/Inventory/WidgetInventory.h"
-#include "DragDropOperation.h"
 #include "Character/DWCharacter.h"
-#include "Widget/Inventory/WidgetInventoryBar.h"
-#include "DWGameMode.h"
 #include "Inventory/Slot/InventorySlot.h"
 #include "Inventory/Slot/InventorySkillSlot.h"
 #include "Abilities/Character/DWCharacterSkillAbility.h"
@@ -29,12 +25,12 @@ void UWidgetInventorySkillSlot::InitSlot(UInventorySlot* InOwnerSlot)
 	}
 }
 
-bool UWidgetInventorySkillSlot::Active()
+bool UWidgetInventorySkillSlot::ActiveSkill()
 {
 	ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(OwnerSlot->GetOwner()->GetOwnerActor());
 	if (OwnerCharacter && !OwnerSlot->IsEmpty())
 	{
-		if (Cast<UInventorySkillSlot>(OwnerSlot)->Active())
+		if (Cast<UInventorySkillSlot>(OwnerSlot)->ActiveItem())
 		{
 			return true;
 		}
@@ -42,12 +38,12 @@ bool UWidgetInventorySkillSlot::Active()
 	return false;
 }
 
-bool UWidgetInventorySkillSlot::UnActive()
+bool UWidgetInventorySkillSlot::CancelSkill()
 {
 	ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(OwnerSlot->GetOwner()->GetOwnerActor());
 	if (OwnerCharacter && !OwnerSlot->IsEmpty())
 	{
-		if (Cast<UInventorySkillSlot>(OwnerSlot)->UnActive())
+		if (Cast<UInventorySkillSlot>(OwnerSlot)->CancelItem())
 		{
 			return true;
 		}

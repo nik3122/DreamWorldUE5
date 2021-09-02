@@ -18,7 +18,7 @@ class UPawnSensingComponent;
 class ADWPlayerCharacterCameraManager;
 
 /**
- * Íæ¼Ò½ÇÉ«
+ * ï¿½ï¿½Ò½ï¿½É«
  */
 UCLASS(config=Game)
 class ADWPlayerCharacter : public ADWHumanCharacter
@@ -120,7 +120,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetControlMode(EControlMode InControlMode);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	EControlMode GetControlMode() const { return ControlMode; }
 
 	UFUNCTION(BlueprintCallable)
@@ -276,36 +276,36 @@ protected:
 	bool RaycastVoxel(FVoxelHitResult& OutHitResult);
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetInteractDistance() const { return InteractDistance; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsPressedAttack() const { return bPressedAttack; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsPressedDefend() const { return bPressedDefend; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsPressedSprint() const { return bPressedSprint; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetCameraTurnRate() const { return CameraTurnRate; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetCameraLookUpRate() const { return CameraLookUpRate; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVector2D GetCameraDistanceRange() const { return CameraDistanceRange; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	ADWPlayerCharacterController* GetPlayerController();
+	UFUNCTION(BlueprintPure)
+	ADWPlayerCharacterController* GetPlayerController() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	ADWPlayerCharacterCameraManager* GetCameraManager();
+	UFUNCTION(BlueprintPure)
+	ADWPlayerCharacterCameraManager* GetCameraManager() const;
 };

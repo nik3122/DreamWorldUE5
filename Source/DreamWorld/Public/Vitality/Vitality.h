@@ -70,15 +70,13 @@ public:
 		
 	virtual float GetMagicDamage() const = 0;
 
-	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility) = 0;
+	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility, int32 InLevel = 1) = 0;
 
 	virtual bool ActiveAbility(FGameplayAbilitySpecHandle AbilityHandle, bool bAllowRemoteActivation = false) = 0;
 
 	virtual bool ActiveAbility(TSubclassOf<UDWGameplayAbility> AbilityClass, bool bAllowRemoteActivation = false) = 0;
 
 	virtual bool ActiveAbility(const FGameplayTagContainer& GameplayTagContainer, bool bAllowRemoteActivation = false) = 0;
-		
-	virtual bool ActiveAbility(UInventorySlot* InventorySlot, bool bAllowRemoteActivation = false) = 0;
 
 	virtual void CancelAbility(UDWGameplayAbility* Ability) = 0;
 

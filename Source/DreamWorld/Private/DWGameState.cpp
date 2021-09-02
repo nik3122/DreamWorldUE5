@@ -21,44 +21,47 @@ void ADWGameState::BeginPlay()
 
 void ADWGameState::SetCurrentState(EGameState InGameState)
 {
-	ADWGameMode* GameMode = UDWHelper::GetGameMode();
-	if (GameMode && CurrentState != InGameState)
+	if(ADWGameMode* GameMode = UDWHelper::GetGameMode(this))
 	{
-		CurrentState = InGameState;
-		switch (InGameState)
+		if (CurrentState != InGameState)
 		{
-			case EGameState::MainMenu:
+			CurrentState = InGameState;
+			switch (InGameState)
 			{
-				GameMode->ActivePermanentPanels(false);
-				GameMode->ShowWidgetPanel(FName("MainMenu"));
-				break;
-			}
-			case EGameState::ChoosingRole:
-			{
-				GameMode->ShowWidgetPanel(FName("RoleChoosingPanel"));
-				break;
-			}
-			case EGameState::ChoosingWorld:
-			{
-				GameMode->ShowWidgetPanel(FName("WorldChoosingPanel"));
-				break;
-			}
-			case EGameState::Loading:
-			{
-				GameMode->ShowWidgetPanel(FName("LoadingPanel"));
-				break;
-			}
-			case EGameState::Playing:
-			{
-				GameMode->ActiveTemporaryPanel(false);
-				GameMode->ShowWidgetPanel(FName("PrimaryPanel"));
-				GameMode->ShowWidgetPanel(FName("InventoryBar"));
-				break;
-			}
-			case EGameState::Pausing:
-			{
-				GameMode->ShowWidgetPanel(FName("PausingMenu"));
-				break;
+				case EGameState::MainMenu:
+				{
+					GameMode->ActivePermanentPanels(false);
+					GameMode->ShowWidgetPanelByName(FName("MainMenu"));
+					break;
+				}
+				case EGameState::ChoosingRole:
+				{
+					GameMode->ShowWidgetPanelByName(FName("RoleChoosingPanel"));
+					break;
+				}
+				case EGameState::ChoosingWorld:
+				{
+					GameMode->ShowWidgetPanelByName(FName("WorldChoosingPanel"));
+					break;
+				}
+				case EGameState::Loading:
+				{
+					GameMode->ShowWidgetPanelByName(FName("LoadingPanel"));
+					break;
+				}
+				case EGameState::Playing:
+				{
+					GameMode->ActiveTemporaryPanel(false);
+					GameMode->ShowWidgetPanelByName(FName("PrimaryPanel"));
+					GameMode->ShowWidgetPanelByName(FName("InventoryBar"));
+					break;
+				}
+				case EGameState::Pausing:
+				{
+					GameMode->ShowWidgetPanelByName(FName("PausingMenu"));
+					break;
+				}
+				default: break;
 			}
 		}
 	}

@@ -28,10 +28,10 @@ public:
 	virtual void InitSlot(UInventorySlot* InOwnerSlot) override;
 	
 	UFUNCTION(BlueprintCallable)
-	bool Active();
+	bool ActiveSkill();
 		
 	UFUNCTION(BlueprintCallable)
-	bool UnActive();
+	bool CancelSkill();
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void StartCooldown();

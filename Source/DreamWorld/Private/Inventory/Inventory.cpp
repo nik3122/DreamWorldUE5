@@ -3,14 +3,13 @@
 #include "Inventory/Inventory.h"
 
 #include "InventoryAuxiliarySlot.h"
-#include "Widget/Inventory/WidgetInventoryBar.h"
 #include "Inventory/Slot/InventorySlot.h"
 #include "Vitality/Vitality.h"
-#include "Abilities/Item/DWItemAbility.h"
 #include "InventoryEquipSlot.h"
 #include "InventoryGenerateSlot.h"
 #include "InventoryShortcutSlot.h"
 #include "InventorySkillSlot.h"
+#include "Abilities/Item/DWItemAbility.h"
 
 UInventory::UInventory()
 {
@@ -82,7 +81,7 @@ void UInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
 		IVitality* tmpVitality = Cast<IVitality>(OwnerActor);
 		if (tmpVitality && InInventoryData.Items[i].GetData().AbilityClass)
 		{
-			Slots[i]->SetAbilityHandle(tmpVitality->AcquireAbility(InInventoryData.Items[i].GetData().AbilityClass));
+			Slots[i]->SetAbilityHandle(tmpVitality->AcquireAbility(InInventoryData.Items[i].GetData().AbilityClass, InInventoryData.Items[i].GetData().Level));
 		}
 	}
 }

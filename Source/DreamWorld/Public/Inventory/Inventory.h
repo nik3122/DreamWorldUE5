@@ -17,6 +17,7 @@ class DREAMWORLD_API UInventory : public UObject
 
 public:
 	UInventory();
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
 	TArray<UInventorySlot*> Slots;
@@ -59,25 +60,25 @@ public:
 	virtual TArray<UInventorySlot*> GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int InStartIndex = 0);
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AActor* GetOwnerActor() const { return OwnerActor; }
 	
 	UFUNCTION(BlueprintCallable)
 	void SetOwnerActor(AActor* val) { OwnerActor = val; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UInventory* GetConnectInventory() const { return ConnectInventory; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetConnectInventory(UInventory* val) { ConnectInventory = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<UInventorySlot*> GetSlots() const { return Slots; }
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FSplitSlotInfo GetSplitSlotInfo(ESplitSlotType InSplitSlotType);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TMap<ESplitSlotType, FSplitSlotInfo> GetSplitSlotInfos() const { return SplitInfos; }
 
 	template<typename T>
@@ -100,9 +101,9 @@ public:
 		return SplitSlots;
 	}
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (DisplayName = "GetSplitSlots"))
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "GetSplitSlots"))
 	TArray<UInventorySlot*> K2_GetSplitSlots(ESplitSlotType InSplitSlotType);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TMap<ESplitSlotType, FSplitSlotData> GetSplitSlotDatas();
 };

@@ -3,13 +3,8 @@
 #include "Inventory/Slot/InventorySkillSlot.h"
 #include "Inventory/Inventory.h"
 #include "Inventory/Slot/InventorySlot.h"
-#include "Widget/Inventory/WidgetInventoryBar.h"
-#include "World/WorldManager.h"
-#include "World/Chunk.h"
-#include "DWGameInstance.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
-#include "Inventory/Character/CharacterInventory.h"
 
 UInventorySkillSlot::UInventorySkillSlot()
 {
@@ -21,27 +16,60 @@ void UInventorySkillSlot::InitSlot(UInventory* InOwner, FItem InItem, EItemType 
 	Super::InitSlot(InOwner, InItem, InLimitType, InSplitType);
 }
 
-bool UInventorySkillSlot::Active()
+void UInventorySkillSlot::PreSet(FItem& InItem)
 {
-	if (Cast<ADWCharacter>(Owner->GetOwnerActor())->SkillAttack(Item.ID))
+	Super::PreSet(InItem);
+	if(GetSkillData().GetItemData().SkillMode == ESkillMode::Passive)
 	{
-		if(UISlot) Cast<UWidgetInventorySkillSlot>(UISlot)->StartCooldown();
+		CancelItem();
+	}
+}
+
+void UInventorySkillSlot::EndSet()
+{
+	Super::EndSet();
+	if(GetSkillData().GetItemData().SkillMode == ESkillMode::Passive)
+	{
+		ActiveItem();
+	}
+}
+
+bool UInventorySkillSlot::ActiveItem()
+{
+	Super::ActiveItem();
+	if(ADWCharacter* Character = Cast<ADWCharacter>(Owner->GetOwnerActor()))
+	{
+		if (Character->SkillAttack(Item.ID))
+		{
+			if(UISlot && GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)
+			{
+				Cast<UWidgetInventorySkillSlot>(UISlot)->StartCooldown();
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UInventorySkillSlot::CancelItem()
+{
+	if (GetSkillData().bCancelAble)
+	{
+		Super::CancelItem();
+		if(UISlot && GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)
+		{
+			Cast<UWidgetInventorySkillSlot>(UISlot)->StopCooldown();
+		}
 		return true;
 	}
 	return false;
 }
 
-bool UInventorySkillSlot::UnActive()
+FDWCharacterSkillAbilityData UInventorySkillSlot::GetSkillData() const
 {
-	if (Cast<ADWCharacter>(Owner->GetOwnerActor())->GetSkillAbility(Item.ID).bCancelAble)
+	if(ADWCharacter* Character = Cast<ADWCharacter>(Owner->GetOwnerActor()))
 	{
-		if(UISlot) Cast<UWidgetInventorySkillSlot>(UISlot)->StopCooldown();
-		return true;
+		return Character->GetSkillAbility(Item.ID);
 	}
-	return false;
-}
-
-FCharacterSkillAbilityData UInventorySkillSlot::GetSkillData()
-{
-	return Cast<ADWCharacter>(Owner->GetOwnerActor())->GetSkillAbility(Item.ID);
+	return FDWCharacterSkillAbilityData();
 }

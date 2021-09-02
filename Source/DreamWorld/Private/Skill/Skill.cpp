@@ -34,7 +34,7 @@ void ASkill::Tick(float DeltaTime)
 
 }
 
-void ASkill::Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillAbilityIndex)
+void ASkill::Initialize(ADWCharacter* InOwnerCharacter, const FName& InSkillAbilityIndex)
 {
 	if (InOwnerCharacter)
 	{
@@ -51,7 +51,7 @@ void ASkill::Destroyed()
 	GetWorld()->GetTimerManager().ClearTimer(DestroyTimer);
 }
 
-FCharacterSkillAbilityData ASkill::GetSkillData()
+FDWCharacterSkillAbilityData ASkill::GetSkillData()
 {
 	return OwnerCharacter->GetSkillAbility(SkillAbilityIndex);
 }

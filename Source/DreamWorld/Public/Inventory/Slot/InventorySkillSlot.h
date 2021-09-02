@@ -21,14 +21,16 @@ public:
 
 public:
 	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::NoZne */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
+
+	virtual void PreSet(FItem& InItem) override;
+
+	virtual void EndSet() override;
 	
-	UFUNCTION(BlueprintCallable)
-	bool Active();
+	virtual bool ActiveItem() override;
 		
-	UFUNCTION(BlueprintCallable)
-	bool UnActive();
+	virtual bool CancelItem() override;
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterSkillAbilityData GetSkillData();
+	UFUNCTION(BlueprintPure)
+	FDWCharacterSkillAbilityData GetSkillData() const;
 };

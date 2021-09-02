@@ -185,7 +185,7 @@ protected:
 	UDWAIBlackboard* BlackboardAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
-	FCharacterAttackAbilityData FallingAttackAbility;
+	FDWCharacterAttackAbilityData FallingAttackAbility;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
@@ -233,13 +233,13 @@ protected:
 	
 	TMap<EEquipPartType, AEquip*> Equips;
 
-	TArray<FCharacterPassiveEffectData> PassiveEffects;
+	TArray<FDWCharacterPassiveEffectData> PassiveEffects;
 
-	TArray<FCharacterAttackAbilityData> AttackAbilitys;
+	TArray<FDWCharacterAttackAbilityData> AttackAbilitys;
 
-	TMap<FName, FCharacterSkillAbilityData> SkillAbilitys;
+	TMap<FName, FDWCharacterSkillAbilityData> SkillAbilitys;
 
-	TMap<ECharacterActionType, FCharacterActionAbilityData> ActionAbilitys;
+	TMap<ECharacterActionType, FDWCharacterActionAbilityData> ActionAbilitys;
 
 protected:
 	virtual void BeginPlay() override;
@@ -250,16 +250,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void LoadData(FCharacterData InSaveData);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	virtual FCharacterData ToData();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool HasTeam() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsTeamMate(ADWCharacter* InTargetCharacter) const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool HasAttackAbility(int32 InAbilityIndex = -1);
 
 	UFUNCTION(BlueprintCallable)
@@ -428,7 +428,7 @@ public:
 	virtual void RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot);
 
 	UFUNCTION(BlueprintCallable)
-	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility) override;
+	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility, int32 InLevel = 1) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool ActiveAbility(FGameplayAbilitySpecHandle AbilityHandle, bool bAllowRemoteActivation = false) override;
@@ -436,8 +436,6 @@ public:
 	virtual bool ActiveAbility(TSubclassOf<UDWGameplayAbility> AbilityClass, bool bAllowRemoteActivation = false) override;
 
 	virtual bool ActiveAbility(const FGameplayTagContainer& AbilityTags, bool bAllowRemoteActivation = false) override;
-	
-	virtual bool ActiveAbility(UInventorySlot* InventorySlot, bool bAllowRemoteActivation = false) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void CancelAbility(UDWGameplayAbility* Ability) override;
@@ -458,10 +456,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool RemoveEffect(FActiveGameplayEffectHandle Handle, int32 StacksToRemove=-1);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	virtual void GetActiveAbilities(FGameplayTagContainer AbilityTags, TArray<UDWGameplayAbility*>& ActiveAbilities);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	virtual bool GetAbilityInfo(TSubclassOf<UDWGameplayAbility> AbilityClass, FDWAbilityInfo& OutAbilityInfo);
 
 	UFUNCTION(BlueprintCallable)
@@ -507,390 +505,390 @@ protected:
 	virtual bool RaycastStep(FHitResult& OutHitResult);
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UAIPerceptionStimuliSourceComponent* GetStimuliSource() const { return StimuliSource; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UWidgetCharacterHPComponent* GetWidgetCharacterHP() const { return WidgetCharacterHP; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UDWCharacterAnim* GetAnimInstance() const { return AnimInstance; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UDWCharacterAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool HasBehaviorTree();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UBehaviorTree* GetBehaviorTree();
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UWidgetCharacterHP* GetWidgetCharacterHPWidget();
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsActive(bool bNeedFreeToAnim = false) const;
 														
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsDead() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsDying() const { return bDying; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsFalling() const { return bFalling; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsDodging() const { return bDodging; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsSprinting() const { return bSprinting; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsCrouching() const { return bCrouching; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsSwimming() const { return bSwimming; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsAttacking() const { return bAttacking; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsDefending() const { return bDefending; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsDamaging() const { return bDamaging; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsBlocking() const { return bBlocking; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsClimbing() const { return bClimbing; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsRiding() const { return bRiding; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsFlying() const { return bFlying; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsInterrupting() const { return bInterrupting; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsLockRotation() const { return bLockRotation; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsFreeToAnimate() const { return bFreeToAnimate; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsBreakAllInput() const { return bBreakAllInput; }
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FString GetName() const override { return Name; }
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SetName(const FString& InName) override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ECharacterNature GetNature() const { return Nature; }
 			
-	//UFUNCTION(BlueprintCallable, BlueprintPure)
+	//UFUNCTION(BlueprintPure)
 	FTeamData* GetTeamData() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FString GetTeamID() const { return TeamID; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetTeamID(const FString& InTeamID);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FString GetRaceID() const override { return RaceID; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetRaceID(const FString& InRaceID) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetLevelC() const override { return Level; }
 	
 	UFUNCTION(BlueprintCallable)
 	void SetLevelC(int32 InLevel) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetEXP() const override { return EXP; }
 		
 	UFUNCTION(BlueprintCallable)
 	void SetEXP(int32 InEXP) override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetBaseEXP() const override { return BaseEXP; }
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetEXPFactor() const override { return EXPFactor; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetMaxEXP() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetTotalEXP() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	virtual FString GetHeadInfo() const override;
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetHealth() const override;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetHealth(float InValue) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMaxHealth() const override;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetMaxHealth(float InValue) override;
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMana() const;
 			
 	UFUNCTION(BlueprintCallable)
 	void SetMana(float InValue);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMaxMana() const;
 			
 	UFUNCTION(BlueprintCallable)
 	void SetMaxMana(float InValue);
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetStamina() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetStamina(float InValue);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMaxStamina() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetMaxStamina(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMoveSpeed() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetMoveSpeed(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetSwimSpeed() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetSwimSpeed(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetRideSpeed() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetRideSpeed(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetFlySpeed() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetFlySpeed(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetRotationSpeed() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetRotationSpeed(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetJumpForce() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetJumpForce(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetDodgeForce() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetDodgeForce(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetAttackForce() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetAttackForce(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetRepulseForce() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetRepulseForce(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetAttackSpeed() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetAttackSpeed(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetAttackCritRate() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetAttackCritRate(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetAttackStealRate() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetAttackStealRate(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetDefendRate() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetDefendRate(float InValue);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetDefendScope() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetDefendScope(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPhysicsDefRate() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetPhysicsDefRate(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMagicDefRate() const;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetMagicDefRate(float InValue);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetToughnessRate() const;
 				
 	UFUNCTION(BlueprintCallable)
 	void SetToughnessRate(float InValue);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetStaminaRegenSpeed() const;
 			
 	UFUNCTION(BlueprintCallable)
 	void SetStaminaRegenSpeed(float InValue);
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetStaminaExpendSpeed() const;
 	
 	UFUNCTION(BlueprintCallable)
 	void SetStaminaExpendSpeed(float InValue);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPhysicsDamage() const override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMagicDamage() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UCharacterInventory* GetInventory() const { return Inventory; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVector GetMoveVelocity() const { return MoveVelocity; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVector GetMoveDirection() const { return MoveDirection; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AChunk* GetOwnerChunk() const { return OwnerChunk; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetOwnerChunk(AChunk* val) { OwnerChunk = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UVoxel* GetOverlapVoxel() const { return OverlapVoxel; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetOverlapVoxel(UVoxel* val) { OverlapVoxel = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVector GetBirthLocation() const { return BirthLocation; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetAttackDistance() const { return AttackDistance; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetFollowDistance() const { return FollowDistance; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPatrolDistance() const { return PatrolDistance; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPatrolDuration() const { return PatrolDuration; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsAutoJump() const { return bAutoJump; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetAutoJump(bool val) { bAutoJump = val; }
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetRadius() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetHalfHeight() const;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool HasWeapon();
-	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool HasShield();
+	UFUNCTION(BlueprintPure)
+	bool HasWeapon(EWeaponType InWeaponType);
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
+	bool HasShield(EShieldType InShieldType);
+		
+	UFUNCTION(BlueprintPure)
 	AEquipWeapon* GetWeapon();
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AEquipShield* GetShield();
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool HasArmor(EEquipPartType InPartType);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AEquipArmor* GetArmor(EEquipPartType InPartType);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool HasEquip(EEquipPartType InPartType);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AEquip* GetEquip(EEquipPartType InPartType);
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TMap<EEquipPartType, AEquip*> GetEquips() { return Equips; }
+	UFUNCTION(BlueprintPure)
+	TMap<EEquipPartType, AEquip*> GetEquips() const { return Equips; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterAttackAbilityData GetAttackAbility(int32 InAbilityIndex = -1);
+	UFUNCTION(BlueprintPure)
+	FDWCharacterAttackAbilityData GetAttackAbility(int32 InAbilityIndex = -1);
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterSkillAbilityData GetSkillAbility(const FName& InSkillID);
+	UFUNCTION(BlueprintPure)
+	FDWCharacterSkillAbilityData GetSkillAbility(const FName& InSkillID);
 		
-	FCharacterSkillAbilityData GetSkillAbility(ESkillType InSkillType, int32 InAbilityIndex = -1);
+	FDWCharacterSkillAbilityData GetSkillAbility(ESkillType InSkillType, int32 InAbilityIndex = -1);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterActionAbilityData GetActionAbility(ECharacterActionType InActionType = ECharacterActionType::None);
+	UFUNCTION(BlueprintPure)
+	FDWCharacterActionAbilityData GetActionAbility(ECharacterActionType InActionType = ECharacterActionType::None);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TArray<FCharacterAttackAbilityData> GetAttackAbilitys() const { return AttackAbilitys; }
+	UFUNCTION(BlueprintPure)
+	TArray<FDWCharacterAttackAbilityData> GetAttackAbilitys() const { return AttackAbilitys; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TMap<FName, FCharacterSkillAbilityData> GetSkillAbilitys() const { return SkillAbilitys; }
+	UFUNCTION(BlueprintPure)
+	TMap<FName, FDWCharacterSkillAbilityData> GetSkillAbilitys() const { return SkillAbilitys; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TMap<ECharacterActionType, FCharacterActionAbilityData> GetActionAbilitys() const { return ActionAbilitys; }
+	UFUNCTION(BlueprintPure)
+	TMap<ECharacterActionType, FDWCharacterActionAbilityData> GetActionAbilitys() const { return ActionAbilitys; }
 
 public:
 	virtual void HandleDamage(const float LocalDamageDone, FHitResult HitResult, const struct FGameplayTagContainer& SourceTags, ADWCharacter* SourceCharacter, AActor* SourceActor) override;

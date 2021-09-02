@@ -39,7 +39,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	virtual void Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex) override;
+	virtual void Initialize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex) override;
 
 	UFUNCTION()
 	virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -51,9 +51,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	USphereComponent* GetSphereComponent() const { return SphereComponent; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
 };

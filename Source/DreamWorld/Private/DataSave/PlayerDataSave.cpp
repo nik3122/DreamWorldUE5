@@ -1,6 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "DataSaves/PlayerDataSave.h"
+#include "DataSave/PlayerDataSave.h"
 #include "Engine/World.h"
 #include "World/Chunk.h"
 #include "Character/Player/DWPlayerCharacter.h"
@@ -15,20 +15,22 @@ UPlayerDataSave::UPlayerDataSave()
 	WorldRecordDatas = TMap<FString, FWorldRecordData>();
 }
 
-void UPlayerDataSave::SavePlayerData(AWorldManager* InWorldManager, ADWPlayerCharacter* InPlayerCharacter)
+void UPlayerDataSave::SavePlayerData(ADWPlayerCharacter* InPlayerCharacter)
 {
+	if(!InPlayerCharacter) return;
+	
 	PlayerData = InPlayerCharacter->ToData();
 
 	auto SaveData = FWorldRecordData();
-	SaveData.WorldName = InWorldManager->GetWorldName();
+	SaveData.WorldName = AWorldManager::GetWorldInfo().WorldName;
 	SaveData.PlayerLocation = InPlayerCharacter->GetActorLocation();
 	SaveData.PlayerRotation = InPlayerCharacter->GetActorRotation();
-	SaveData.TimeSeconds = InWorldManager->GetWorldTimer()->GetTimeSeconds();
+	SaveData.TimeSeconds = AWorldManager::GetCurrent()->GetWorldTimer()->GetTimeSeconds();
 
-	if (!WorldRecordDatas.Contains(InWorldManager->GetWorldName()))
-		WorldRecordDatas.Add(InWorldManager->GetWorldName(), SaveData);
+	if (!WorldRecordDatas.Contains(AWorldManager::GetWorldInfo().WorldName))
+		WorldRecordDatas.Add(AWorldManager::GetWorldInfo().WorldName, SaveData);
 	else
-		WorldRecordDatas[InWorldManager->GetWorldName()] = SaveData;
+		WorldRecordDatas[AWorldManager::GetWorldInfo().WorldName] = SaveData;
 }
 
 bool UPlayerDataSave::IsExistWorldRecord(const FString& InWorldName)

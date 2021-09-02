@@ -10,7 +10,7 @@ class ADWPlayerCharacter;
 class USpringArmComponent;
 
 /**
- * Íæ¼ÒÉãÏñ»ú¿ØÖÆÆ÷
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API ADWPlayerCharacterCameraManager : public APlayerCameraManager
@@ -46,7 +46,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetCameraDistance();
 
 	UFUNCTION(BlueprintCallable)
@@ -55,6 +55,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ZoomCamera(float InDeltaValue);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	USpringArmComponent* GetCameraBoom();
 };

@@ -43,9 +43,9 @@ void ASkillRemote::BeginPlay()
 
 }
 
-void ASkillRemote::Initlize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex)
+void ASkillRemote::Initialize(ADWCharacter* InOwnerCharacter, const FName& InSkillIndex)
 {
-	Super::Initlize(InOwnerCharacter, InSkillIndex);
+	Super::Initialize(InOwnerCharacter, InSkillIndex);
 
 	MovementComponent->Velocity = GetActorRotation().RotateVector(InitialVelocity);
 }

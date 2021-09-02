@@ -7,7 +7,7 @@
 #include "PickUpProp.generated.h"
 
 /**
- * ©ий╟х║╣ю╬ъ
+ * О©╫О©╫й╟х║О©╫О©╫О©╫О©╫
  */
 UCLASS()
 class DREAMWORLD_API APickUpProp : public APickUp
@@ -30,6 +30,6 @@ public:
 
 	virtual void Initialize(FItem InItem, bool bPreview = false) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FPropData GetPropData();
 };

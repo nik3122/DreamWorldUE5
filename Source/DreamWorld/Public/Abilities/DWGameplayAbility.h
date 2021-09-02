@@ -5,7 +5,7 @@
 #include "DWGameplayAbility.generated.h"
 
 /**
- * GameplayAbility»ùÀà
+ * GameplayAbilityåŸºç±»
  */
 UCLASS()
 class DREAMWORLD_API UDWGameplayAbility : public UGameplayAbility
@@ -16,27 +16,31 @@ public:
 	UDWGameplayAbility();
 
 public:
-	/** GameplayEffectrÈÝÆ÷ÁÐ±í */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayEffects")
+	/** GameplayEffectrå®¹å™¨åˆ—è¡¨ */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FGameplayTag, FDWGameplayEffectContainer> EffectContainerMap;
 
 protected:
-	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData = nullptr) override;
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 public:
-	/** ´ÓGameplayEffectÈÝÆ÷´´½¨GameplayEffectÈÝÆ÷¹æ·¶ */
+	/** ä»ŽGameplayEffectå®¹å™¨åˆ›å»ºGameplayEffectå®¹å™¨è§„èŒƒ */
 	UFUNCTION(BlueprintCallable, Category = "Ability", meta = (AutoCreateRefTerm = "EventData"))
 	virtual FDWGameplayEffectContainerSpec MakeEffectContainerSpecFromContainer(const FDWGameplayEffectContainer& Container, const FGameplayEventData& EventData, int32 OverrideGameplayLevel = -1);
 
-	/** ´Ó±êÇ©ÈÝÆ÷´´½¨GameplayEffectÈÝÆ÷¹æ·¶ */
+	/** ä»Žæ ‡ç­¾å®¹å™¨åˆ›å»ºGameplayEffectå®¹å™¨è§„èŒƒ */
 	UFUNCTION(BlueprintCallable, Category = "Ability", meta = (AutoCreateRefTerm = "EventData"))
 	virtual FDWGameplayEffectContainerSpec MakeEffectContainerSpec(FGameplayTag ContainerTag, const FGameplayEventData& EventData, int32 OverrideGameplayLevel = -1);
 
-	/** Ó¦ÓÃGameplayEffectÈÝÆ÷¹æ·¶ */
+	/** åº”ç”¨GameplayEffectå®¹å™¨è§„èŒƒ */
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	virtual TArray<FActiveGameplayEffectHandle> ApplyEffectContainerSpec(const FDWGameplayEffectContainerSpec& ContainerSpec);
 
-	/** Ó¦ÓÃGameplayEffectÈÝÆ÷ */
+	/** åº”ç”¨GameplayEffectå®¹å™¨ */
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	virtual TArray<FActiveGameplayEffectHandle> ApplyEffectContainer(FGameplayTag ContainerTag, const FGameplayEventData& EventData,	int32 OverrideGameplayLevel = -1);
 };

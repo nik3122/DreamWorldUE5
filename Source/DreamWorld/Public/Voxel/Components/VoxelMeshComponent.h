@@ -7,7 +7,7 @@
 #include "VoxelMeshComponent.generated.h"
 
 /**
- * 体素网格组件
+ * 浣撶礌缃戞牸缁勪欢
  */
 UCLASS(Blueprintable, ClassGroup = (Rendering, Common), hidecategories = Object, config = Engine, editinlinenew, meta = (BlueprintSpawnableComponent))
 class DREAMWORLD_API UVoxelMeshComponent : public UProceduralMeshComponent

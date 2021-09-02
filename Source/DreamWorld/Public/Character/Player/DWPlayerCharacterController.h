@@ -33,7 +33,7 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	ADWPlayerCharacter* GetPossessedCharacter() const { return PossessedCharacter; };
 
 	bool RaycastFromAimPoint(FHitResult& OutHitResult, EGameTraceType InGameTraceType, float InRayDistance = 1000);

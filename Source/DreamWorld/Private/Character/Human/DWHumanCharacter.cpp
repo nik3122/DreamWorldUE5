@@ -59,5 +59,5 @@ void ADWHumanCharacter::SetDamaging(bool bInDamaging)
 {
 	Super::SetDamaging(bInDamaging);
 
-	if(HasWeapon()) GetWeapon()->SetCollisonEnable(bInDamaging);
+	if(GetWeapon()) GetWeapon()->SetCollisionEnable(bInDamaging);
 }

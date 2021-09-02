@@ -111,12 +111,12 @@ void UVoxelMeshComponent::CreateMesh(int InSectionIndex /*= 0*/, bool bHasCollid
 			case EVoxelMeshType::PickUp:
 			case EVoxelMeshType::VitalityVoxel:
 			{
-				material = UDWHelper::GetWorldManager()->GetChunkMaterial(Transparency).Material;
+				material = AWorldManager::GetWorldInfo().GetChunkMaterial(Transparency).Material;
 				break;
 			}
 			case EVoxelMeshType::PreviewItem:
 			{
-				material = UMaterialInstanceDynamic::Create(UDWHelper::GetWorldManager()->GetChunkMaterial(Transparency).Material, this);
+				material = UMaterialInstanceDynamic::Create(AWorldManager::GetWorldInfo().GetChunkMaterial(Transparency).Material, this);
 				Cast<UMaterialInstanceDynamic>(material)->SetScalarParameterValue(TEXT("Emissive"), 1);
 				break;
 			}
@@ -220,14 +220,14 @@ void UVoxelMeshComponent::BuildFace(UVoxel* InVoxel, FVector InVertices[4], int 
 {
 	int32 verNum = Vertices.Num();
 	FVoxelData voxelData = InVoxel->GetVoxelData();
-	FVector2D uvCorner = voxelData.GetUVCorner(InFaceIndex, UDWHelper::GetWorldManager()->GetChunkMaterial(voxelData.Transparency).BlockUVSize);
-	FVector2D uvSpan = voxelData.GetUVSpan(InFaceIndex, UDWHelper::GetWorldManager()->GetChunkMaterial(voxelData.Transparency).BlockUVSize);
+	FVector2D uvCorner = voxelData.GetUVCorner(InFaceIndex, AWorldManager::GetWorldInfo().GetChunkMaterial(voxelData.Transparency).BlockUVSize);
+	FVector2D uvSpan = voxelData.GetUVSpan(InFaceIndex, AWorldManager::GetWorldInfo().GetChunkMaterial(voxelData.Transparency).BlockUVSize);
 	InNormal = InVoxel->GetRotation().RotateVector(InNormal);
 
 	FVector center = voxelData.GetCeilRange(InVoxel) * (CenterOffset + InVoxel->GetRotation().RotateVector(voxelData.Offset) * OffsetScale);
 	for (int32 i = 0; i < 4; i++)
 	{
-		Vertices.Add((InVoxel->GetIndex().ToVector() + center + InVoxel->GetRotation().RotateVector(InVertices[i] * InVoxel->GetScale())) * UDWHelper::GetWorldManager()->GetBlockSize() * BlockScale);
+		Vertices.Add((InVoxel->GetIndex().ToVector() + center + InVoxel->GetRotation().RotateVector(InVertices[i] * InVoxel->GetScale())) * AWorldManager::GetWorldInfo().BlockSize * BlockScale);
 	}
 
 	UVs.Add(FVector2D(uvCorner.X, uvCorner.Y + uvSpan.Y));

@@ -19,9 +19,9 @@
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "DWGameMode.h"
 #include "Kismet/GameplayStatics.h"
-#include "DataSaves/GameDataSave.h"
-#include "DataSaves/WorldDataSave.h"
-#include "DataSaves/PlayerDataSave.h"
+#include "DataSave/GameDataSave.h"
+#include "DataSave/WorldDataSave.h"
+#include "DataSave/PlayerDataSave.h"
 #include "World/WorldManager.h"
 #include "DWGameState.h"
 
@@ -38,7 +38,7 @@ void UDWGameInstance::Init()
 {
 	Super::Init();
 
-	UDWHelper::Initialize(GetWorld());
+	UDWHelper::LoadItemDatas();
 }
 
 bool UDWGameInstance::IsExistWorldData(const FString& InWorldName)
@@ -58,13 +58,13 @@ void UDWGameInstance::SaveGameData()
 
 void UDWGameInstance::SaveWorldData()
 {
-	WorldDataSave->SaveWorldData(UDWHelper::GetWorldManager());
+	WorldDataSave->SaveWorldData(AWorldManager::GetCurrent());
 	GameDataSave->SaveWorldData(WorldDataSave);
 }
 
 void UDWGameInstance::SavePlayerData()
 {
-	PlayerDataSave->SavePlayerData(UDWHelper::GetWorldManager(), UDWHelper::GetPlayerCharacter());
+	PlayerDataSave->SavePlayerData(UDWHelper::GetPlayerCharacter(this));
 	GameDataSave->SavePlayerData(PlayerDataSave);
 }
 

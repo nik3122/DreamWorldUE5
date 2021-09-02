@@ -15,7 +15,7 @@
 #include "Inventory/Character/CharacterInventory.h"
 #include "Inventory/Slot/InventorySlot.h"
 #include "SharedPointer.h"
-#include "DataSaves/WorldDataSave.h"
+#include "DataSave/WorldDataSave.h"
 #include "Kismet/GameplayStatics.h"
 
 UVoxel* UVoxel::EmptyVoxel = nullptr;
@@ -257,22 +257,22 @@ bool UVoxel::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult
 		}
 		case EMouseButton::Right:
 		{
-			FIndex index = Owner->LocationToIndex(InHitResult.Point - UDWHelper::GetWorldManager()->GetBlockSizedNormal(InHitResult.Normal)) + FIndex(InHitResult.Normal);
+			FIndex index = Owner->LocationToIndex(InHitResult.Point - AWorldManager::GetCurrent()->GetBlockSizedNormal(InHitResult.Normal)) + FIndex(InHitResult.Normal);
 			UVoxel* voxel = Owner->GetVoxel(index);
 			
 			if(!IsValid(voxel) || (voxel->GetVoxelData().Transparency == ETransparency::Transparent && voxel != this))
 			{
-				auto tmpSlot = UDWHelper::GetWidgetInventoryBar()->GetSelectedSlot();
+				auto tmpSlot = UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->GetSelectedSlot();
 				if (!tmpSlot->IsEmpty() && tmpSlot->GetItem().GetData().Type == EItemType::Voxel)
 				{
 					UVoxel* tmpVoxel = NewVoxel(tmpSlot->GetItem().ID, Owner);
 
-					//FRotator rotation = (Owner->VoxelIndexToLocation(index) + tmpVoxel->GetVoxelData().GetCeilRange() * 0.5f * UDWHelper::GetWorldManager()->GetBlockSize() - UDWHelper::GetPlayerCharacter()->GetActorLocation()).ToOrientationRotator();
+					//FRotator rotation = (Owner->VoxelIndexToLocation(index) + tmpVoxel->GetVoxelData().GetCeilRange() * 0.5f * AWorldManager::GetWorldInfo().BlockSize - UDWHelper::GetPlayerCharacter(this)->GetActorLocation()).ToOrientationRotator();
 					//rotation = FRotator(FRotator::ClampAxis(FMath::RoundToInt(rotation.Pitch / 90) * 90.f), FRotator::ClampAxis(FMath::RoundToInt(rotation.Yaw / 90) * 90.f), FRotator::ClampAxis(FMath::RoundToInt(rotation.Roll / 90) * 90.f));
 					//tmpVoxel->Rotation = rotation;
 
 					FHitResult hitResult;
-					if (!UDWHelper::GetWorldManager()->VoxelTraceSingle(tmpVoxel, Owner->IndexToLocation(index), hitResult))
+					if (!AWorldManager::GetCurrent()->VoxelTraceSingle(tmpVoxel, Owner->IndexToLocation(index), hitResult))
 					{
 						if (!IsValid(voxel) ? Owner->GenerateVoxel(index, tmpVoxel) : Owner->ReplaceVoxel(voxel, tmpVoxel))
 						{
@@ -312,7 +312,7 @@ void UVoxel::OnGenerate()
 		{
 			Auxiliary->AttachToActor(Cast<AActor>(GetOuter()), FAttachmentTransformRules::KeepRelativeTransform);
 			FVector location = FVector::ZeroVector;
-			if(Owner) location = Owner->IndexToLocation(Index, true) + GetVoxelData().GetCeilRange() * UDWHelper::GetWorldManager()->GetBlockSize() * 0.5f;
+			if(Owner) location = Owner->IndexToLocation(Index, true) + GetVoxelData().GetCeilRange() * AWorldManager::GetWorldInfo().BlockSize * 0.5f;
 			Auxiliary->Initialize(this, location);
 			Owner->SetVoxelSample(Index, this);
 		}
@@ -354,7 +354,7 @@ void UVoxel::OnDestroy()
 			}
 		}
 		if(GetVoxelData().GenerateSound) UGameplayStatics::PlaySoundAtLocation(this, GetVoxelData().GenerateSound, Owner->IndexToLocation(Index));
-		Owner->SpawnPickUp(FItem(VoxelID), Owner->IndexToLocation(Index) + range * UDWHelper::GetWorldManager()->GetBlockSize() * 0.5f);
+		Owner->SpawnPickUp(FItem(VoxelID), Owner->IndexToLocation(Index) + range * AWorldManager::GetWorldInfo().BlockSize * 0.5f);
 	}
 
 	if (Auxiliary) Auxiliary->Destroy();
@@ -381,7 +381,7 @@ void UVoxel::OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
 
 void UVoxel::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
 {
-	if(InTarget == UDWHelper::GetPlayerCharacter())
+	if(InTarget == UDWHelper::GetPlayerCharacter(this))
 	UDWHelper::Debug(GetVoxelData().Name.ToString());
 }
 

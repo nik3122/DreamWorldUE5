@@ -33,11 +33,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "InitInventory"))
 	void K2_InitInventory(UInventory* InInventory);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UInventory* GetInventory() const { return Inventory; }
 	
 	virtual AActor* GetOwnerActor() const override;
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	TArray<UWidgetInventorySlot*> GetSplitUISlots(ESplitSlotType InSplitSlotType);
 };

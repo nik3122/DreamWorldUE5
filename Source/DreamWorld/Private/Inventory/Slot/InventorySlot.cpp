@@ -2,11 +2,8 @@
 
 #include "Inventory/Slot/InventorySlot.h"
 #include "Inventory/Inventory.h"
-#include "Widget/Inventory/WidgetInventoryBar.h"
 #include "World/WorldManager.h"
 #include "World/Chunk.h"
-#include "DWGameInstance.h"
-#include "InventoryEquipSlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Vitality/Vitality.h"
 #include "Widget/Inventory/Slot/WidgetInventorySlot.h"
@@ -43,18 +40,37 @@ bool UInventorySlot::CheckSlot(FItem InItem)
 
 bool UInventorySlot::CanPutIn(FItem InItem)
 {
-	return (IsEmpty() && CheckSlot(InItem)) || (Item.Equal(InItem) && GetRemainVolume() > 0);
+	return (IsEmpty() && CheckSlot(InItem)) || (Item.EqualType(InItem) && GetRemainVolume() > 0);
 }
 
 bool UInventorySlot::Contains(FItem InItem)
 {
-	return !IsEmpty() && Item.Equal(InItem);
+	return !IsEmpty() && Item.EqualType(InItem);
 }
 
 void UInventorySlot::Refresh()
 {
-	if (Item.Count == 0) Item = FItem::Empty;
+	if (Item.Count == 0)
+	{
+		SetItem(FItem::Empty);
+	}
 	if (UISlot) UISlot->Refresh();
+}
+
+void UInventorySlot::PreSet(FItem& InItem)
+{
+	if(InItem.Count <= 0)
+	{
+		InItem = FItem::Empty;
+	}
+}
+
+void UInventorySlot::EndSet()
+{
+	if(!Item.IsValid())
+	{
+		AbilityHandle = FGameplayAbilitySpecHandle();
+	}
 }
 
 void UInventorySlot::SetItem(FItem& InItem, bool bReplace)
@@ -63,7 +79,7 @@ void UInventorySlot::SetItem(FItem& InItem, bool bReplace)
 	{
 		if (!bReplace)
 		{
-			Item = FItem::Clone(InItem);
+			SetItem(InItem);
 			int tmpNum = InItem.Count - GetMaxVolume();
 			Item.Count = FMath::Clamp(Item.Count, 0, GetMaxVolume());
 			InItem.Count = tmpNum;
@@ -71,22 +87,28 @@ void UInventorySlot::SetItem(FItem& InItem, bool bReplace)
 			IVitality* vitality = Cast<IVitality>(Owner->GetOwnerActor());
 			if (vitality && InItem.GetData().AbilityClass)
 			{
-				AbilityHandle = vitality->AcquireAbility(InItem.GetData().AbilityClass);
+				AbilityHandle = vitality->AcquireAbility(InItem.GetData().AbilityClass, InItem.GetData().Level);
 			}
 		}
 		else
 		{
 			FItem tmpItem = Item;
-			Item = InItem;
+			SetItem(InItem);
 			InItem = tmpItem;
 		}
 	}
 	else
 	{
-		Item = InItem;
-		AbilityHandle = FGameplayAbilitySpecHandle();
+		SetItem(InItem);
 	}
 	Refresh();
+}
+
+void UInventorySlot::SetItem(FItem& InItem)
+{
+	PreSet(InItem);
+	Item = InItem;
+	EndSet();
 }
 
 void UInventorySlot::AddItem(FItem& InItem)
@@ -107,7 +129,7 @@ void UInventorySlot::AddItem(FItem& InItem)
 	}
 	else
 	{
-		SetItem(InItem);
+		SetItem(InItem, false);
 	}
 }
 
@@ -153,21 +175,71 @@ void UInventorySlot::MoveItem(int InCount /*= -1*/)
 	if (InCount == -1) InCount = Item.Count;
 	FItem tmpItem = FItem::Clone(Item, InCount);
 
-	SubItem(tmpItem);
-
 	if(Owner->GetConnectInventory())
 	{
 		Owner->GetConnectInventory()->AdditionItems(tmpItem);
 	}
-	else if(Owner->GetSplitSlotInfos().Num() > 0)
+	else
 	{
-		
+		switch (Item.GetData().Type)
+		{
+			case EItemType::Voxel:
+			case EItemType::Prop:
+			{
+				if(GetSplitType() != ESplitSlotType::Shortcut)
+				{
+					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex);
+				}
+				else
+				{
+					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Default).StartIndex);
+				}
+				break;
+			}
+			case EItemType::Equip:
+			{
+				if(GetSplitType() != ESplitSlotType::Equip)
+				{
+					// TArray<UInventoryEquipSlot*> EquipSlots = Owner->GetSplitSlots<UInventoryEquipSlot>(ESplitSlotType::Equip);
+					// if(EquipSlots.IsValidIndex((int32)UDWHelper::LoadEquipData(Item.ID).PartType))
+					// {
+					// 	UInventoryEquipSlot* EquipSlot = EquipSlots[(int32)UDWHelper::LoadEquipData(Item.ID).PartType];
+					// 	if(EquipSlot->CanPutIn(tmpItem))
+					// 	{
+					// 		EquipSlot->AddItem(tmpItem);
+					// 	}
+					// }
+					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Equip).StartIndex);
+				}
+				else
+				{
+					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Default).StartIndex);
+				}
+				break;
+			}
+			case EItemType::Skill:
+			{
+				if(GetSplitType() != ESplitSlotType::Skill)
+				{
+					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Skill).StartIndex);
+				}
+				else
+				{
+					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Default).StartIndex);
+				}
+				break;
+			}
+			default: break;
+		}
 	}
 
 	if (InCount != -1)
 	{
-		Item.Count -= InCount;
-		Refresh();
+		Item.Count -= tmpItem.Count;
+		if(Item.Count > 0)
+		{
+			SubItem(Item);
+		}
 	}
 	else
 	{
@@ -191,27 +263,15 @@ void UInventorySlot::UseItem(int InCount /*= -1*/)
 		case EItemType::Prop:
 		{
 			SubItem(tmpItem);
-			IVitality* tmpVitality = Cast<IVitality>(Owner->GetOwnerActor());
-			if (tmpVitality)
-			{
-				tmpVitality->ActiveAbility(this);
-			}
+			ActiveItem();
 			break;
 		}
 		case EItemType::Equip:
 		{
-			TArray<UInventoryEquipSlot*> EquipSlots = Owner->GetSplitSlots<UInventoryEquipSlot>(ESplitSlotType::Equip);
-			if(EquipSlots.IsValidIndex((int32)UDWHelper::LoadEquipData(Item.ID).PartType))
-			{
-				UInventoryEquipSlot* EquipSlot = EquipSlots[(int32)UDWHelper::LoadEquipData(Item.ID).PartType];
-				if(EquipSlot->CanPutIn(tmpItem))
-				{
-					SubItem(tmpItem);
-					EquipSlot->AddItem(tmpItem);
-				}
-			}
+			MoveItem();
 			break;
 		}
+		default: break;
 	}
 }
 
@@ -221,7 +281,7 @@ void UInventorySlot::DiscardItem(int InCount /*= -1*/)
 
 	if (InCount == -1) InCount = Item.Count;
 	FItem tmpItem = FItem::Clone(Item, InCount);
-	auto chunk = UDWHelper::GetWorldManager()->FindChunk(Owner->GetOwnerActor()->GetActorLocation());
+	auto chunk = AWorldManager::GetCurrent()->FindChunk(Owner->GetOwnerActor()->GetActorLocation());
 	if (chunk != nullptr)
 	{
 		chunk->SpawnPickUp(tmpItem, Owner->GetOwnerActor()->GetActorLocation() + FMath::RandPointInBox(FBox(FVector(-20, -20, -10), FVector(20, 20, 10))));
@@ -229,11 +289,34 @@ void UInventorySlot::DiscardItem(int InCount /*= -1*/)
 	SubItem(tmpItem);
 }
 
+bool UInventorySlot::ActiveItem()
+{
+	if (IsEmpty()) return false;
+
+	if(IVitality* Vitality = Cast<IVitality>(GetOwner()->GetOwnerActor()))
+	{
+		return Vitality->ActiveAbility(AbilityHandle);
+	}
+    return false;
+}
+
+bool UInventorySlot::CancelItem()
+{
+	if (IsEmpty()) return false;
+
+	if(IVitality* Vitality = Cast<IVitality>(GetOwner()->GetOwnerActor()))
+	{
+		Vitality->CancelAbility(AbilityHandle);
+		return true;
+	}
+	return false;
+}
+
 void UInventorySlot::ClearItem()
 {
 	if (IsEmpty()) return;
 
-	SetItem(FItem::Empty);
+	SetItem(FItem::Empty, false);
 }
 
 bool UInventorySlot::IsEmpty() const

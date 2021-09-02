@@ -30,6 +30,6 @@ public:
 
 	virtual void Initialize(FItem InItem, bool bPreview = false) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVoxelData GetVoxelData();
 };

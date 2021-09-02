@@ -14,5 +14,5 @@ UWidgetPrimaryPanel::UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitial
 
 AActor* UWidgetPrimaryPanel::GetOwnerActor() const
 {
-	return UDWHelper::GetPlayerCharacter();
+	return UDWHelper::GetPlayerCharacter(this);
 }

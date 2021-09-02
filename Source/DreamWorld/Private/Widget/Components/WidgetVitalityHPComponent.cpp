@@ -33,5 +33,6 @@ void UWidgetVitalityHPComponent::TickComponent(float DeltaTime, enum ELevelTick 
 
 void UWidgetVitalityHPComponent::RefreshVisibility()
 {
-	SetVisibility(!OwnerVitality->IsDead() && UDWHelper::GetPlayerCharacter() && FVector::Distance(OwnerVitality->GetActorLocation(), UDWHelper::GetPlayerCharacter()->GetActorLocation()) < 1000);
+	ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this);
+	SetVisibility(!OwnerVitality->IsDead() && PlayerCharacter && FVector::Distance(OwnerVitality->GetActorLocation(), PlayerCharacter->GetActorLocation()) < 1000);
 }

@@ -7,7 +7,7 @@
 #include "EquipShield.generated.h"
 
 /**
- * ¶ÜÅÆ
+ * ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API AEquipShield : public AEquip
@@ -33,6 +33,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FEquipShieldData GetShieldData();
 };

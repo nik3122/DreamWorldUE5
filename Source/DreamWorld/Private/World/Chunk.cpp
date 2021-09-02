@@ -11,10 +11,11 @@
 #include "Voxel/Components/VoxelMeshComponent.h"
 #include "Vitality/VitalityObject.h"
 #include "DWGameInstance.h"
-#include "DataSaves/WorldDataSave.h"
+#include "DataSave/WorldDataSave.h"
 #include "Engine/World.h"
 #include "PickUp/PickUpVoxel.h"
 #include "Character/DWCharacter.h"
+#include "DataSave/GameDataSave.h"
 #include "Engine/World.h"
 #include "PickUp/PickUpEquip.h"
 #include "PickUp/PickUpProp.h"
@@ -55,9 +56,9 @@ void AChunk::BeginPlay()
 
 void AChunk::OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor->IsA(ADWPlayerCharacter::StaticClass()))
+	if (OtherActor && OtherActor->IsA(ADWPlayerCharacter::StaticClass()))
 	{
-		//FIndex index = LocationToVoxelIndex(Hit.ImpactPoint - UDWHelper::GetWorldManager()->GetBlockSizedNormal(Hit.ImpactNormal, 0.01f));
+		//FIndex index = LocationToVoxelIndex(Hit.ImpactPoint - AWorldManager::GetCurrent()->GetBlockSizedNormal(Hit.ImpactNormal, 0.01f));
 		//UVoxel* voxel = GetVoxel(index);
 		//if (UVoxel::IsValid(voxel))
 		//{
@@ -68,10 +69,10 @@ void AChunk::OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 
 void AChunk::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA(ADWPlayerCharacter::StaticClass()))
+	if (OtherActor && OtherActor->IsA(ADWPlayerCharacter::StaticClass()))
 	{
 		//auto character = Cast<ADWPlayerCharacter>(OtherActor);
-		//UVoxel* voxel = GetVoxel(LocationToVoxelIndex(SweepResult.ImpactPoint + UDWHelper::GetWorldManager()->GetBlockSizedNormal(SweepResult.ImpactNormal)));
+		//UVoxel* voxel = GetVoxel(LocationToVoxelIndex(SweepResult.ImpactPoint + AWorldManager::GetCurrent()->GetBlockSizedNormal(SweepResult.ImpactNormal)));
 		//if (UVoxel::IsValid(voxel))
 		//{
 		//	if (character->GetOverlapVoxel())
@@ -92,7 +93,7 @@ void AChunk::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 void AChunk::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor->IsA(ADWPlayerCharacter::StaticClass()))
+	if (OtherActor && OtherActor->IsA(ADWPlayerCharacter::StaticClass()))
 	{
 		//auto character = Cast<ADWPlayerCharacter>(OtherActor);
 		//UVoxel* voxel = GetVoxel(LocationToVoxelIndex(character->GetActorLocation()));
@@ -142,60 +143,63 @@ void AChunk::OnGenerated()
 		}
 	}
 
-	if (UDWHelper::GetWorldDataSave()->IsExistChunkData(Index))
+	if (UWorldDataSave* WorldDataSave = UDWHelper::GetWorldDataSave(this))
 	{
-		LoadActors(UDWHelper::GetWorldDataSave()->LoadChunkData(Index));
-	}
-	else
-	{
-		if (FMath::FRand() <= UDWHelper::GetWorldManager()->GetVitalityRaceDensity())
+		if (WorldDataSave->IsExistChunkData(Index))
 		{
-			auto raceData = UDWHelper::RandomVitalityRaceData();
-			auto tmpNum = FMath::RandRange(raceData.MinNum, raceData.MaxNum);
-			for (int32 j = 0; j < tmpNum; j++)
+			LoadActors(WorldDataSave->LoadChunkData(Index));
+		}
+		else
+		{
+			if (FMath::FRand() <= AWorldManager::GetWorldInfo().VitalityRateDensity)
 			{
-				FHitResult hitResult;
-				auto raceItem = raceData.RaceItems[FMath::RandRange(0, raceData.RaceItems.Num() - 1)];
-				if (UDWHelper::GetWorldManager()->ChunkTraceSingle(this, FMath::Max(raceItem.Range.X, raceItem.Range.Y) * 0.5f * UDWHelper::GetWorldManager()->GetBlockSize(), raceItem.Range.Z * 0.5f * UDWHelper::GetWorldManager()->GetBlockSize(), hitResult))
+				auto raceData = UDWHelper::RandomVitalityRaceData();
+				auto tmpNum = FMath::RandRange(raceData.MinNum, raceData.MaxNum);
+				for (int32 j = 0; j < tmpNum; j++)
 				{
-					auto saveData = FVitalityObjectData();
-					saveData.Class = raceItem.Class;
-					saveData.RaceID = raceData.ID.ToString();
-					saveData.Location = hitResult.Location;
-					saveData.Rotation = FRotator(0, FMath::RandRange(0, 360), 0);
-					SpawnVitalityObject(saveData);
+					FHitResult hitResult;
+					auto raceItem = raceData.RaceItems[FMath::RandRange(0, raceData.RaceItems.Num() - 1)];
+					if (AWorldManager::GetCurrent()->ChunkTraceSingle(this, FMath::Max(raceItem.Range.X, raceItem.Range.Y) * 0.5f * AWorldManager::GetWorldInfo().BlockSize, raceItem.Range.Z * 0.5f * AWorldManager::GetWorldInfo().BlockSize, hitResult))
+					{
+						auto saveData = FVitalityObjectData();
+						saveData.Class = raceItem.Class;
+						saveData.RaceID = raceData.ID.ToString();
+						saveData.Location = hitResult.Location;
+						saveData.Rotation = FRotator(0, FMath::RandRange(0, 360), 0);
+						SpawnVitalityObject(saveData);
+					}
 				}
 			}
-		}
-		if (FMath::FRand() <= UDWHelper::GetWorldManager()->GetCharacterRaceDensity())
-		{
-			ADWCharacter* captain = nullptr;
-			auto raceData = UDWHelper::RandomCharacterRaceData();
-			auto tmpNum = FMath::RandRange(raceData.MinNum, raceData.MaxNum);
-			for (int32 j = 0; j < tmpNum; j++)
+			if (FMath::FRand() <= AWorldManager::GetWorldInfo().CharacterRateDensity)
 			{
-				FHitResult hitResult;
-				auto raceItem = raceData.RaceItems[FMath::RandRange(0, raceData.RaceItems.Num() - 1)];
-				if (UDWHelper::GetWorldManager()->ChunkTraceSingle(this, FMath::Max(raceItem.Range.X, raceItem.Range.Y) * 0.5f * UDWHelper::GetWorldManager()->GetBlockSize(), raceItem.Range.Z * 0.5f * UDWHelper::GetWorldManager()->GetBlockSize(), hitResult))
+				ADWCharacter* captain = nullptr;
+				auto raceData = UDWHelper::RandomCharacterRaceData();
+				auto tmpNum = FMath::RandRange(raceData.MinNum, raceData.MaxNum);
+				for (int32 j = 0; j < tmpNum; j++)
 				{
-					auto saveData = FCharacterData();
-					saveData.Class = raceItem.Class;
-					saveData.RaceID = raceData.ID.ToString();
-					saveData.Location = hitResult.Location;
-					saveData.Rotation = FRotator(0, FMath::RandRange(0, 360), 0);
-
-					auto character = SpawnCharacter(saveData);
-
-					if (character != nullptr)
+					FHitResult hitResult;
+					auto raceItem = raceData.RaceItems[FMath::RandRange(0, raceData.RaceItems.Num() - 1)];
+					if (AWorldManager::GetCurrent()->ChunkTraceSingle(this, FMath::Max(raceItem.Range.X, raceItem.Range.Y) * 0.5f * AWorldManager::GetWorldInfo().BlockSize, raceItem.Range.Z * 0.5f * AWorldManager::GetWorldInfo().BlockSize, hitResult))
 					{
-						if (captain == nullptr)
+						auto saveData = FCharacterData();
+						saveData.Class = raceItem.Class;
+						saveData.RaceID = raceData.ID.ToString();
+						saveData.Location = hitResult.Location;
+						saveData.Rotation = FRotator(0, FMath::RandRange(0, 360), 0);
+
+						auto character = SpawnCharacter(saveData);
+
+						if (character != nullptr)
 						{
-							captain = character;
-							UDWHelper::GetWorldManager()->CreateTeam(captain);
-						}
-						else
-						{
-							captain->AddTeamMate(character);
+							if (captain == nullptr)
+							{
+								captain = character;
+								AWorldManager::GetCurrent()->CreateTeam(captain);
+							}
+							else
+							{
+								captain->AddTeamMate(character);
+							}
 						}
 					}
 				}
@@ -238,7 +242,7 @@ void AChunk::OnDestroy()
 			chunkData.VitalityObjectDatas.Add(VitalityObjects[i]->ToData());
 		}
 
-		UDWHelper::GetWorldDataSave()->SaveChunkData(Index, chunkData);
+		UDWHelper::GetWorldDataSave(this)->SaveChunkData(Index, chunkData);
 
 		for (int32 i = 0; i < PickUps.Num(); i++)
 		{
@@ -253,7 +257,7 @@ void AChunk::OnDestroy()
 			}
 			else
 			{
-				AChunk* chunk = UDWHelper::GetWorldManager()->FindChunk(Characters[i]->GetActorLocation());
+				AChunk* chunk = AWorldManager::GetCurrent()->FindChunk(Characters[i]->GetActorLocation());
 				if (chunk && chunk->IsValidLowLevel())
 				{
 					chunk->AttachCharacter(Characters[i]);
@@ -281,34 +285,34 @@ UVoxel* AChunk::GetVoxel(int InX, int InY, int InZ)
 {
 	if (InX < 0) {
 		if (Neighbors[(int)EDirection::Back] != nullptr)
-			return Neighbors[(int)EDirection::Back]->GetVoxel(InX + UDWHelper::GetWorldManager()->GetChunkSize(), InY, InZ);
+			return Neighbors[(int)EDirection::Back]->GetVoxel(InX + AWorldManager::GetWorldInfo().ChunkSize, InY, InZ);
 		return UVoxel::Unknown();
 	}
-	else if (InX >= UDWHelper::GetWorldManager()->GetChunkSize()) {
+	else if (InX >= AWorldManager::GetWorldInfo().ChunkSize) {
 		if (Neighbors[(int)EDirection::Forward] != nullptr)
-			return Neighbors[(int)EDirection::Forward]->GetVoxel(InX - UDWHelper::GetWorldManager()->GetChunkSize(), InY, InZ);
+			return Neighbors[(int)EDirection::Forward]->GetVoxel(InX - AWorldManager::GetWorldInfo().ChunkSize, InY, InZ);
 		return UVoxel::Unknown();
 	}
 	else if (InY < 0) {
 		if (Neighbors[(int)EDirection::Left] != nullptr)
-			return Neighbors[(int)EDirection::Left]->GetVoxel(InX, InY + UDWHelper::GetWorldManager()->GetChunkSize(), InZ);
+			return Neighbors[(int)EDirection::Left]->GetVoxel(InX, InY + AWorldManager::GetWorldInfo().ChunkSize, InZ);
 		return UVoxel::Unknown();
 	}
-	else if (InY >= UDWHelper::GetWorldManager()->GetChunkSize()) {
+	else if (InY >= AWorldManager::GetWorldInfo().ChunkSize) {
 		if (Neighbors[(int)EDirection::Right] != nullptr)
-			return Neighbors[(int)EDirection::Right]->GetVoxel(InX, InY - UDWHelper::GetWorldManager()->GetChunkSize(), InZ);
+			return Neighbors[(int)EDirection::Right]->GetVoxel(InX, InY - AWorldManager::GetWorldInfo().ChunkSize, InZ);
 		return UVoxel::Unknown();
 	}
 	else if (InZ < 0) {
 		if (Neighbors[(int)EDirection::Down] != nullptr)
-			return Neighbors[(int)EDirection::Down]->GetVoxel(InX, InY, InZ + UDWHelper::GetWorldManager()->GetChunkSize());
+			return Neighbors[(int)EDirection::Down]->GetVoxel(InX, InY, InZ + AWorldManager::GetWorldInfo().ChunkSize);
 		else if (Index.Z > 0)
 			return UVoxel::Unknown();
 	}
-	else if (InZ >= UDWHelper::GetWorldManager()->GetChunkSize()) {
+	else if (InZ >= AWorldManager::GetWorldInfo().ChunkSize) {
 		if (Neighbors[(int)EDirection::Up] != nullptr)
-			return Neighbors[(int)EDirection::Up]->GetVoxel(InX, InY, InZ - UDWHelper::GetWorldManager()->GetChunkSize());
-		else if (Index.Z < UDWHelper::GetWorldManager()->GetChunkHightRange())
+			return Neighbors[(int)EDirection::Up]->GetVoxel(InX, InY, InZ - AWorldManager::GetWorldInfo().ChunkSize);
+		else if (Index.Z < AWorldManager::GetWorldInfo().ChunkHeightRange)
 			return UVoxel::Unknown();
 	}
 	else if (VoxelMap.Contains(FIndex(InX, InY, InZ))) {
@@ -406,29 +410,29 @@ bool AChunk::SetVoxelComplex(int InX, int InY, int InZ, UVoxel* InVoxel, bool bG
 {
 	if (InX < 0) {
 		if (Neighbors[(int)EDirection::Back] != nullptr)
-			return Neighbors[(int)EDirection::Back]->SetVoxelComplex(InX + UDWHelper::GetWorldManager()->GetChunkSize(), InY, InZ, InVoxel, bGenerateMesh);
+			return Neighbors[(int)EDirection::Back]->SetVoxelComplex(InX + AWorldManager::GetWorldInfo().ChunkSize, InY, InZ, InVoxel, bGenerateMesh);
 	}
-	else if (InX >= UDWHelper::GetWorldManager()->GetChunkSize()) {
+	else if (InX >= AWorldManager::GetWorldInfo().ChunkSize) {
 		if (Neighbors[(int)EDirection::Forward] != nullptr)
-			return Neighbors[(int)EDirection::Forward]->SetVoxelComplex(InX - UDWHelper::GetWorldManager()->GetChunkSize(), InY, InZ, InVoxel, bGenerateMesh);
+			return Neighbors[(int)EDirection::Forward]->SetVoxelComplex(InX - AWorldManager::GetWorldInfo().ChunkSize, InY, InZ, InVoxel, bGenerateMesh);
 	}
 	else if (InY < 0) {
 		if (Neighbors[(int)EDirection::Left] != nullptr)
-			return Neighbors[(int)EDirection::Left]->SetVoxelComplex(InX, InY + UDWHelper::GetWorldManager()->GetChunkSize(), InZ, InVoxel, bGenerateMesh);
+			return Neighbors[(int)EDirection::Left]->SetVoxelComplex(InX, InY + AWorldManager::GetWorldInfo().ChunkSize, InZ, InVoxel, bGenerateMesh);
 	}
-	else if (InY >= UDWHelper::GetWorldManager()->GetChunkSize()) {
+	else if (InY >= AWorldManager::GetWorldInfo().ChunkSize) {
 		if (Neighbors[(int)EDirection::Right] != nullptr)
-			return Neighbors[(int)EDirection::Right]->SetVoxelComplex(InX, InY - UDWHelper::GetWorldManager()->GetChunkSize(), InZ, InVoxel, bGenerateMesh);
+			return Neighbors[(int)EDirection::Right]->SetVoxelComplex(InX, InY - AWorldManager::GetWorldInfo().ChunkSize, InZ, InVoxel, bGenerateMesh);
 	}
 	else if (InZ < 0) {
 		if (Neighbors[(int)EDirection::Down] != nullptr)
-			return Neighbors[(int)EDirection::Down]->SetVoxelComplex(InX, InY, InZ + UDWHelper::GetWorldManager()->GetChunkSize(), InVoxel, bGenerateMesh);
+			return Neighbors[(int)EDirection::Down]->SetVoxelComplex(InX, InY, InZ + AWorldManager::GetWorldInfo().ChunkSize, InVoxel, bGenerateMesh);
 	}
-	else if (InZ >= UDWHelper::GetWorldManager()->GetChunkSize()) {
+	else if (InZ >= AWorldManager::GetWorldInfo().ChunkSize) {
 		if (Neighbors[(int)EDirection::Up] == nullptr)
-			UDWHelper::GetWorldManager()->SpawnChunk(Index + UDWHelper::DirectionToIndex(EDirection::Up), !bGenerateMesh);
+			AWorldManager::GetCurrent()->SpawnChunk(Index + UDWHelper::DirectionToIndex(EDirection::Up), !bGenerateMesh);
 		if (Neighbors[(int)EDirection::Up] != nullptr)
-			return Neighbors[(int)EDirection::Up]->SetVoxelComplex(InX, InY, InZ - UDWHelper::GetWorldManager()->GetChunkSize(), InVoxel, bGenerateMesh);
+			return Neighbors[(int)EDirection::Up]->SetVoxelComplex(InX, InY, InZ - AWorldManager::GetWorldInfo().ChunkSize, InVoxel, bGenerateMesh);
 	}
 	else {
 		if (InVoxel->GetVoxelData().IsComplex())
@@ -488,7 +492,7 @@ void AChunk::GetNeighbors()
 {
 	for (int i = 0; i < 6; i++)
 	{
-		Neighbors[i] = UDWHelper::GetWorldManager()->FindChunk(Index + UDWHelper::DirectionToIndex((EDirection)i));
+		Neighbors[i] = AWorldManager::GetCurrent()->FindChunk(Index + UDWHelper::DirectionToIndex((EDirection)i));
 		if (Neighbors[i] != nullptr)
 		{
 			Neighbors[i]->Neighbors[(int)UDWHelper::InvertDirection((EDirection)i)] = this;
@@ -510,17 +514,22 @@ void AChunk::BreakNeighbors()
 
 void AChunk::BuildMap()
 {
-	for (int x = 0; x < UDWHelper::GetWorldManager()->GetChunkSize(); x++)
+	
+	for (int x = 0; x < AWorldManager::GetWorldInfo().ChunkSize; x++)
 	{
-		for (int y = 0; y < UDWHelper::GetWorldManager()->GetChunkSize(); y++)
+		for (int y = 0; y < AWorldManager::GetWorldInfo().ChunkSize; y++)
 		{
-			for (int z = 0; z < UDWHelper::GetWorldManager()->GetChunkSize(); z++)
+			for (int z = 0; z < AWorldManager::GetWorldInfo().ChunkSize; z++)
 			{
 				FIndex voxelIndex = FIndex(x, y, z);
 
 				if (VoxelMap.Contains(voxelIndex)) continue;
 
-				EVoxelType voxelType = UDWHelper::GetWorldManager()->GetNoiseVoxelType(LocalIndexToWorld(voxelIndex));
+				EVoxelType voxelType = EVoxelType::Empty;
+				if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
+				{
+					voxelType = WorldManager->GetNoiseVoxelType(LocalIndexToWorld(voxelIndex));
+				}
 
 				if (voxelType != EVoxelType::Empty)
 				{
@@ -538,7 +547,7 @@ void AChunk::BuildMap()
 							// tree
 							else if (tmpNum < 0.21f)
 							{
-								if ((x > 2 && x <= UDWHelper::GetWorldManager()->GetChunkSize() - 2) && (y > 2 && y <= UDWHelper::GetWorldManager()->GetChunkSize() - 2))
+								if ((x > 2 && x <= AWorldManager::GetWorldInfo().ChunkSize - 2) && (y > 2 && y <= AWorldManager::GetWorldInfo().ChunkSize - 2))
 								{
 									int treeHight = FMath::RandRange(4, 5);
 									int leavesHight = 2/*FMath::RandRange(2, 2)*/;
@@ -676,19 +685,19 @@ void AChunk::UpdateNeighbors(int InX, int InY, int InZ)
 	if (InX <= 0 && Neighbors[(int)EDirection::Back] != nullptr) {
 		Neighbors[(int)EDirection::Back]->GenerateMesh();
 	}
-	else if (InX >= UDWHelper::GetWorldManager()->GetChunkSize() - 1 && Neighbors[(int)EDirection::Forward] != nullptr) {
+	else if (InX >= AWorldManager::GetWorldInfo().ChunkSize - 1 && Neighbors[(int)EDirection::Forward] != nullptr) {
 		Neighbors[(int)EDirection::Forward]->GenerateMesh();
 	}
 	if (InY <= 0 && Neighbors[(int)EDirection::Left] != nullptr) {
 		Neighbors[(int)EDirection::Left]->GenerateMesh();
 	}
-	else if (InY >= UDWHelper::GetWorldManager()->GetChunkSize() - 1 && Neighbors[(int)EDirection::Right] != nullptr) {
+	else if (InY >= AWorldManager::GetWorldInfo().ChunkSize - 1 && Neighbors[(int)EDirection::Right] != nullptr) {
 		Neighbors[(int)EDirection::Right]->GenerateMesh();
 	}
 	if (InZ <= 0 && Neighbors[(int)EDirection::Down] != nullptr) {
 		Neighbors[(int)EDirection::Down]->GenerateMesh();
 	}
-	else if (InZ >= UDWHelper::GetWorldManager()->GetChunkSize() - 1 && Neighbors[(int)EDirection::Up] != nullptr) {
+	else if (InZ >= AWorldManager::GetWorldInfo().ChunkSize - 1 && Neighbors[(int)EDirection::Up] != nullptr) {
 		Neighbors[(int)EDirection::Up]->GenerateMesh();
 	}
 }
@@ -905,21 +914,21 @@ void AChunk::DetachVitalityObject(AVitalityObject* InVitalityObject)
 
 bool AChunk::IsOnTheChunk(FIndex InIndex)
 {
-	return InIndex.X >= 0 && InIndex.X < UDWHelper::GetWorldManager()->GetChunkSize() &&
-				InIndex.Y >= 0 && InIndex.Y < UDWHelper::GetWorldManager()->GetChunkSize() &&
-				InIndex.Z >= 0 && InIndex.Z < UDWHelper::GetWorldManager()->GetChunkSize();
+	return InIndex.X >= 0 && InIndex.X < AWorldManager::GetWorldInfo().ChunkSize &&
+		InIndex.Y >= 0 && InIndex.Y < AWorldManager::GetWorldInfo().ChunkSize &&
+		InIndex.Z >= 0 && InIndex.Z < AWorldManager::GetWorldInfo().ChunkSize;
 }
 
 bool AChunk::IsOnTheChunk(FVector InLocation)
 {
-	return InLocation.X >= GetActorLocation().X && InLocation.X < GetActorLocation().X + UDWHelper::GetWorldManager()->GetChunkLength() &&
-				InLocation.Y >= GetActorLocation().Y && InLocation.Y < GetActorLocation().Y + UDWHelper::GetWorldManager()->GetChunkLength() &&
-				InLocation.Z >= GetActorLocation().Z && InLocation.Z < GetActorLocation().Z + UDWHelper::GetWorldManager()->GetChunkLength();
+	return InLocation.X >= GetActorLocation().X && InLocation.X < GetActorLocation().X + AWorldManager::GetWorldInfo().GetChunkLength() &&
+			InLocation.Y >= GetActorLocation().Y && InLocation.Y < GetActorLocation().Y + AWorldManager::GetWorldInfo().GetChunkLength() &&
+			InLocation.Z >= GetActorLocation().Z && InLocation.Z < GetActorLocation().Z + AWorldManager::GetWorldInfo().GetChunkLength();
 }
 
 FIndex AChunk::LocationToIndex(FVector InLocation, bool bWorldSpace /*= true*/)
 {
-	FVector point = (!bWorldSpace ? InLocation : GetActorTransform().InverseTransformPosition(InLocation)) / UDWHelper::GetWorldManager()->GetBlockSize();
+	FVector point = (!bWorldSpace ? InLocation : GetActorTransform().InverseTransformPosition(InLocation)) / AWorldManager::GetWorldInfo().BlockSize;
 
 	FIndex index = FIndex::ZeroIndex;
 	index.X = FMath::FloorToInt(point.X);
@@ -931,19 +940,19 @@ FIndex AChunk::LocationToIndex(FVector InLocation, bool bWorldSpace /*= true*/)
 
 FVector AChunk::IndexToLocation(FIndex InIndex, bool bWorldSpace /*= true*/)
 {
-	FVector localPoint = InIndex.ToVector() * UDWHelper::GetWorldManager()->GetBlockSize();
+	FVector localPoint = InIndex.ToVector() * AWorldManager::GetWorldInfo().BlockSize;
 	if (!bWorldSpace) return localPoint;
 	return GetActorTransform().TransformPosition(localPoint);
 }
 
 FIndex AChunk::LocalIndexToWorld(FIndex InIndex)
 {
-	return InIndex + Index * UDWHelper::GetWorldManager()->GetChunkSize();
+	return InIndex + Index * AWorldManager::GetWorldInfo().ChunkSize;
 }
 
 FIndex AChunk::WorldIndexToLocal(FIndex InIndex)
 {
-	return InIndex - Index * UDWHelper::GetWorldManager()->GetChunkSize();
+	return InIndex - Index * AWorldManager::GetWorldInfo().ChunkSize;
 }
 
 UVoxelMeshComponent* AChunk::GetSolidMesh()

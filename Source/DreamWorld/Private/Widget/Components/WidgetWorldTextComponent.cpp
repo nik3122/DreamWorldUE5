@@ -38,5 +38,6 @@ void UWidgetWorldTextComponent::TickComponent(float DeltaTime, enum ELevelTick T
 
 void UWidgetWorldTextComponent::RefreshVisibility()
 {
-	SetVisibility(UDWHelper::GetPlayerCharacter() && FVector::Distance(GetOwner()->GetActorLocation(), UDWHelper::GetPlayerCharacter()->GetActorLocation()) < 1000);
+	ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this);
+	SetVisibility(PlayerCharacter && FVector::Distance(GetOwner()->GetActorLocation(), PlayerCharacter->GetActorLocation()) < 1000);
 }

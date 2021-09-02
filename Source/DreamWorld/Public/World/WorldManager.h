@@ -14,8 +14,137 @@ class UWorldTimerComponent;
 class USceneCaptureComponent2D;
 class UWorldWeatherComponent;
 
+USTRUCT(BlueprintType)
+struct FWorldInfo
+{
+	GENERATED_BODY()
+
+public:
+	FORCEINLINE FWorldInfo()
+	{
+		WorldName = TEXT("");
+		WorldSeed = 0;
+
+		BlockSize = 80;
+		ChunkSize = 16;
+		ChunkHeightRange = 3;
+		ChunkSpawnRange = 5;
+		ChunkSpawnDistance = 2;
+
+		ChunkSpawnSpeed = 100;
+		ChunkDestroySpeed = 100;
+		ChunkMapBuildSpeed = 5;
+		ChunkGenerateSpeed = 1;
+
+		VitalityRateDensity = 0.2f;
+		CharacterRateDensity = 0.2f;
+
+		TerrainBaseHeight = 0.1f;
+		TerrainPlainScale = FVector(0.005f, 0.005f, 0.2f);
+		TerrainMountainScale = FVector(0.03f, 0.03f, 0.25f);
+		TerrainStoneVoxelScale = FVector(0.05f, 0.05f, 0.18f);
+		TerrainSandVoxelScale = FVector(0.04f, 0.04f, 0.21f);
+		TerrainWaterVoxelScale = 0.3f;
+		TerrainBedrockVoxelScale = 0.01f;
+
+		ChunkMaterials = TArray<FChunkMaterial>();
+	}
+
+public:
+	static FWorldInfo Empty;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString WorldName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 WorldSeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 BlockSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkHeightRange;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnDistance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnSpeed;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkDestroySpeed;
+					
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkMapBuildSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkGenerateSpeed;
+						
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float VitalityRateDensity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CharacterRateDensity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainBaseHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainPlainScale;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainMountainScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainStoneVoxelScale;
+				
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainSandVoxelScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainWaterVoxelScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainBedrockVoxelScale;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FChunkMaterial> ChunkMaterials;
+
+public:
+	FORCEINLINE float GetChunkLength() const
+	{
+		return ChunkSize * BlockSize;
+	}
+
+	FORCEINLINE float GetWorldLength() const
+	{
+		return ChunkSize * ChunkSpawnRange * 2;
+	}
+
+	FORCEINLINE int32 GetWorldHeight() const
+	{
+		return ChunkSize * ChunkHeightRange;
+	}
+
+	FORCEINLINE int32 GetChunkDistance() const
+	{
+		return ChunkSpawnRange + ChunkSpawnDistance;
+	}
+
+	FORCEINLINE FChunkMaterial GetChunkMaterial(ETransparency Transparency) const
+	{
+		return ChunkMaterials[FMath::Clamp((int32)Transparency, 0, ChunkMaterials.Num())];
+	}
+};
+
 /**
- *  ¿ΩÁπ‹¿Ì∆˜
+ * ‰∏ñÁïåÁÆ°ÁêÜÂô®
  */
 UCLASS()
 class DREAMWORLD_API AWorldManager : public AActor
@@ -27,68 +156,15 @@ public:
 	AWorldManager();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	FString WorldName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 WorldSeed;
+	static AWorldManager* Current;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 BlockSize;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FWorldInfo WorldInfo;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkSize;
+public:
+	static AWorldManager* GetCurrent() { return Current; }
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkHightRange;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkSpawnRange;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkSpawnDistance;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkSpawnSpeed;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkDestroySpeed;
-					
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkMapBuildSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	int32 ChunkGenerateSpeed;
-						
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
-	float VitalityRateDensity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
-	float CharacterRateDensity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	float TerrainBaseHeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	FVector TerrainPlainScale;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	FVector TerrainMountainScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	FVector TerrainStoneVoxelScale;
-				
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	FVector TerrainSandVoxelScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	float TerrainWaterVoxelScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	float TerrainBedrockVoxelScale;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup")
-	TArray<FChunkMaterial> ChunkMaterials;
+	static FWorldInfo& GetWorldInfo() { return Current ? Current->WorldInfo : FWorldInfo::Empty; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
@@ -102,15 +178,16 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
 	UStaticMeshComponent* BoundsMesh;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WorldStats")
-	bool bBasicGenerated;
 
-	UPROPERTY(BlueprintReadOnly, Category = "WorldStats")
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Chunk")
 	TMap<FIndex, AChunk*> ChunkMap;
 
-	UPROPERTY(BlueprintReadOnly, Category = "WorldStats")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Team")
 	TMap<FName, FTeamData> TeamMap;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	bool bBasicGenerated;
 
 private:
 	int32 ChunkSpawnBatch;
@@ -179,21 +256,7 @@ public:
 
 	bool DissolveTeam(const FName& InTeamID, ADWCharacter* InCaptain = nullptr);
 
-	FChunkMaterial GetChunkMaterial(ETransparency Transparency);
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetChunkLength();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetWorldLength();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetWorldHeight();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkDistance();
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int GetNumChunks(bool bNeedGenerated = false);
 
 	FVector GetBlockSizedNormal(FVector InNormal, float InLength = 0.25f);
@@ -214,72 +277,76 @@ public:
 
 	bool VoxelTraceSingle(UVoxel* InVoxel, FVector InPoint, FHitResult& OutHitResult);
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FRandomStream GetRandomStream() const { return RandomStream; }
 			
 	UFUNCTION(BlueprintCallable)
 	void InitRandomStream(int32 InDeltaSeed);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FORCEINLINE UWorldTimerComponent* GetWorldTimer() const { return WorldTimer; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FString GetWorldName() const { return WorldName; }
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString WorldName;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetWorldSeed() const { return WorldSeed; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 WorldSeed;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 BlockSize;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetBlockSize() const { return BlockSize; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSize;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkSize() const { return ChunkSize; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkHightRange;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnRange;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkHightRange() const { return ChunkHightRange; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkSpawnRange() const { return ChunkSpawnRange; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkSpawnDistance() const { return ChunkSpawnDistance; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkSpawnSpeed() const { return ChunkSpawnSpeed; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkDestroySpeed() const { return ChunkDestroySpeed; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkMapBuildSpeed() const { return ChunkMapBuildSpeed; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetChunkGenerateSpeed() const { return ChunkGenerateSpeed; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnDistance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnSpeed;
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetVitalityRaceDensity() const { return VitalityRateDensity; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkDestroySpeed;
+					
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkMapBuildSpeed;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetCharacterRaceDensity() const { return CharacterRateDensity; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkGenerateSpeed;
+						
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float VitalityRateDensity;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetTerrainBaseHeight() const { return TerrainBaseHeight; }
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CharacterRateDensity;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FVector GetTerrainPlainScale() const { return TerrainPlainScale; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainBaseHeight;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FVector GetTerrainMountainScale() const { return TerrainMountainScale; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainPlainScale;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainMountainScale;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FVector GetTerrainStoneVoxelScale() const { return TerrainStoneVoxelScale; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainStoneVoxelScale;
+				
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainSandVoxelScale;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FVector GetTerrainSandVoxelScale() const { return TerrainSandVoxelScale; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainWaterVoxelScale;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetTerrainWaterVoxelScale() const { return TerrainWaterVoxelScale; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetTerrainBedrockVoxelScale() const { return TerrainBedrockVoxelScale; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainBedrockVoxelScale;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FChunkMaterial> ChunkMaterials;
 };

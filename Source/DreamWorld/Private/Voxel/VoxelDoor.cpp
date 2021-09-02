@@ -48,7 +48,7 @@ bool UVoxelDoor::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitRe
 		case EMouseButton::Right:
 		{
 			FHitResult hitResult;
-			if (!UDWHelper::GetWorldManager()->VoxelTraceSingle(this, Owner->IndexToLocation(Index), hitResult))
+			if (!AWorldManager::GetCurrent()->VoxelTraceSingle(this, Owner->IndexToLocation(Index), hitResult))
 			{
 				OpenOrClose();
 				return true;

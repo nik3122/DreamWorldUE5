@@ -7,7 +7,7 @@
 #include "InventoryEquipSlot.generated.h"
 
 /**
- * ×°±¸²Û
+ * ×°ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UInventoryEquipSlot : public UInventorySlot
@@ -28,9 +28,11 @@ public:
 	
 	virtual void Refresh() override;
 
-	virtual void UseItem(int InCount = -1) override;
+	virtual void PreSet(FItem& InItem) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	virtual void EndSet() override;
+
+	UFUNCTION(BlueprintPure)
 	EEquipPartType GetPartType() const { return PartType; }
 
 	UFUNCTION(BlueprintCallable)

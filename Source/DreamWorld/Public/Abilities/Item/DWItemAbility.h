@@ -14,4 +14,16 @@ class DREAMWORLD_API UDWItemAbility : public UDWGameplayAbility
 
 public:
 	UDWItemAbility();
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayEffects")
+	TSubclassOf<UGameplayEffect> ItemEffectClass;
+
+private:
+	FActiveGameplayEffectHandle ItemEffectHandle;
+
+protected:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 };

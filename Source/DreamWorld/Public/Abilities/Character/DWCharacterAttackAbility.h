@@ -14,8 +14,4 @@ class DREAMWORLD_API UDWCharacterAttackAbility : public UDWCharacterAbility
 
 public:
 	UDWCharacterAttackAbility();
-
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ability")
-	UAnimMontage* AnimMontage;
 };

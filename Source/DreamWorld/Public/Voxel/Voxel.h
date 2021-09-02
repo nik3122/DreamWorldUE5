@@ -8,7 +8,7 @@
 class AChunk;
 
 /**
- * ÌåËØ
+ * ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UVoxel : public UObject
@@ -93,40 +93,40 @@ public:
 	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVoxelData GetVoxelData() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FName GetVoxelID() const { return VoxelID; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetVoxelID(FName val) { VoxelID = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FIndex GetIndex() const { return Index; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetIndex(FIndex val) { Index = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FRotator GetRotation() const { return Rotation; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetRotation(FRotator val) { Rotation = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVector GetScale() const { return Scale; }
 	
 	UFUNCTION(BlueprintCallable)
 	void SetScale(FVector val) { Scale = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AChunk* GetOwner() const { return Owner; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetOwner(AChunk* val) { Owner = val; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AVoxelAuxiliary* GetAuxiliary() const { return Auxiliary; }
 
 	UFUNCTION(BlueprintCallable)

@@ -6,20 +6,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/DWCharacter.h"
 #include "WidgetComponent.h"
-#include "ConstructorHelpers.h"
 #include "Widget/Worlds/WidgetWorldText.h"
 #include "Widget/Worlds/WidgetVitalityHP.h"
 #include "Widget/Components/WidgetVitalityHPComponent.h"
 #include "Widget/Components/WidgetWorldTextComponent.h"
-#include "World/WorldManager.h"
 #include "World/Chunk.h"
-#include "Voxel/Voxel.h"
 #include "Inventory/Inventory.h"
 #include "Abilities/DWAbilitySystemComponent.h"
 #include "Abilities/DWAttributeSet.h"
-#include "Inventory/Slot/InventorySkillSlot.h"
 #include "Abilities/DWGameplayAbility.h"
-#include "Inventory/Slot/InventorySlot.h"
 
 // Sets default values
 AVitalityObject::AVitalityObject()
@@ -272,13 +267,13 @@ void AVitalityObject::SpawnWidgetWorldText(EWorldTextType InContextType, FString
 	}
 }
 
-FGameplayAbilitySpecHandle AVitalityObject::AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility)
+FGameplayAbilitySpecHandle AVitalityObject::AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility, int32 InLevel /*= 1*/)
 {
 	if (AbilitySystem && InAbility)
 	{
 		FGameplayAbilitySpecDef SpecDef = FGameplayAbilitySpecDef();
 		SpecDef.Ability = InAbility;
-		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(SpecDef, 1);
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(SpecDef, InLevel);
 		return AbilitySystem->GiveAbility(AbilitySpec);
 	}
 	return FGameplayAbilitySpecHandle();
@@ -307,15 +302,6 @@ bool AVitalityObject::ActiveAbility(const FGameplayTagContainer& GameplayTagCont
 	if (AbilitySystem)
 	{
 		return AbilitySystem->TryActivateAbilitiesByTag(GameplayTagContainer, bAllowRemoteActivation);
-	}
-	return false;
-}
-
-bool AVitalityObject::ActiveAbility(UInventorySlot* InventorySlot, bool bAllowRemoteActivation /*= false*/)
-{
-	if (AbilitySystem && !InventorySlot->IsEmpty())
-	{
-		return AbilitySystem->TryActivateAbility(InventorySlot->GetAbilityHandle(), bAllowRemoteActivation);
 	}
 	return false;
 }

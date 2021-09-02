@@ -9,7 +9,7 @@
 class UBoxComponent;
 
 /**
- * ÎäÆ÷
+ * ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API AEquipWeapon : public AEquip
@@ -39,11 +39,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void SetCollisonEnable(bool InValue);
+	void SetCollisionEnable(bool InValue);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FEquipWeaponData GetWeaponData();
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UBoxComponent* GetBoxComponent() const { return BoxComponent; }
 };

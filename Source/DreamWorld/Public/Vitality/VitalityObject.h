@@ -17,7 +17,7 @@ class UInventory;
 class UDWAttributeSet;
 
 /**
- * ÓÐÉúÃüµÄÎïÌå
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API AVitalityObject : public AActor, public IVitality, public IAbilitySystemInterface
@@ -85,7 +85,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadData(FVitalityObjectData InSaveData);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FVitalityObjectData ToData();
 
 	UFUNCTION(BlueprintCallable)
@@ -98,7 +98,7 @@ public:
 	virtual void Revive() override;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility) override;
+	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility, int32 InLevel = 1) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool ActiveAbility(FGameplayAbilitySpecHandle AbilityHandle, bool bAllowRemoteActivation = false) override;
@@ -106,8 +106,6 @@ public:
 	virtual bool ActiveAbility(TSubclassOf<UDWGameplayAbility> AbilityClass, bool bAllowRemoteActivation = false) override;
 
 	virtual bool ActiveAbility(const FGameplayTagContainer& GameplayTagContainer, bool bAllowRemoteActivation = false) override;
-		
-	virtual bool ActiveAbility(UInventorySlot* InventorySlot, bool bAllowRemoteActivation = false) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void CancelAbility(UDWGameplayAbility* Ability) override;
@@ -128,16 +126,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void Refresh() override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsDead() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FString GetName() const override { return Name; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetName(const FString& InName) override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FString GetRaceID() const override { return RaceID; }
 
 	UFUNCTION(BlueprintCallable)
@@ -146,61 +144,61 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetLevelC(int32 InLevel);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetLevelC() const override { return Level; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetEXP() const override { return EXP; }
 		
 	UFUNCTION(BlueprintCallable)
 	void SetEXP(int32 InEXP);
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetBaseEXP() const override { return BaseEXP; }
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetEXPFactor() const override { return EXPFactor; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetMaxEXP() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	int32 GetTotalEXP() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FString GetHeadInfo() const override;
 			
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetHealth() const override;
 					
 	UFUNCTION(BlueprintCallable)
 	void SetHealth(float InValue) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMaxHealth() const override;
 		
 	UFUNCTION(BlueprintCallable)
 	void SetMaxHealth(float InValue) override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetPhysicsDamage() const override;
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	float GetMagicDamage() const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	AChunk* GetOwnerChunk() const { return OwnerChunk; }
 	
 	UFUNCTION(BlueprintCallable)
 	void SetOwnerChunk(AChunk* InOwnerChunk) { OwnerChunk = InOwnerChunk; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UInventory* GetInventory() const { return Inventory; }
 		
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UWidgetVitalityHP* GetWidgetVitalityHPWidget();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	UAbilitySystemComponent* GetAbilitySystemComponent() const {return AbilitySystem;}
 
 public:

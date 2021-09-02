@@ -47,18 +47,18 @@ public:
 	void K2_RefreshPanel();
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	bool IsActive();
 	
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	virtual AActor* GetOwnerActor() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	FName GetWidgetName() const { return WidgetName; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	EInputMode GetInputMode() const { return InputMode; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintPure)
 	EWidgetPanelType GetWidgetType() const { return WidgetType; }
 };

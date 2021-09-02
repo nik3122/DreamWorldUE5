@@ -39,8 +39,8 @@ void ADWPlayerCharacterController::OnPossess(APawn* InPawn)
 	PossessedCharacter = Cast<ADWPlayerCharacter>(InPawn);
 	if (PossessedCharacter)
 	{
-		UDWHelper::GetWidgetInventoryBar()->InitInventory(PossessedCharacter->GetInventory());
-		UDWHelper::GetWidgetInventoryPanel()->InitInventory(PossessedCharacter->GetInventory());
+		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->InitInventory(PossessedCharacter->GetInventory());
+		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->InitInventory(PossessedCharacter->GetInventory());
 		PossessedCharacter->Refresh();
 	}
 }
@@ -50,8 +50,9 @@ void ADWPlayerCharacterController::OnUnPossess()
 	Super::OnUnPossess();
 	if (PossessedCharacter)
 	{
-		UDWHelper::GetWidgetInventoryBar()->InitInventory(nullptr);
-		UDWHelper::GetWidgetInventoryPanel()->InitInventory(nullptr);
+		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->InitInventory(nullptr);
+		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->InitInventory(nullptr);
+		PossessedCharacter->Destroy();
 		PossessedCharacter = nullptr;
 	}
 }
@@ -70,7 +71,7 @@ bool ADWPlayerCharacterController::RaycastFromAimPoint(FHitResult& OutHitResult,
 	{
 		FVector rayStart = PlayerCameraManager->GetCameraLocation();
 		FVector rayEnd = rayStart + rayDirection * InRayDistance;
-		return UKismetSystemLibrary::LineTraceSingle(PossessedCharacter, rayStart, rayEnd, UDWHelper::GetWorldManager()->GetGameTrace(InGameTraceType), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
+		return UKismetSystemLibrary::LineTraceSingle(PossessedCharacter, rayStart, rayEnd, AWorldManager::GetCurrent()->GetGameTrace(InGameTraceType), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 	}
 	return false;
 }
