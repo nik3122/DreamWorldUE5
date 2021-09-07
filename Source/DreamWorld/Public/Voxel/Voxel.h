@@ -17,7 +17,71 @@ class DREAMWORLD_API UVoxel : public UObject
 
 public:
 	UVoxel();
+	
+	//////////////////////////////////////////////////////////////////////////
+	// Statics
+private:
+	static UVoxel* EmptyVoxel;
 
+	static UVoxel* UnknownVoxel;
+
+public:
+	static UVoxel* Empty();
+
+	static UVoxel* Unknown();
+
+	static UVoxel* NewVoxel(EVoxelType InVoxelType, UObject* InOuter);
+
+	static UVoxel* NewVoxel(const FName& InVoxelID, UObject* InOuter);
+	
+	static UVoxel* LoadVoxel(FVoxelItem VoxelItem, AChunk* InOwner);
+
+	static UVoxel* LoadVoxel(const FString& InVoxelData, AChunk* InOwner);
+
+	static bool IsValid(UVoxel* InVoxel, bool bCheckOwner = true);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Defaults
+public:
+	virtual void Initialize(FIndex InIndex, AChunk* InOwner = nullptr);
+
+	virtual void LoadData(const FString& InValue);
+
+	virtual FString ToData();
+
+	virtual void OnGenerate();
+
+	virtual void OnDestroy();
+
+	virtual void OnReplace();
+
+	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals);
+
+	virtual bool CheckAdjacent(EDirection InDirection);
+
+	virtual bool CheckNeighbors(EVoxelType InVoxelType, bool bIgnoreBottom = false, int InDistance = 1);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Events
+public:
+	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+
+	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+
+	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+
+	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+
+	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
+
+	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
+
+	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
+
+	virtual void OnMouseHover(FVoxelHitResult InHitResult);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Stats
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FName VoxelID;
@@ -36,61 +100,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	AVoxelAuxiliary* Auxiliary;
-	
-public:
-	static UVoxel* Empty();
-
-	static UVoxel* Unknown();
-
-	static UVoxel* NewVoxel(EVoxelType InVoxelType, UObject* InOuter);
-
-	static UVoxel* NewVoxel(const FName& InVoxelID, UObject* InOuter);
-	
-	static UVoxel* LoadVoxel(FVoxelItem VoxelItem, AChunk* InOwner);
-
-	static UVoxel* LoadVoxel(const FString& InVoxelData, AChunk* InOwner);
-
-	static bool IsValid(UVoxel* InVoxel, bool bCheckOwner = true);
-
-private:
-	static UVoxel* EmptyVoxel;
-
-	static UVoxel* UnknownVoxel;
-
-public:
-	virtual void Initialize(FIndex InIndex, AChunk* InOwner = nullptr);
-
-	virtual void LoadData(const FString& InVlaue);
-
-	virtual FString ToData();
-
-	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals);
-
-	virtual bool CheckAdjacent(EDirection InDirection);
-
-	virtual bool CheckNeighbors(EVoxelType InVoxelType, bool bIgnoreBottom = false, int InDistance = 1);
-
-	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
-
-	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
-
-	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
-
-	virtual void OnMouseHover(FVoxelHitResult InHitResult);
-
-	virtual void OnGenerate();
-
-	virtual void OnDestroy();
-
-	virtual void OnReplace();
-
-	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
-
-	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
-
-	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
-
-	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
 
 public:
 	UFUNCTION(BlueprintPure)

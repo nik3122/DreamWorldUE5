@@ -45,18 +45,6 @@ public:
 	
 	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
 	static class ADWPlayerCharacterController* GetPlayerController(const UObject* InWorldContext);
-	
-	//////////////////////////////////////////////////////////////////////////
-	// DataSaves
-public:
-	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
-	static class UGameDataSave* GetGameDataSave(const UObject* InWorldContext);
-
-	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
-	static class UWorldDataSave* GetWorldDataSave(const UObject* InWorldContext);
-
-	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
-	static class UPlayerDataSave* GetPlayerDataSave(const UObject* InWorldContext);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Datas
@@ -206,6 +194,12 @@ public:
 	static void Debug(const FString& Message, EDebugType DebugType = EDebugType::Screen, float Duration = 1.5f);
 
 	//////////////////////////////////////////////////////////////////////////
+	// Enum
+public:
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static FString EnumValueToString(const FString& InEnumName, const int32& InEnumValue);
+
+	//////////////////////////////////////////////////////////////////////////
 	// Index
 public:
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
@@ -221,8 +215,8 @@ public:
 	static FIndex GetAdjacentIndex(FIndex InIndex, EDirection InDirection, FRotator InRotation = FRotator::ZeroRotator);
 
 	//////////////////////////////////////////////////////////////////////////
-	// Enum
+	// Trace
 public:
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
-	static FString EnumValueToString(const FString& InEnumName, const int32& InEnumValue);
+	static ETraceTypeQuery GetGameTrace(EGameTraceType InGameTraceType);
 };

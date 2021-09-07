@@ -297,7 +297,7 @@ void ADWCharacter::Tick(float DeltaTime)
 
 		FVector Location = GetMesh()->GetSocketLocation(FName("Foot"));
 		
-		AChunk* Chunk = AWorldManager::GetCurrent()->FindChunk(Location);
+		AChunk* Chunk = AWorldManager::Get()->FindChunk(Location);
 		if(Chunk != nullptr)
 		{
 			if(OwnerChunk != nullptr)
@@ -517,19 +517,19 @@ bool ADWCharacter::HasActionAbility(ECharacterActionType InActionType)
 
 bool ADWCharacter::CreateTeam(const FName& InTeamName /*= MANE_None*/, FString InTeamDetail /*= TEXT("")*/)
 {
-	return AWorldManager::GetCurrent()->CreateTeam(this, InTeamName, InTeamDetail);
+	return AWorldManager::Get()->CreateTeam(this, InTeamName, InTeamDetail);
 }
 
 bool ADWCharacter::DissolveTeam()
 {
-	return AWorldManager::GetCurrent()->DissolveTeam(*TeamID, this);
+	return AWorldManager::Get()->DissolveTeam(*TeamID, this);
 }
 
 bool ADWCharacter::JoinTeam(const FName& InTeamID)
 {
-	if (AWorldManager::GetCurrent()->IsExistTeam(InTeamID))
+	if (AWorldManager::Get()->IsExistTeam(InTeamID))
 	{
-		AWorldManager::GetCurrent()->GetTeamData(InTeamID)->AddMember(this);
+		AWorldManager::Get()->GetTeamData(InTeamID)->AddMember(this);
 		return true;
 	}
 	return false;
@@ -1609,7 +1609,7 @@ UWidgetCharacterHP* ADWCharacter::GetWidgetCharacterHPWidget()
 
 FTeamData* ADWCharacter::GetTeamData() const
 {
-	return AWorldManager::GetCurrent()->GetTeamData(*TeamID);
+	return AWorldManager::Get()->GetTeamData(*TeamID);
 }
 
 void ADWCharacter::SetName(const FString& InName)
@@ -2055,8 +2055,8 @@ FDWCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionTyp
 bool ADWCharacter::RaycastStep(FHitResult& OutHitResult)
 {
 	FVector rayStart = GetActorLocation() + FVector::DownVector * (GetHalfHeight() - GetCharacterMovement()->MaxStepHeight);
-	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetWorldInfo().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
-	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, AWorldManager::GetCurrent()->GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
+	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetInfo().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
+	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, UDWHelper::GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 }
 
 void ADWCharacter::HandleDamage(const float LocalDamageDone, FHitResult HitResult, const struct FGameplayTagContainer& SourceTags, ADWCharacter* SourceCharacter, AActor* SourceActor)

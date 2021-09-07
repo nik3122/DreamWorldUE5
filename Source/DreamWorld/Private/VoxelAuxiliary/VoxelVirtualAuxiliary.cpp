@@ -44,9 +44,9 @@ void AVoxelVirtualAuxiliary::Tick(float DeltaTime)
 
 }
 
-void AVoxelVirtualAuxiliary::Initialize(UVoxel* InOwner, FVector InLocaltion)
+void AVoxelVirtualAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
 {
-	Super::Initialize(InOwner, InLocaltion);
+	Super::Initialize(InOwner, InLocation);
 
 	if(!InOwner || !InOwner->IsValidLowLevel()) return;
 

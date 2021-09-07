@@ -40,7 +40,7 @@ void AVoxelDoorAuxiliary::Tick(float DeltaTime)
 
 }
 
-void AVoxelDoorAuxiliary::Initialize(UVoxel* InOwner, FVector InLocaltion)
+void AVoxelDoorAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
 {
-	Super::Initialize(InOwner, InLocaltion);
+	Super::Initialize(InOwner, InLocation);
 }

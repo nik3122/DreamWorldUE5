@@ -30,11 +30,11 @@ void AVoxelAuxiliary::Tick(float DeltaTime)
 
 }
 
-void AVoxelAuxiliary::Initialize(UVoxel* InOwner, FVector InLocaltion)
+void AVoxelAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
 {
 	if(!InOwner || !InOwner->IsValidLowLevel()) return;
 
 	OwnerVoxel = InOwner;
-	SetActorRelativeLocation(InLocaltion);
+	SetActorRelativeLocation(InLocation);
 	SetActorRelativeRotation(InOwner->GetRotation());
 }

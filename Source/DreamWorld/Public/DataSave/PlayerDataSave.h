@@ -28,8 +28,11 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SavePlayerData(ADWPlayerCharacter* InPlayerCharacter);
+	void SavePlayerData(const int32 InUserIndex = 0);
 	
+	UFUNCTION(BlueprintCallable)
+	void RemovePlayerData(const int32 InUserIndex = 0);
+
 	UFUNCTION(BlueprintCallable)
 	bool IsExistWorldRecord(const FString& InWorldName);
 

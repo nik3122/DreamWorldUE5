@@ -9,7 +9,7 @@
 class AChunk;
 
 /**
- * ÌåËØÃÅ
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UVoxelDoor : public UVoxel
@@ -22,22 +22,14 @@ protected:
 public:
 	UVoxelDoor();
 	
+	//////////////////////////////////////////////////////////////////////////
+	// Defaults
 public:
 	virtual void Initialize(FIndex InIndex, AChunk* InOwner = nullptr) override;
 
-	virtual void LoadData(const FString& InVlaue) override;
+	virtual void LoadData(const FString& InValue) override;
 
 	virtual FString ToData() override;
-
-	virtual bool CheckAdjacent(EDirection InDirection) override;
-
-	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
-
-	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
-
-	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
-
-	virtual void OnMouseHover(FVoxelHitResult InHitResult) override;
 
 	virtual void OnGenerate() override;
 
@@ -45,6 +37,19 @@ public:
 
 	virtual void OnReplace() override;
 
+	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals) override;
+
+	virtual bool CheckAdjacent(EDirection InDirection) override;
+
+	virtual void OpenOrClose();
+
+	virtual void OpenTheDoor();
+
+	virtual void CloseTheDoor();
+
+	//////////////////////////////////////////////////////////////////////////
+	// Events
+public:
 	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
 
 	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
@@ -53,9 +58,11 @@ public:
 
 	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
 
-	virtual void OpenOrClose();
+	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
 
-	virtual void OpenTheDoor();
+	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
 
-	virtual void CloseTheDoor();
+	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+
+	virtual void OnMouseHover(FVoxelHitResult InHitResult) override;
 };

@@ -10,7 +10,7 @@ class UVoxel;
 class UPointLightComponent;
 
 /**
- * »ð°Ñ¸¨ÖúÎï
+ * ï¿½ï¿½Ñ¸ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API AVoxelTorchAuxiliary : public AVoxelAuxiliary
@@ -33,5 +33,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Initialize(UVoxel* InOwner, FVector InLocaltion) override;
+	virtual void Initialize(UVoxel* InOwner, FVector InLocation) override;
 };

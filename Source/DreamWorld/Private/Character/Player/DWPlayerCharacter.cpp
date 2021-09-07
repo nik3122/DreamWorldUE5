@@ -512,42 +512,42 @@ void ADWPlayerCharacter::HandleHealthChanged(float NewValue, float DeltaValue /*
 {
 	Super::HandleHealthChanged(NewValue, DeltaValue);
 	UDWHelper::GetWidgetPanelByClass<UWidgetPrimaryPanel>(this)->SetHealthPercent(NewValue, GetMaxHealth());
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int)NewValue, (int)GetMaxHealth()));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxHealth()));
 }
 
 void ADWPlayerCharacter::HandleMaxHealthChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleMaxHealthChanged(NewValue, DeltaValue);
 	UDWHelper::GetWidgetPanelByClass<UWidgetPrimaryPanel>(this)->SetHealthPercent(NewValue, GetMaxHealth());
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int)NewValue, (int)GetMaxHealth()));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxHealth()));
 }
 
 void ADWPlayerCharacter::HandleManaChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleManaChanged(NewValue, DeltaValue);
 	UDWHelper::GetWidgetPanelByClass<UWidgetPrimaryPanel>(this)->SetManaPercent(NewValue, GetMaxMana());
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int)NewValue, (int)GetMaxMana()));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxMana()));
 }
 
 void ADWPlayerCharacter::HandleMaxManaChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleMaxManaChanged(NewValue, DeltaValue);
 	UDWHelper::GetWidgetPanelByClass<UWidgetPrimaryPanel>(this)->SetManaPercent(NewValue, GetMaxMana());
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int)NewValue, (int)GetMaxMana()));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxMana()));
 }
 
 void ADWPlayerCharacter::HandleStaminaChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleStaminaChanged(NewValue, DeltaValue);
 	UDWHelper::GetWidgetPanelByClass<UWidgetPrimaryPanel>(this)->SetStaminaPercent(NewValue, GetMaxStamina());
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int)NewValue, (int)GetMaxStamina()));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxStamina()));
 }
 
 void ADWPlayerCharacter::HandleMaxStaminaChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleMaxStaminaChanged(NewValue, DeltaValue);
 	UDWHelper::GetWidgetPanelByClass<UWidgetPrimaryPanel>(this)->SetStaminaPercent(NewValue, GetMaxStamina());
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int)NewValue, (int)GetMaxStamina()));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxStamina()));
 }
 
 void ADWPlayerCharacter::HandleMoveSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
@@ -610,19 +610,19 @@ void ADWPlayerCharacter::HandleAttackSpeedChanged(float NewValue, float DeltaVal
 void ADWPlayerCharacter::HandleAttackCritRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleAttackCritRateChanged(NewValue, DeltaValue);
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetAttackCritRate(FString::Printf(TEXT("%d%"), (int)(NewValue * 100)));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetAttackCritRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
 }
 
 void ADWPlayerCharacter::HandleAttackStealRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleAttackStealRateChanged(NewValue, DeltaValue);
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetAttackStealRate(FString::Printf(TEXT("%d%"), (int)(NewValue * 100)));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetAttackStealRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
 }
 
 void ADWPlayerCharacter::HandleDefendRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleDefendRateChanged(NewValue, DeltaValue);
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetDefendRate(FString::Printf(TEXT("%d%"), (int)(NewValue * 100)));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetDefendRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
 }
 
 void ADWPlayerCharacter::HandleDefendScopeChanged(float NewValue, float DeltaValue /*= 0.f*/)
@@ -633,19 +633,19 @@ void ADWPlayerCharacter::HandleDefendScopeChanged(float NewValue, float DeltaVal
 void ADWPlayerCharacter::HandlePhysicsDefRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandlePhysicsDefRateChanged(NewValue, DeltaValue);
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetPhysicsDefRate(FString::Printf(TEXT("%d%"), (int)(NewValue * 100)));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetPhysicsDefRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
 }
 
 void ADWPlayerCharacter::HandleMagicDefRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleMagicDefRateChanged(NewValue, DeltaValue);
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetMagicDefRate(FString::Printf(TEXT("%d%"), (int)(NewValue * 100)));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetMagicDefRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
 }
 
 void ADWPlayerCharacter::HandleToughnessRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
 {
 	Super::HandleToughnessRateChanged(NewValue, DeltaValue);
-	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetToughnessRate(FString::Printf(TEXT("%d%"), (int)(NewValue * 100)));
+	UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->SetToughnessRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
 }
 
 void ADWPlayerCharacter::HandleRegenSpeedAttribute(float NewValue, float DeltaValue /*= 0.f*/)
@@ -665,7 +665,7 @@ void ADWPlayerCharacter::ToggleLockSightTarget()
 	if (!LockedTarget)
 	{
 		TArray<FHitResult> hitResults;
-		if (UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 1000, AWorldManager::GetCurrent()->GetGameTrace(EGameTraceType::Sight), true, TArray<AActor*>(), EDrawDebugTrace::None, hitResults, true))
+		if (UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 1000, UDWHelper::GetGameTrace(EGameTraceType::Sight), true, TArray<AActor*>(), EDrawDebugTrace::None, hitResults, true))
 		{
 			ADWCharacter* nearCharacter = nullptr;
 			for (int i = 0; i < hitResults.Num(); i++)
@@ -1062,7 +1062,7 @@ bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
 				AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
 				if (chunk != nullptr)
 				{
-					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetCurrent()->GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetInfo().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
 					if (UVoxel::IsValid(voxel))
 					{
 						OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);

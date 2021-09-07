@@ -3,6 +3,7 @@
 #include "DataSave/WorldDataSave.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 #include "World/Chunk.h"
 #include "World/WorldManager.h"
 
@@ -19,10 +20,18 @@ bool UWorldDataSave::IsExistChunkData(FIndex InChunkIndex)
 	return ChunkDatas.Contains(InChunkIndex.ToVector());
 }
 
-void UWorldDataSave::SaveWorldData(AWorldManager* InWorldManager)
+void UWorldDataSave::SaveWorldData(const int32 InUserIndex)
 {
-	WorldData.Name = AWorldManager::GetWorldInfo().WorldName;
-	WorldData.Seed = AWorldManager::GetWorldInfo().WorldSeed;
+	WorldData.Name = AWorldManager::GetInfo().WorldName;
+	WorldData.Seed = AWorldManager::GetInfo().WorldSeed;
+	
+	UDWHelper::Debug(FString::Printf(TEXT("Saving world : %s, %dchunks."), *GetWorldData().Name, GetChunkDatas().Num()), EDebugType::Console);
+	UGameplayStatics::SaveGameToSlot(this, TEXT("World_") + GetWorldData().Name, InUserIndex);
+}
+
+void UWorldDataSave::RemoveWorldData(const int32 InUserIndex)
+{
+	UGameplayStatics::DeleteGameInSlot(TEXT("World_") + GetWorldData().Name, InUserIndex);
 }
 
 void UWorldDataSave::SaveChunkData(FIndex InChunkIndex, FChunkData InChunkData)

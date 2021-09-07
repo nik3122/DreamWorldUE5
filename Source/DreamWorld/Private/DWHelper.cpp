@@ -72,33 +72,6 @@ ADWPlayerCharacterController* UDWHelper::GetPlayerController(const UObject* InWo
 	return CurrentPlayerController;
 }
 
-UGameDataSave* UDWHelper::GetGameDataSave(const UObject* InWorldContext)
-{
-	if (UDWGameInstance* GameInstance = GetGameInstance(InWorldContext))
-	{
-		return GameInstance->GetGameDataSave();
-	}
-	return nullptr;
-}
-
-UWorldDataSave* UDWHelper::GetWorldDataSave(const UObject* InWorldContext)
-{
-	if (UDWGameInstance* GameInstance = GetGameInstance(InWorldContext))
-	{
-		return GameInstance->GetWorldDataSave();
-	}
-	return nullptr;
-}
-
-UPlayerDataSave* UDWHelper::GetPlayerDataSave(const UObject* InWorldContext)
-{
-	if (UDWGameInstance* GameInstance = GetGameInstance(InWorldContext))
-	{
-		return GameInstance->GetPlayerDataSave();
-	}
-	return nullptr;
-}
-
 TSubclassOf<UWidgetCharacterHP> UDWHelper::WidgetCharacterHPClass = nullptr;
 
 TSubclassOf<UWidgetVitalityHP> UDWHelper::WidgetVitalityHPClass = nullptr;
@@ -547,6 +520,15 @@ void UDWHelper::Debug(const FString& Message, EDebugType DebugType, float Durati
 	}
 }
 
+FString UDWHelper::EnumValueToString(const FString& InEnumName, const int32& InEnumValue)
+{
+	if(UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *InEnumName, true))
+	{
+		return EnumPtr->GetAuthoredNameStringByValue(InEnumValue);
+	}
+	return TEXT("");
+}
+
 EDirection UDWHelper::InvertDirection(EDirection InDirection)
 {
 	if ((int)InDirection % 2 == 0)
@@ -585,11 +567,7 @@ FIndex UDWHelper::GetAdjacentIndex(FIndex InIndex, EDirection InDirection, FRota
 	return InIndex + DirectionToIndex(InDirection, InRotation);
 }
 
-FString UDWHelper::EnumValueToString(const FString& InEnumName, const int32& InEnumValue)
+ETraceTypeQuery UDWHelper::GetGameTrace(EGameTraceType InGameTraceType)
 {
-	if(UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *InEnumName, true))
-	{
-		return EnumPtr->GetAuthoredNameStringByValue(InEnumValue);
-	}
-	return TEXT("");
+	return UEngineTypes::ConvertToTraceType((ECollisionChannel)InGameTraceType);
 }

@@ -14,6 +14,31 @@ void UVoxelPlant::Initialize(FIndex InIndex, AChunk* InOwner)
 	Super::Initialize(InIndex, InOwner);
 }
 
+void UVoxelPlant::LoadData(const FString& InValue)
+{
+	Super::LoadData(InValue);
+}
+
+FString UVoxelPlant::ToData()
+{
+	return Super::ToData();
+}
+
+void UVoxelPlant::OnGenerate()
+{
+	Super::OnGenerate();
+}
+
+void UVoxelPlant::OnDestroy()
+{
+	Super::OnDestroy();
+}
+
+void UVoxelPlant::OnReplace()
+{
+	Super::OnReplace();
+}
+
 bool UVoxelPlant::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
 {
 	FVector range = GetVoxelData().GetFinalRange(Rotation, Scale);
@@ -40,49 +65,6 @@ bool UVoxelPlant::CheckAdjacent(EDirection InDirection)
 	return true;
 }
 
-bool UVoxelPlant::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	switch (InMouseButton)
-	{
-		case EMouseButton::Left:
-		{
-			return Super::OnMouseDown(InMouseButton, InHitResult);
-			break;
-		}
-	}
-	return false;
-}
-
-bool UVoxelPlant::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	return Super::OnMouseUp(InMouseButton, InHitResult);
-}
-
-bool UVoxelPlant::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	return Super::OnMouseHold(InMouseButton, InHitResult);
-}
-
-void UVoxelPlant::OnMouseHover(FVoxelHitResult InHitResult)
-{
-	Super::OnMouseHover(InHitResult);
-}
-
-void UVoxelPlant::OnGenerate()
-{
-	Super::OnGenerate();
-}
-
-void UVoxelPlant::OnDestroy()
-{
-	Super::OnDestroy();
-}
-
-void UVoxelPlant::OnReplace()
-{
-	Super::OnReplace();
-}
-
 void UVoxelPlant::OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);
@@ -101,4 +83,30 @@ void UVoxelPlant::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResu
 void UVoxelPlant::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
+}
+bool UVoxelPlant::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	switch (InMouseButton)
+	{
+		case EMouseButton::Left:
+		{
+			return Super::OnMouseDown(InMouseButton, InHitResult);
+		}
+	}
+	return false;
+}
+
+bool UVoxelPlant::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return Super::OnMouseUp(InMouseButton, InHitResult);
+}
+
+bool UVoxelPlant::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return Super::OnMouseHold(InMouseButton, InHitResult);
+}
+
+void UVoxelPlant::OnMouseHover(FVoxelHitResult InHitResult)
+{
+	Super::OnMouseHover(InHitResult);
 }

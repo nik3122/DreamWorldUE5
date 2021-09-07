@@ -9,7 +9,7 @@
 class UVoxel;
 
 /**
- * ÃÅ¸¨ÖúÎï
+ * ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API AVoxelDoorAuxiliary : public AVoxelVirtualAuxiliary
@@ -32,5 +32,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Initialize(UVoxel* InOwner, FVector InLocaltion) override;
+	virtual void Initialize(UVoxel* InOwner, FVector InLocation) override;
 };

@@ -22,50 +22,18 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 UserIndex;
-	
+	FGameData GameData;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TMap<FString, FWorldData> WorldDatas;
-	
+	TArray<FString> WorldNames;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TMap<FString, FCharacterData> PlayerDatas;
+	TArray<FString> PlayerNames;
 
 public:
-	bool IsExistWorldData(const FString& InWorldName);
+	void SaveGameData(const int32 InUserIndex = 0);
 
-	bool IsExistPlayerData(const FString& InPlayerName);
+	TArray<FString> GetWorldNames() const { return WorldNames; }
 
-	void SaveGameData(const int32 InUserIndex = -1);
-
-	void CreateWorldData(FWorldData InSaveData);
-
-	void CreatePlayerData(FCharacterData InSaveData);
-
-	void SaveWorldData(UWorldDataSave* InWorldDataSave);
-
-	void SavePlayerData(UPlayerDataSave* InPlayerDataSave);
-
-	void RemoveWorldData(const FString& InWorldName);
-	
-	void RemovePlayerData(const FString& InPlayerName);
-
-	UWorldDataSave* LoadWorldData(const FString& InWorldName);
-
-	UPlayerDataSave* LoadPlayerData(const FString& InPlayerName);
-
-	TArray<FString> GetWorldNames();
-
-	TArray<FString> GetPlayerNames();
-
-	TArray<FWorldData> GetWorldDatas();
-
-	TArray<FCharacterData> GetPlayerDatas();
-	
-	TArray<UWorldDataSave*> GetWorldDataSaves();
-
-	TArray<UPlayerDataSave*> GetPlayerDataSaves();
-
-	int32 GetUserIndex() const { return UserIndex; }
-
-	void SetUserIndex(int32 InUserIndex) { UserIndex = InUserIndex; }
+	TArray<FString> GetPlayerNames() const { return PlayerNames; }
 };

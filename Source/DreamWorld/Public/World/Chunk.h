@@ -24,41 +24,6 @@ public:
 	AChunk();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	FIndex Index;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	int32 Batch;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	bool bGenerated;
-
-protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Component")
-	UVoxelMeshComponent* SolidMesh;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Component")
-	UVoxelMeshComponent* SemiMesh;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Component")
-	UVoxelMeshComponent* TransMesh;
-		
-	UPROPERTY(BlueprintReadOnly, Category = "ChunkStats")
-	TArray<AChunk*> Neighbors;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "ChunkStats")
-	TMap<FIndex, UVoxel*> VoxelMap;
-			
-	UPROPERTY(BlueprintReadOnly, Category = "ChunkStats")
-	TArray<ADWCharacter*> Characters;
-
-	UPROPERTY(BlueprintReadOnly, Category = "ChunkStats")
-	TArray<AVitalityObject*> VitalityObjects;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "ChunkStats")
-	TArray<APickUp*> PickUps;
-
-protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -74,25 +39,89 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+		
+	virtual void Destroyed() override;
 
+	//////////////////////////////////////////////////////////////////////////
+	// Components
+protected:
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
+	UVoxelMeshComponent* SolidMesh;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
+	UVoxelMeshComponent* SemiMesh;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
+	UVoxelMeshComponent* TransMesh;
+
+public:
+	UVoxelMeshComponent* GetSolidMesh();
+
+	UVoxelMeshComponent* GetSemiMesh();
+
+	UVoxelMeshComponent* GetTransMesh();
+		
+	//////////////////////////////////////////////////////////////////////////
+	// Stats
+protected:
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	TArray<AChunk*> Neighbors;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	TMap<FIndex, UVoxel*> VoxelMap;
+			
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	TArray<ADWCharacter*> Characters;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	TArray<AVitalityObject*> VitalityObjects;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	TArray<APickUp*> PickUps;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	FIndex Index;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	int32 Batch;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	bool bGenerated;
+
+public:
+	FIndex GetIndex() const { return Index; }
+
+	int32 GetBatch() const { return Batch; }
+	
+	bool IsGenerated() const { return bGenerated; }
+
+	//////////////////////////////////////////////////////////////////////////
+	// Chunk
+public:
 	void Initialize(FIndex InIndex, int32 InBatch);
 
+	void Generate();
+
+protected:
 	void BuildMap();
 
 	void LoadMap(FChunkData InChunkData);
 
 	void LoadActors(FChunkData InChunkData);
 
-	void GenerateMesh();
-		
-	void OnGenerated();
+	bool GenerateMap();
 
-	void OnDestroy();
+	void OnGenerated();
 		
 	void UpdateNeighbors(FIndex InIndex);
 
 	void UpdateNeighbors(int InX, int InY, int InZ);
 
+	void GetNeighbors();
+
+	void BreakNeighbors();
+
+public:
 	UVoxel* GetVoxel(FIndex InIndex);
 
 	UVoxel* GetVoxel(int InX, int InY, int InZ);
@@ -117,61 +146,50 @@ public:
 
 	bool ReplaceVoxel(UVoxel* InOldVoxel, UVoxel* InNewVoxel);
 
+	bool IsOnTheChunk(FIndex InIndex) const;
+
+	bool IsOnTheChunk(FVector InLocation) const;
+
+	FIndex LocationToIndex(FVector InLocation, bool bWorldSpace = true) const;
+
+	FVector IndexToLocation(FIndex InIndex, bool bWorldSpace = true) const;
+
+	FIndex LocalIndexToWorld(FIndex InIndex) const;
+
+	FIndex WorldIndexToLocal(FIndex InIndex) const;
+
+	//////////////////////////////////////////////////////////////////////////
+	// PickUp
+public:
 	APickUp* SpawnPickUp(FItem InItem, FVector InLocation);
 
 	APickUp* SpawnPickUp(FPickUpData InPickUpData);
 
-	ADWCharacter* SpawnCharacter(FCharacterData InSaveData);
-
-	AVitalityObject* SpawnVitalityObject(FVitalityObjectData InSaveData);
-
-	void DestroyPickUp(APickUp* InPickUp);
-
-	void DestroyCharacter(ADWCharacter* InCharacter);
-
-	void DestroyVitalityObject(AVitalityObject* InVitalityObject);
-
 	void AttachPickUp(APickUp* InPickUp);
-
-	void AttachCharacter(ADWCharacter* InCharacter);
-
-	void AttachVitalityObject(AVitalityObject* InVitalityObject);
 
 	void DetachPickUp(APickUp* InPickUp);
 
+	void DestroyPickUp(APickUp* InPickUp);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Character
+public:
+	ADWCharacter* SpawnCharacter(FCharacterData InSaveData);
+
+	void AttachCharacter(ADWCharacter* InCharacter);
+
 	void DetachCharacter(ADWCharacter* InCharacter);
+
+	void DestroyCharacter(ADWCharacter* InCharacter);
+
+	//////////////////////////////////////////////////////////////////////////
+	// VitalityObject
+public:
+	AVitalityObject* SpawnVitalityObject(FVitalityObjectData InSaveData);
+
+	void AttachVitalityObject(AVitalityObject* InVitalityObject);
 
 	void DetachVitalityObject(AVitalityObject* InVitalityObject);
 
-	bool IsOnTheChunk(FIndex InIndex);
-
-	bool IsOnTheChunk(FVector InLocation);
-
-	FIndex LocationToIndex(FVector InLocation, bool bWorldSpace = true);
-
-	FVector IndexToLocation(FIndex InIndex, bool bWorldSpace = true);
-
-	FIndex LocalIndexToWorld(FIndex InIndex);
-
-	FIndex WorldIndexToLocal(FIndex InIndex);
-
-protected:
-	bool GenerateMap();
-
-	void GetNeighbors();
-
-	void BreakNeighbors();
-
-public:
-	FIndex GetIndex() const { return Index; }
-
-	int32 GetBatch() const { return Batch; }
-	
-	bool IsGenerated() const { return bGenerated; }
-	
-	UVoxelMeshComponent* GetSolidMesh();
-
-	UVoxelMeshComponent* GetSemiMesh();
-
-	UVoxelMeshComponent* GetTransMesh();
+	void DestroyVitalityObject(AVitalityObject* InVitalityObject);
 };

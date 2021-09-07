@@ -382,13 +382,13 @@ enum class EGameTraceType : uint8
 	// ??
 	None = 0,
 	// ?????
-	Chunk = (int)ECC_GameTraceChannel6,
+	Chunk = (int32)ECC_GameTraceChannel6,
 	// ????
-	Voxel = (int)ECC_GameTraceChannel7,
+	Voxel = (int32)ECC_GameTraceChannel7,
 	// ????
-	Sight = (int)ECC_GameTraceChannel8,
+	Sight = (int32)ECC_GameTraceChannel8,
 	// ???
-	Step = (int)ECC_GameTraceChannel9
+	Step = (int32)ECC_GameTraceChannel9
 };
 
 /**
@@ -1305,6 +1305,18 @@ public:
 	FORCEINLINE FSaveData()
 	{
 		bInitialized = false;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FGameData : public FSaveData
+{
+	GENERATED_BODY()
+
+public:
+	FORCEINLINE FGameData()
+	{
+		
 	}
 };
 

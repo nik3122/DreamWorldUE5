@@ -26,7 +26,10 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SaveWorldData(AWorldManager* InWorldManager);
+	void SaveWorldData(const int32 InUserIndex = 0);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveWorldData(const int32 InUserIndex = 0);
 
 	UFUNCTION(BlueprintCallable)
 	bool IsExistChunkData(FIndex InChunkIndex);

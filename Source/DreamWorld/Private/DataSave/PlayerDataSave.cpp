@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "World/Chunk.h"
 #include "Character/Player/DWPlayerCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "World/WorldManager.h"
 #include "World/Components/WorldTimerComponent.h"
 
@@ -15,22 +16,30 @@ UPlayerDataSave::UPlayerDataSave()
 	WorldRecordDatas = TMap<FString, FWorldRecordData>();
 }
 
-void UPlayerDataSave::SavePlayerData(ADWPlayerCharacter* InPlayerCharacter)
+void UPlayerDataSave::SavePlayerData(const int32 InUserIndex)
 {
-	if(!InPlayerCharacter) return;
-	
-	PlayerData = InPlayerCharacter->ToData();
+	if(ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this))
+	{
+		PlayerData = PlayerCharacter->ToData();
 
-	auto SaveData = FWorldRecordData();
-	SaveData.WorldName = AWorldManager::GetWorldInfo().WorldName;
-	SaveData.PlayerLocation = InPlayerCharacter->GetActorLocation();
-	SaveData.PlayerRotation = InPlayerCharacter->GetActorRotation();
-	SaveData.TimeSeconds = AWorldManager::GetCurrent()->GetWorldTimer()->GetTimeSeconds();
+		auto SaveData = FWorldRecordData();
+		SaveData.WorldName = AWorldManager::GetInfo().WorldName;
+		SaveData.PlayerLocation = PlayerCharacter->GetActorLocation();
+		SaveData.PlayerRotation = PlayerCharacter->GetActorRotation();
+		SaveData.TimeSeconds = AWorldManager::Get()->GetWorldTimer()->GetTimeSeconds();
 
-	if (!WorldRecordDatas.Contains(AWorldManager::GetWorldInfo().WorldName))
-		WorldRecordDatas.Add(AWorldManager::GetWorldInfo().WorldName, SaveData);
-	else
-		WorldRecordDatas[AWorldManager::GetWorldInfo().WorldName] = SaveData;
+		if (!WorldRecordDatas.Contains(AWorldManager::GetInfo().WorldName))
+			WorldRecordDatas.Add(AWorldManager::GetInfo().WorldName, SaveData);
+		else
+			WorldRecordDatas[AWorldManager::GetInfo().WorldName] = SaveData;
+
+		UGameplayStatics::SaveGameToSlot(this, TEXT("Player_") + GetPlayerData().Name, InUserIndex);
+	}
+}
+
+void UPlayerDataSave::RemovePlayerData(const int32 InUserIndex)
+{
+	UGameplayStatics::DeleteGameInSlot(TEXT("Player_") + GetPlayerData().Name, InUserIndex);
 }
 
 bool UPlayerDataSave::IsExistWorldRecord(const FString& InWorldName)

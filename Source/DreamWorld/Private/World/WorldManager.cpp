@@ -57,33 +57,6 @@ AWorldManager::AWorldManager()
 	BoundsMesh->SetRelativeRotation(FRotator(0, 0, 0));
 	BoundsMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	WorldName = TEXT("");
-	WorldSeed = 0;
-
-	BlockSize = 80;
-	ChunkSize = 16;
-	ChunkHightRange = 3;
-	ChunkSpawnRange = 5;
-	ChunkSpawnDistance = 2;
-
-	ChunkSpawnSpeed = 100;
-	ChunkDestroySpeed = 100;
-	ChunkMapBuildSpeed = 5;
-	ChunkGenerateSpeed = 1;
-
-	VitalityRateDensity = 0.2f;
-	CharacterRateDensity = 0.2f;
-
-	TerrainBaseHeight = 0.1f;
-	TerrainPlainScale = FVector(0.005f, 0.005f, 0.2f);
-	TerrainMountainScale = FVector(0.03f, 0.03f, 0.25f);
-	TerrainStoneVoxelScale = FVector(0.05f, 0.05f, 0.18f);
-	TerrainSandVoxelScale = FVector(0.04f, 0.04f, 0.21f);
-	TerrainWaterVoxelScale = 0.3f;
-	TerrainBedrockVoxelScale = 0.01f;
-
-	ChunkMaterials = TArray<FChunkMaterial>();
-
 	bBasicGenerated = false;
 	ChunkSpawnBatch = 0;
 	LastGenerateIndex = FIndex::ZeroIndex;
@@ -133,12 +106,17 @@ void AWorldManager::Tick(float DeltaTime)
 	}
 }
 
+void AWorldManager::InitRandomStream(int32 InDeltaSeed)
+{
+	RandomStream.Initialize(WorldInfo.WorldSeed + InDeltaSeed);
+}
+
 void AWorldManager::LoadWorld()
 {
 	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
 	{
 		GameState->SetCurrentState(EGameState::Loading);
-		if(UWorldDataSave* WorldDataSave = UDWHelper::GetWorldDataSave(this))
+		if(UDWGameInstance* GameInstance = UDWHelper::GetGameInstance(this))
 		{
 			WorldInfo.WorldName = WorldDataSave->GetWorldData().Name;
 			WorldInfo.WorldSeed = WorldDataSave->GetWorldData().Seed;
@@ -215,7 +193,7 @@ void AWorldManager::UnloadWorld()
 	{
 		if(iter->Value)
 		{
-			iter->Value->OnDestroy();
+			iter->Value->Destroy();
 		}
 	}
 
@@ -411,27 +389,6 @@ void AWorldManager::GenerateChunks(FIndex InIndex)
 	ChunkSpawnBatch++;
 }
 
-void AWorldManager::SpawnChunk(FIndex InIndex, bool bAddToQueue)
-{
-	if (ChunkMap.Contains(InIndex)) return;
-
-	FActorSpawnParameters spawnParams = FActorSpawnParameters();
-	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	auto chunk = GetWorld()->SpawnActor<AChunk>(InIndex.ToVector() * WorldInfo.GetChunkLength(), FRotator::ZeroRotator, spawnParams);
-	if (chunk)
-	{
-		ChunkMap.Add(InIndex, chunk);
-
-		chunk->Initialize(InIndex, ChunkSpawnBatch);
-		chunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-
-		if (bAddToQueue)
-		{
-			AddToBuildMapQueue(chunk);
-		}
-	}
-}
-
 void AWorldManager::BuildChunkMap(AChunk* InChunk)
 {
 	if (!InChunk || !ChunkMap.Contains(InChunk->GetIndex())) return;
@@ -455,14 +412,14 @@ void AWorldManager::GenerateChunk(AChunk* InChunk)
 {
 	if (!InChunk || !ChunkMap.Contains(InChunk->GetIndex())) return;
 	
-	InChunk->GenerateMesh();
+	InChunk->Generate();
 }
 
 void AWorldManager::DestroyChunk(AChunk* InChunk)
 {
 	if (!InChunk || !ChunkMap.Contains(InChunk->GetIndex())) return;
 
-	InChunk->OnDestroy();
+	InChunk->Destroy();
 
 	if (ChunkMapBuildQueue.Contains(InChunk))
 	{
@@ -509,6 +466,42 @@ void AWorldManager::AddToDestroyQueue(AChunk* InChunk)
 	}
 }
 
+AChunk* AWorldManager::SpawnChunk(FIndex InIndex, bool bAddToQueue)
+{
+	if (ChunkMap.Contains(InIndex)) return ChunkMap[InIndex];
+
+	FActorSpawnParameters spawnParams = FActorSpawnParameters();
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	auto chunk = GetWorld()->SpawnActor<AChunk>(InIndex.ToVector() * WorldInfo.GetChunkLength(), FRotator::ZeroRotator, spawnParams);
+	if (chunk)
+	{
+		ChunkMap.Add(InIndex, chunk);
+
+		chunk->Initialize(InIndex, ChunkSpawnBatch);
+		chunk->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+
+		if (bAddToQueue)
+		{
+			AddToBuildMapQueue(chunk);
+		}
+	}
+	return chunk;
+}
+
+AChunk* AWorldManager::FindChunk(FVector InLocation)
+{
+	return FindChunk(LocationToChunkIndex(InLocation));
+}
+
+AChunk* AWorldManager::FindChunk(FIndex InIndex)
+{
+	if (ChunkMap.Contains(InIndex))
+	{
+		return ChunkMap[InIndex];
+	}
+	return nullptr;
+}
+
 EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex)
 {
 	FVector offsetIndex = FVector(InIndex.X + WorldInfo.WorldSeed, InIndex.Y + WorldInfo.WorldSeed, InIndex.Z);
@@ -553,7 +546,7 @@ EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex)
 
 FVoxelData AWorldManager::GetNoiseVoxelData(FIndex InIndex)
 {
-	return UDWHelper::LoadVoxelData(*FString::Printf(TEXT("Voxel_%d"), (int)GetNoiseVoxelType(InIndex)));
+	return UDWHelper::LoadVoxelData(*FString::Printf(TEXT("Voxel_%d"), (int32)GetNoiseVoxelType(InIndex)));
 }
 
 int AWorldManager::GetNoiseTerrainHeight(FVector InOffset, FVector InScale)
@@ -561,13 +554,55 @@ int AWorldManager::GetNoiseTerrainHeight(FVector InOffset, FVector InScale)
 	return (FMath::PerlinNoise2D(FVector2D(InOffset.X * InScale.X, InOffset.Y * InScale.Y)) + 1) * WorldInfo.GetWorldHeight() * InScale.Z;
 }
 
-FTeamData* AWorldManager::GetTeamData(const FName& InTeamID)
+FIndex AWorldManager::LocationToChunkIndex(FVector InLocation, bool bIgnoreZ /*= false*/)
 {
-	if (TeamMap.Contains(InTeamID))
+	FIndex chunkIndex = FIndex(FMath::FloorToInt(InLocation.X / WorldInfo.GetChunkLength()),
+		FMath::FloorToInt(InLocation.Y / WorldInfo.GetChunkLength()),
+		bIgnoreZ ? 0 : FMath::FloorToInt(InLocation.Z / WorldInfo.GetChunkLength()));
+	return chunkIndex;
+}
+
+FVector AWorldManager::ChunkIndexToLocation(FIndex InIndex)
+{
+	return InIndex.ToVector() * WorldInfo.GetChunkLength();
+}
+
+int32 AWorldManager::GetChunkNum(bool bNeedGenerated /*= false*/)
+{
+	int32 num = 0;
+	for (auto iter = ChunkMap.CreateConstIterator(); iter; ++iter)
 	{
-		return &TeamMap[InTeamID];
+		if(AChunk* chunk = iter->Value)
+		{
+			if (!bNeedGenerated || chunk->IsGenerated())
+			{
+				num++;
+			}
+		}
 	}
-	return &FTeamData::Empty;
+	return num;
+}
+
+bool AWorldManager::ChunkTraceSingle(AChunk* InChunk, float InRadius, float InHalfHeight, FHitResult& OutHitResult)
+{
+	FVector rayStart = InChunk->GetActorLocation() + FVector(FMath::FRandRange(1, WorldInfo.ChunkSize - 1), FMath::FRandRange(1, WorldInfo.ChunkSize), WorldInfo.ChunkSize) * WorldInfo.BlockSize;
+	rayStart.X = ((int32)(rayStart.X / WorldInfo.BlockSize) + 0.5f) * WorldInfo.BlockSize;
+	rayStart.Y = ((int32)(rayStart.Y / WorldInfo.BlockSize) + 0.5f) * WorldInfo.BlockSize;
+	FVector rayEnd = rayStart + FVector::DownVector * WorldInfo.GetChunkLength();
+	return ChunkTraceSingle(rayStart, rayEnd, InRadius * 0.95f, InHalfHeight * 0.95f, OutHitResult);
+}
+
+bool AWorldManager::ChunkTraceSingle(FVector RayStart, FVector RayEnd, float InRadius, float InHalfHeight, FHitResult& OutHitResult)
+{
+	if (UKismetSystemLibrary::CapsuleTraceSingle(this, RayStart, RayEnd, InRadius, InHalfHeight, UDWHelper::GetGameTrace(EGameTraceType::Chunk), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true))
+		return OutHitResult.ImpactPoint.Z > 0;
+	return false;
+}
+
+bool AWorldManager::VoxelTraceSingle(UVoxel* InVoxel, FVector InPoint, FHitResult& OutHitResult)
+{
+	FVector size = InVoxel->GetVoxelData().GetCeilRange(InVoxel) * WorldInfo.BlockSize * 0.5f;
+	return UKismetSystemLibrary::BoxTraceSingle(this, InPoint + size, InPoint + size, size * 0.95f, FRotator::ZeroRotator, UDWHelper::GetGameTrace(EGameTraceType::Voxel), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 }
 
 bool AWorldManager::IsExistTeam(const FName& InTeamID)
@@ -605,82 +640,11 @@ bool AWorldManager::DissolveTeam(const FName& InTeamID, ADWCharacter* InCaptain)
 	return false;
 }
 
-AChunk* AWorldManager::FindChunk(FVector InLocation)
+FTeamData* AWorldManager::GetTeamData(const FName& InTeamID)
 {
-	return FindChunk(LocationToChunkIndex(InLocation));
-}
-
-AChunk* AWorldManager::FindChunk(FIndex InIndex)
-{
-	if (ChunkMap.Contains(InIndex))
+	if (TeamMap.Contains(InTeamID))
 	{
-		return ChunkMap[InIndex];
+		return &TeamMap[InTeamID];
 	}
-	return nullptr;
-}
-
-FIndex AWorldManager::LocationToChunkIndex(FVector InLocation, bool bIgnoreZ /*= false*/)
-{
-	FIndex chunkIndex = FIndex(FMath::FloorToInt(InLocation.X / WorldInfo.GetChunkLength()),
-		FMath::FloorToInt(InLocation.Y / WorldInfo.GetChunkLength()),
-		bIgnoreZ ? 0 : FMath::FloorToInt(InLocation.Z / WorldInfo.GetChunkLength()));
-	return chunkIndex;
-}
-
-FVector AWorldManager::ChunkIndexToLocation(FIndex InIndex)
-{
-	return InIndex.ToVector() * WorldInfo.GetChunkLength();
-}
-
-int32 AWorldManager::GetNumChunks(bool bNeedGenerated /*= false*/)
-{
-	int32 num = 0;
-	for (auto iter = ChunkMap.CreateConstIterator(); iter; ++iter)
-	{
-		if(AChunk* chunk = iter->Value)
-		{
-			if (!bNeedGenerated || chunk->IsGenerated())
-			{
-				num++;
-			}
-		}
-	}
-	return num;
-}
-
-FVector AWorldManager::GetBlockSizedNormal(FVector InNormal, float InLength)
-{
-	return WorldInfo.BlockSize * InNormal * InLength;
-}
-
-ETraceTypeQuery AWorldManager::GetGameTrace(EGameTraceType GameTraceType)
-{
-	return UEngineTypes::ConvertToTraceType((ECollisionChannel)GameTraceType);
-}
-
-bool AWorldManager::ChunkTraceSingle(AChunk* InChunk, float InRadius, float InHalfHeight, FHitResult& OutHitResult)
-{
-	FVector rayStart = InChunk->GetActorLocation() + FVector(FMath::FRandRange(1, WorldInfo.ChunkSize - 1), FMath::FRandRange(1, WorldInfo.ChunkSize), WorldInfo.ChunkSize) * WorldInfo.BlockSize;
-	rayStart.X = ((int32)(rayStart.X / WorldInfo.BlockSize) + 0.5f) * WorldInfo.BlockSize;
-	rayStart.Y = ((int32)(rayStart.Y / WorldInfo.BlockSize) + 0.5f) * WorldInfo.BlockSize;
-	FVector rayEnd = rayStart + FVector::DownVector * WorldInfo.GetChunkLength();
-	return ChunkTraceSingle(rayStart, rayEnd, InRadius * 0.95f, InHalfHeight * 0.95f, OutHitResult);
-}
-
-bool AWorldManager::ChunkTraceSingle(FVector RayStart, FVector RayEnd, float InRadius, float InHalfHeight, FHitResult& OutHitResult)
-{
-	if (UKismetSystemLibrary::CapsuleTraceSingle(this, RayStart, RayEnd, InRadius, InHalfHeight, GetGameTrace(EGameTraceType::Chunk), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true))
-		return OutHitResult.ImpactPoint.Z > 0;
-	return false;
-}
-
-bool AWorldManager::VoxelTraceSingle(UVoxel* InVoxel, FVector InPoint, FHitResult& OutHitResult)
-{
-	FVector size = InVoxel->GetVoxelData().GetCeilRange(InVoxel) * WorldInfo.BlockSize * 0.5f;
-	return UKismetSystemLibrary::BoxTraceSingle(this, InPoint + size, InPoint + size, size * 0.95f, FRotator::ZeroRotator, GetGameTrace(EGameTraceType::Voxel), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
-}
-
-void AWorldManager::InitRandomStream(int32 InDeltaSeed)
-{
-	RandomStream.Initialize(WorldInfo.WorldSeed + InDeltaSeed);
+	return &FTeamData::Empty;
 }

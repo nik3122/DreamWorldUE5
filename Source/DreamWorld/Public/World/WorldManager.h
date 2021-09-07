@@ -141,6 +141,11 @@ public:
 	{
 		return ChunkMaterials[FMath::Clamp((int32)Transparency, 0, ChunkMaterials.Num())];
 	}
+
+	FORCEINLINE FVector GetBlockSizedNormal(FVector InNormal, float InLength = 0.25f) const
+	{
+		return BlockSize * InNormal * InLength;
+	}
 };
 
 /**
@@ -156,47 +161,79 @@ public:
 	AWorldManager();
 
 protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Instance
+protected:
 	static AWorldManager* Current;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FWorldInfo WorldInfo;
 
 public:
-	static AWorldManager* GetCurrent() { return Current; }
+	static AWorldManager* Get() { return Current; }
 
-	static FWorldInfo& GetWorldInfo() { return Current ? Current->WorldInfo : FWorldInfo::Empty; }
-
+	//////////////////////////////////////////////////////////////////////////
+	// Components
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UWorldTimerComponent* WorldTimer;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UWorldWeatherComponent* WorldWeather;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USceneCaptureComponent2D* VoxelsCapture;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* BoundsMesh;
 
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Chunk")
-	TMap<FIndex, AChunk*> ChunkMap;
+public:
+	UFUNCTION(BlueprintPure)
+	UWorldTimerComponent* GetWorldTimer() const { return WorldTimer; }
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Team")
-	TMap<FName, FTeamData> TeamMap;
+	//////////////////////////////////////////////////////////////////////////
+	// World
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	FWorldInfo WorldInfo;
+
+	FRandomStream RandomStream;
+
+public:
+	static FWorldInfo& GetInfo()
+	{
+		return Current ? Current->WorldInfo : FWorldInfo::Empty;
+	}
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	UFUNCTION(BlueprintPure)
+	FRandomStream GetRandomStream() const { return RandomStream; }
+			
+	UFUNCTION(BlueprintCallable)
+	void InitRandomStream(int32 InDeltaSeed);
+
+public:
+	void LoadWorld();
+
+	void UnloadWorld();
+
+	//////////////////////////////////////////////////////////////////////////
+	// Chunk
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
+	TMap<FIndex, AChunk*> ChunkMap;
+	
+private:
 	bool bBasicGenerated;
 
-private:
 	int32 ChunkSpawnBatch;
 
 	FIndex LastGenerateIndex;
 
 	FIndex LastStayChunkIndex;
-
-	FRandomStream RandomStream;
 
 	TArray<FIndex> ChunkSpawnQueue;
 
@@ -207,17 +244,6 @@ private:
 	TArray<AChunk*> ChunkDestroyQueue;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	void LoadWorld();
-
-	void UnloadWorld();
-
 	void GenerateTerrain();
 
 	void OnBasicGenerated(FVector InPlayerLocation);
@@ -225,8 +251,6 @@ public:
 	void GeneratePreviews();
 
 	void GenerateChunks(FIndex InIndex);
-
-	void SpawnChunk(FIndex InIndex, bool bAddToQueue = true);
 
 	void BuildChunkMap(AChunk* InChunk);
 
@@ -242,30 +266,25 @@ public:
 
 	void AddToDestroyQueue(AChunk* InChunk);
 
+public:
+	AChunk* SpawnChunk(FIndex InIndex, bool bAddToQueue = true);
+
+	AChunk* FindChunk(FVector InLocation);
+
+	AChunk* FindChunk(FIndex InIndex);
+
+public:
+	UFUNCTION(BlueprintPure)
+	bool IsBasicGenerated() const { return bBasicGenerated; }
+
+	UFUNCTION(BlueprintPure)
+	int GetChunkNum(bool bNeedGenerated = false);
+
 	EVoxelType GetNoiseVoxelType(FIndex InIndex);
 
 	FVoxelData GetNoiseVoxelData(FIndex InIndex);
 
 	int GetNoiseTerrainHeight(FVector InOffset, FVector InScale);
-
-	FTeamData* GetTeamData(const FName& InTeamID);
-
-	bool IsExistTeam(const FName& InTeamID);
-
-	bool CreateTeam(ADWCharacter* InCaptain, FName InTeamName = NAME_None, FString InTeamDetail = TEXT(""));
-
-	bool DissolveTeam(const FName& InTeamID, ADWCharacter* InCaptain = nullptr);
-
-	UFUNCTION(BlueprintPure)
-	int GetNumChunks(bool bNeedGenerated = false);
-
-	FVector GetBlockSizedNormal(FVector InNormal, float InLength = 0.25f);
-
-	ETraceTypeQuery GetGameTrace(EGameTraceType GameTraceType);
-
-	AChunk* FindChunk(FVector InLocation);
-
-	AChunk* FindChunk(FIndex InIndex);
 		
 	FIndex LocationToChunkIndex(FVector InLocation, bool bIgnoreZ = false);
 
@@ -276,77 +295,19 @@ public:
 	bool ChunkTraceSingle(FVector RayStart, FVector RayEnd, float InRadius, float InHalfHeight, FHitResult& OutHitResult);
 
 	bool VoxelTraceSingle(UVoxel* InVoxel, FVector InPoint, FHitResult& OutHitResult);
-			
-	UFUNCTION(BlueprintPure)
-	FRandomStream GetRandomStream() const { return RandomStream; }
-			
-	UFUNCTION(BlueprintCallable)
-	void InitRandomStream(int32 InDeltaSeed);
 
-	UFUNCTION(BlueprintPure)
-	FORCEINLINE UWorldTimerComponent* GetWorldTimer() const { return WorldTimer; }
+	//////////////////////////////////////////////////////////////////////////
+	// Team
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Team")
+	TMap<FName, FTeamData> TeamMap;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString WorldName;
+	bool IsExistTeam(const FName& InTeamID);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 WorldSeed;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 BlockSize;
+	bool CreateTeam(ADWCharacter* InCaptain, FName InTeamName = NAME_None, FString InTeamDetail = TEXT(""));
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSize;
+	bool DissolveTeam(const FName& InTeamID, ADWCharacter* InCaptain = nullptr);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkHightRange;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSpawnRange;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSpawnDistance;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSpawnSpeed;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkDestroySpeed;
-					
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkMapBuildSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkGenerateSpeed;
-						
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float VitalityRateDensity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float CharacterRateDensity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TerrainBaseHeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector TerrainPlainScale;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector TerrainMountainScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector TerrainStoneVoxelScale;
-				
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector TerrainSandVoxelScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TerrainWaterVoxelScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TerrainBedrockVoxelScale;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FChunkMaterial> ChunkMaterials;
+	FTeamData* GetTeamData(const FName& InTeamID);
 };

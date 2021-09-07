@@ -27,7 +27,7 @@ void AVitalityVoxel::BeginPlay()
 	Super::BeginPlay();
 
 	FVector range = GetVoxelData().GetFinalRange();
-	BoxComponent->SetBoxExtent(range * AWorldManager::GetWorldInfo().BlockSize);
+	BoxComponent->SetBoxExtent(range * AWorldManager::GetInfo().BlockSize);
 	AddActorLocalOffset(FVector::UpVector * range.Z * VoxelMesh->BlockScale * 0.5f);
 
 	if (GetVoxelData().IsValid())

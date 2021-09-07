@@ -71,7 +71,7 @@ bool ADWPlayerCharacterController::RaycastFromAimPoint(FHitResult& OutHitResult,
 	{
 		FVector rayStart = PlayerCameraManager->GetCameraLocation();
 		FVector rayEnd = rayStart + rayDirection * InRayDistance;
-		return UKismetSystemLibrary::LineTraceSingle(PossessedCharacter, rayStart, rayEnd, AWorldManager::GetCurrent()->GetGameTrace(InGameTraceType), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
+		return UKismetSystemLibrary::LineTraceSingle(PossessedCharacter, rayStart, rayEnd, UDWHelper::GetGameTrace(InGameTraceType), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 	}
 	return false;
 }

@@ -9,7 +9,7 @@
 class AChunk;
 
 /**
- * ÌåËØÖ²Îï
+ * ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½
  */
 UCLASS()
 class DREAMWORLD_API UVoxelPlant : public UVoxel
@@ -19,12 +19,36 @@ class DREAMWORLD_API UVoxelPlant : public UVoxel
 public:
 	UVoxelPlant();
 
+	
+	//////////////////////////////////////////////////////////////////////////
+	// Defaults
 public:
 	virtual void Initialize(FIndex InIndex, AChunk* InOwner = nullptr) override;
+
+	virtual void LoadData(const FString& InValue) override;
+
+	virtual FString ToData() override;
+
+	virtual void OnGenerate() override;
+
+	virtual void OnDestroy() override;
+
+	virtual void OnReplace() override;
 
 	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals) override;
 
 	virtual bool CheckAdjacent(EDirection InDirection) override;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Events
+public:
+	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+
+	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+
+	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+
+	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
 
 	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
 
@@ -33,18 +57,4 @@ public:
 	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
 
 	virtual void OnMouseHover(FVoxelHitResult InHitResult) override;
-
-	virtual void OnGenerate() override;
-
-	virtual void OnDestroy() override;
-
-	virtual void OnReplace() override;
-
-	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
-
-	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
-
-	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
-
-	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
 };

@@ -43,46 +43,46 @@ void ADWGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 
 void ADWGameMode::StartGame()
 {
-	AWorldManager::GetCurrent()->LoadWorld();
+	AWorldManager::Get()->LoadWorld();
 }
 
 void ADWGameMode::PauseGame()
 {
 	UGameplayStatics::SetGamePaused(this, true);
-	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
+	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
 	{
-		GameState->SetCurrentState(EGameState::Pausing);
+		DWGameState->SetCurrentState(EGameState::Pausing);
 	}
 }
 
 void ADWGameMode::UnPauseGame()
 {
 	UGameplayStatics::SetGamePaused(this, false);
-	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
+	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
 	{
-		GameState->SetCurrentState(EGameState::Playing);
+		DWGameState->SetCurrentState(EGameState::Playing);
 	}
 }
 
 void ADWGameMode::BackMainMenu()
 {
-	if (!AWorldManager::GetWorldInfo().WorldName.IsEmpty())
+	if (!AWorldManager::GetInfo().WorldName.IsEmpty())
 	{
-		AWorldManager::GetCurrent()->UnloadWorld();
+		AWorldManager::Get()->UnloadWorld();
 	}
-	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
+	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
 	{
-		if (GameState->GetCurrentState() == EGameState::Pausing)
+		if (DWGameState->GetCurrentState() == EGameState::Pausing)
 		{
 			UGameplayStatics::SetGamePaused(this, false);
 		}
-		GameState->SetCurrentState(EGameState::MainMenu);
+		DWGameState->SetCurrentState(EGameState::MainMenu);
 	}
 }
 
 void ADWGameMode::QuitGame()
 {
-	if (!AWorldManager::GetWorldInfo().WorldName.IsEmpty())
+	if (!AWorldManager::GetInfo().WorldName.IsEmpty())
 	{
 		//AWorldManager::GetCurrent()->UnloadWorld();
 	}

@@ -15,37 +15,14 @@ void UVoxelTorch::Initialize(FIndex InIndex, AChunk* InOwner)
 	Super::Initialize(InIndex, InOwner);
 }
 
-bool UVoxelTorch::CheckAdjacent(EDirection InDirection)
+void UVoxelTorch::LoadData(const FString& InValue)
 {
-	return true;
+	Super::LoadData(InValue);
 }
 
-bool UVoxelTorch::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+FString UVoxelTorch::ToData()
 {
-	switch (InMouseButton)
-	{
-		case EMouseButton::Left:
-		{
-			return Super::OnMouseDown(InMouseButton, InHitResult);
-			break;
-		}
-	}
-	return false;
-}
-
-bool UVoxelTorch::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	return Super::OnMouseUp(InMouseButton, InHitResult);
-}
-
-bool UVoxelTorch::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	return Super::OnMouseHold(InMouseButton, InHitResult);
-}
-
-void UVoxelTorch::OnMouseHover(FVoxelHitResult InHitResult)
-{
-	Super::OnMouseHover(InHitResult);
+	return Super::ToData();
 }
 
 void UVoxelTorch::OnGenerate()
@@ -61,6 +38,16 @@ void UVoxelTorch::OnDestroy()
 void UVoxelTorch::OnReplace()
 {
 	Super::OnReplace();
+}
+
+bool UVoxelTorch::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
+{
+	return Super::GetMeshDatas(OutMeshVertices, OutMeshNormals);
+}
+
+bool UVoxelTorch::CheckAdjacent(EDirection InDirection)
+{
+	return true;
 }
 
 void UVoxelTorch::OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
@@ -81,4 +68,31 @@ void UVoxelTorch::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResu
 void UVoxelTorch::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
+}
+
+bool UVoxelTorch::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	switch (InMouseButton)
+	{
+		case EMouseButton::Left:
+		{
+			return Super::OnMouseDown(InMouseButton, InHitResult);
+		}
+	}
+	return false;
+}
+
+bool UVoxelTorch::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return Super::OnMouseUp(InMouseButton, InHitResult);
+}
+
+bool UVoxelTorch::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return Super::OnMouseHold(InMouseButton, InHitResult);
+}
+
+void UVoxelTorch::OnMouseHover(FVoxelHitResult InHitResult)
+{
+	Super::OnMouseHover(InHitResult);
 }

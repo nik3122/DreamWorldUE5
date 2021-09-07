@@ -20,29 +20,14 @@ void UVoxelWater::Initialize(FIndex InIndex, AChunk* InOwner)
 	Super::Initialize(InIndex, InOwner);
 }
 
-bool UVoxelWater::CheckAdjacent(EDirection InDirection)
+void UVoxelWater::LoadData(const FString& InValue)
 {
-	return Super::CheckAdjacent(InDirection);
+	Super::LoadData(InValue);
 }
 
-bool UVoxelWater::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+FString UVoxelWater::ToData()
 {
-	return false;
-}
-
-bool UVoxelWater::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	return Super::OnMouseUp(InMouseButton, InHitResult);
-}
-
-bool UVoxelWater::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
-{
-	return Super::OnMouseHold(InMouseButton, InHitResult);
-}
-
-void UVoxelWater::OnMouseHover(FVoxelHitResult InHitResult)
-{
-	Super::OnMouseHover(InHitResult);
+	return Super::ToData();
 }
 
 void UVoxelWater::OnGenerate()
@@ -58,6 +43,16 @@ void UVoxelWater::OnDestroy()
 void UVoxelWater::OnReplace()
 {
 	Super::OnReplace();
+}
+
+bool UVoxelWater::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
+{
+	return Super::GetMeshDatas(OutMeshVertices, OutMeshNormals);
+}
+
+bool UVoxelWater::CheckAdjacent(EDirection InDirection)
+{
+	return Super::CheckAdjacent(InDirection);
 }
 
 void UVoxelWater::OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
@@ -94,4 +89,24 @@ void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResu
 	{
 		InTarget->UnSwim();
 	}
+}
+
+bool UVoxelWater::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return false;
+}
+
+bool UVoxelWater::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return Super::OnMouseUp(InMouseButton, InHitResult);
+}
+
+bool UVoxelWater::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+{
+	return Super::OnMouseHold(InMouseButton, InHitResult);
+}
+
+void UVoxelWater::OnMouseHover(FVoxelHitResult InHitResult)
+{
+	Super::OnMouseHover(InHitResult);
 }
