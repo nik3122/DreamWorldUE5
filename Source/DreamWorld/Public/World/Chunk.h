@@ -102,11 +102,11 @@ public:
 
 	void Generate();
 
-protected:
 	void BuildMap();
 
 	void LoadMap(FChunkData InChunkData);
 
+protected:
 	void LoadActors(FChunkData InChunkData);
 
 	bool GenerateMap();

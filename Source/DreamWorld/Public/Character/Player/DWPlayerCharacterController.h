@@ -8,6 +8,8 @@
 
 class ADWPlayerCharacter;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerSpawned, ADWPlayerCharacter*, InPlayerCharacter);
+
 /**
  * 玩家角色控制器
  */
@@ -20,8 +22,13 @@ public:
 	ADWPlayerCharacterController();
 	
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	ADWPlayerCharacter* PossessedCharacter;
+	static class UPlayerDataSave* DataSave;
+
+public:
+	static UPlayerDataSave* GetDataSave() { return DataSave; }
+
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerSpawned OnPlayerSpawned;
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,11 +37,18 @@ protected:
 
 	virtual void OnUnPossess() override;
 
+	UFUNCTION()
+	virtual void OnBasicGenerated(FVector InPlayerLocation);
+
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void LoadPlayer(const FString& InPlayerName);
 	
+	virtual void UnLoadPlayer();
+
 	UFUNCTION(BlueprintPure)
-	ADWPlayerCharacter* GetPossessedCharacter() const { return PossessedCharacter; };
+	ADWPlayerCharacter* GetPlayerCharacter() const;
 
 	bool RaycastFromAimPoint(FHitResult& OutHitResult, EGameTraceType InGameTraceType, float InRayDistance = 1000);
 };

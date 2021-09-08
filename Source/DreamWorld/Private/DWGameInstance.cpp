@@ -44,61 +44,87 @@ void UDWGameInstance::Init()
 	UDWHelper::LoadItemDatas();
 }
 
-void UDWGameInstance::SaveGameData()
+void UDWGameInstance::SaveGameData(bool bRefresh)
 {
 	if(GameDataSave)
 	{
-		GameDataSave->SaveGameData();
+		if(bRefresh) GameDataSave->RefreshGameData();
+		UGameplayStatics::SaveGameToSlot(GameDataSave, TEXT("GameData"), UserIndex);
 	}
 }
 
 UGameDataSave* UDWGameInstance::LoadGameData()
 {
-	if (GameDataSave && GameDataSave->IsValidLowLevel()) return GameDataSave;
-
-	if (UGameplayStatics::DoesSaveGameExist(TEXT("GameData"), UserIndex))
+	if (!GameDataSave)
 	{
-		GameDataSave = Cast<UGameDataSave>(UGameplayStatics::LoadGameFromSlot(TEXT("GameData"), UserIndex));
-		for(auto Iter : GameDataSave->GetWorldNames())
+		if (UGameplayStatics::DoesSaveGameExist(TEXT("GameData"), UserIndex))
 		{
-			LoadWorldData(Iter);
+			GameDataSave = Cast<UGameDataSave>(UGameplayStatics::LoadGameFromSlot(TEXT("GameData"), UserIndex));
 		}
-		for(auto Iter : GameDataSave->GetPlayerNames())
+		else
 		{
-			LoadPlayerData(Iter);
+			CreateGameData(FGameData());
 		}
-	}
-	else
-	{
-		GameDataSave = Cast<UGameDataSave>(UGameplayStatics::CreateSaveGameObject(UGameDataSave::StaticClass()));
-		GameDataSave->SaveGameData(UserIndex);
 	}
 	return GameDataSave;
 }
 
-bool UDWGameInstance::IsExistWorldData(const FString& InWorldName)
+void UDWGameInstance::CreateGameData(FGameData InGameData, bool bSaveData)
 {
-	return WorldDataSaves.Contains(InWorldName);
+	GameDataSave = Cast<UGameDataSave>(UGameplayStatics::CreateSaveGameObject(UGameDataSave::StaticClass()));
+	if(GameDataSave)
+	{
+		GameDataSave->SetGameData(InGameData);
+		if(bSaveData) SaveGameData(false);
+	}
 }
 
-void UDWGameInstance::SaveWorldData(const FString& InWorldName)
+void UDWGameInstance::DeleteGameData()
+{
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("GameData"), UserIndex))
+	{
+		UGameplayStatics::DeleteGameInSlot(TEXT("GameData"), UserIndex);
+	}
+	GameDataSave = nullptr;
+}
+
+FGameData UDWGameInstance::GetGameData() const
+{
+	if(GameDataSave)
+	{
+		return GameDataSave->GetGameData();
+	}
+	return FGameData();
+}
+
+bool UDWGameInstance::IsExistWorldData(const FString& InWorldName)
+{
+	return GetWorldDatas().Contains(InWorldName);
+}
+
+void UDWGameInstance::SaveWorldData(const FString& InWorldName, bool bRefresh)
 {
 	if(UWorldDataSave* WorldDataSave = LoadWorldData(InWorldName))
 	{
-		WorldDataSave->SaveWorldData(UserIndex);
+		if(bRefresh) WorldDataSave->RefreshWorldData();
+		
+		UDWHelper::Debug(FString::Printf(TEXT("Saving world : %s, %dchunks."), *InWorldName, WorldDataSave->GetChunkDatas().Num()), EDebugType::Console);
+
+		UGameplayStatics::SaveGameToSlot(WorldDataSave, TEXT("World_") + InWorldName, UserIndex);
 	}
 }
 
 UWorldDataSave* UDWGameInstance::LoadWorldData(const FString& InWorldName)
 {
-	if(IsExistWorldData(InWorldName)) return WorldDataSaves[InWorldName];
+	if(!InWorldName.IsEmpty()) CurrentWorldName = InWorldName;
+	if(WorldDataSaves.Contains(InWorldName)) return WorldDataSaves[CurrentWorldName];
 	
-	if (UGameplayStatics::DoesSaveGameExist(TEXT("World_") + InWorldName, UserIndex))
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("World_") + CurrentWorldName, UserIndex))
 	{
-		if(UWorldDataSave* WorldDataSave = Cast<UWorldDataSave>(UGameplayStatics::LoadGameFromSlot(TEXT("World_") + InWorldName, UserIndex)))
+		if(UWorldDataSave* WorldDataSave = Cast<UWorldDataSave>(UGameplayStatics::LoadGameFromSlot(TEXT("World_") + CurrentWorldName, UserIndex)))
 		{
-			WorldDataSaves.Add(InWorldName, WorldDataSave);
-			UDWHelper::Debug(FString::Printf(TEXT("Loading world : %s, %dchunks."), *InWorldName, WorldDataSave->GetChunkDatas().Num()), EDebugType::Console);
+			WorldDataSaves.Add(CurrentWorldName, WorldDataSave);
+			UDWHelper::Debug(FString::Printf(TEXT("Loading world : %s, %dchunks."), *CurrentWorldName, WorldDataSave->GetChunkDatas().Num()), EDebugType::Console);
 			return WorldDataSave;
 		}
 	}
@@ -107,32 +133,24 @@ UWorldDataSave* UDWGameInstance::LoadWorldData(const FString& InWorldName)
 
 void UDWGameInstance::UnloadWorldData(const FString& InWorldName, bool bSaveData /*= true*/)
 {
-	if (!IsExistWorldData(InWorldName)) return;
-
-	if(UWorldDataSave* WorldDataSave = LoadWorldData(InWorldName))
-	{
-		if(bSaveData)
-		{
-			WorldDataSave->SaveWorldData(UserIndex);
-		}
-		WorldDataSave->ConditionalBeginDestroy();
-		WorldDataSaves.Remove(InWorldName);
-	}
+	if(!WorldDataSaves.Contains(InWorldName)) return;
+	
+	if(bSaveData) SaveWorldData(InWorldName);
+	WorldDataSaves[InWorldName]->ConditionalBeginDestroy();
+	WorldDataSaves.Remove(InWorldName);
+	CurrentWorldName = TEXT("");
 }
 
 void UDWGameInstance::CreateWorldData(FWorldData InWorldData, bool bSaveData)
 {
-	if (IsExistWorldData(InWorldData.Name)) return;
+	if (IsExistWorldData(InWorldData.WorldName)) return;
 	
 	if(UWorldDataSave* WorldDataSave = Cast<UWorldDataSave>(UGameplayStatics::CreateSaveGameObject(UWorldDataSave::StaticClass())))
 	{
+		CurrentWorldName = InWorldData.WorldName;
 		WorldDataSave->SetWorldData(InWorldData);
-		WorldDataSaves.Add(InWorldData.Name, WorldDataSave);
-		UDWHelper::Debug(FString::Printf(TEXT("Saving world : %s, %dchunks."), *WorldDataSave->GetWorldData().Name, WorldDataSave->GetChunkDatas().Num()), EDebugType::Console);
-		if(bSaveData)
-		{
-			WorldDataSave->SaveWorldData(UserIndex);
-		}
+		WorldDataSaves.Add(InWorldData.WorldName, WorldDataSave);
+		if(bSaveData) SaveWorldData(InWorldData.WorldName, false);
 	}
 }
 
@@ -140,71 +158,47 @@ void UDWGameInstance::RemoveWorldData(const FString& InWorldName)
 {
 	if (!IsExistWorldData(InWorldName)) return;
 
-	if(UWorldDataSave* WorldDataSave = LoadWorldData(InWorldName))
+	if(GameDataSave)
 	{
-		for(auto Iter : GetPlayerDataSaves())
-		{
-			if(Iter->IsExistWorldRecord(InWorldName))
-			{
-				Iter->RemoveWorldRecord(InWorldName);
-				Iter->SavePlayerData(UserIndex);
-			}
-		}
-		WorldDataSave->RemoveWorldData(UserIndex);
-		WorldDataSave->ConditionalBeginDestroy();
-		WorldDataSaves.Remove(InWorldName);
+		GameDataSave->GetWorldDatas().Remove(InWorldName);
+		UnloadWorldData(InWorldName, false);
+		UGameplayStatics::DeleteGameInSlot(TEXT("World_") + InWorldName, UserIndex);
 	}
 }
 
-TArray<FString> UDWGameInstance::GetWorldNames() const
+TMap<FString, FWorldBasicData> UDWGameInstance::GetWorldDatas() const
 {
-	TArray<FString> worldNames;
-	WorldDataSaves.GenerateKeyArray(worldNames);
-	return worldNames;
-}
-
-TArray<FWorldData> UDWGameInstance::GetWorldDatas() const
-{
-	TArray<FWorldData> worldDatas;
-	for (auto iter : GetWorldDatas())
+	if(GameDataSave)
 	{
-		worldDatas.Add(iter);
+		return GameDataSave->GetWorldDatas();
 	}
-	return worldDatas;
-}
-
-TArray<UWorldDataSave*> UDWGameInstance::GetWorldDataSaves() const
-{
-	auto dataSaves = TArray<UWorldDataSave*>();
-	for (auto iter : WorldDataSaves)
-	{
-		dataSaves.Add(iter.Value);
-	}
-	return dataSaves;
+	return TMap<FString, FWorldBasicData>();
 }
 
 bool UDWGameInstance::IsExistPlayerData(const FString& InPlayerName)
 {
-	return PlayerDataSaves.Contains(InPlayerName);
+	return GetPlayerDatas().Contains(InPlayerName);
 }
 
-void UDWGameInstance::SavePlayerData(const FString& InPlayerName)
+void UDWGameInstance::SavePlayerData(const FString& InPlayerName, bool bRefresh)
 {
 	if(UPlayerDataSave* PlayerDataSave = LoadPlayerData(InPlayerName))
 	{
-		PlayerDataSave->SavePlayerData(UserIndex);
-	}		
+		if(bRefresh) PlayerDataSave->RefreshPlayerData();
+		UGameplayStatics::SaveGameToSlot(PlayerDataSave, TEXT("Player_") + InPlayerName, UserIndex);
+	}	
 }
 
 UPlayerDataSave* UDWGameInstance::LoadPlayerData(const FString& InPlayerName)
 {
-	if (IsExistPlayerData(InPlayerName)) return PlayerDataSaves[InPlayerName];
+	if(!InPlayerName.IsEmpty()) CurrentPlayerName = InPlayerName;
+	if (PlayerDataSaves.Contains(CurrentPlayerName)) return PlayerDataSaves[CurrentPlayerName];
 
-	if (UGameplayStatics::DoesSaveGameExist(TEXT("Player_") + InPlayerName, UserIndex))
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("Player_") + CurrentPlayerName, UserIndex))
 	{
-		if(UPlayerDataSave* PlayerDataSave = Cast<UPlayerDataSave>(UGameplayStatics::LoadGameFromSlot(TEXT("Player_") + InPlayerName, UserIndex)))
+		if(UPlayerDataSave* PlayerDataSave = Cast<UPlayerDataSave>(UGameplayStatics::LoadGameFromSlot(TEXT("Player_") + CurrentPlayerName, UserIndex)))
 		{
-			PlayerDataSaves.Add(InPlayerName, PlayerDataSave);
+			PlayerDataSaves.Add(CurrentPlayerName, PlayerDataSave);
 			return PlayerDataSave;
 		}
 	}
@@ -213,17 +207,12 @@ UPlayerDataSave* UDWGameInstance::LoadPlayerData(const FString& InPlayerName)
 
 void UDWGameInstance::UnloadPlayerData(const FString& InPlayerName, bool bSaveData /*= true*/)
 {
-	if (!IsExistPlayerData(InPlayerName)) return;
+	if (!PlayerDataSaves.Contains(CurrentPlayerName)) return;
 
-	if(UPlayerDataSave* PlayerDataSave = LoadPlayerData(InPlayerName))
-	{
-		if(bSaveData)
-		{
-			PlayerDataSave->SavePlayerData(UserIndex);
-		}
-		PlayerDataSave->ConditionalBeginDestroy();
-		PlayerDataSaves.Remove(InPlayerName);
-	}
+	if(bSaveData) SavePlayerData(InPlayerName);
+	PlayerDataSaves[CurrentPlayerName]->ConditionalBeginDestroy();
+	PlayerDataSaves.Remove(InPlayerName);
+	CurrentPlayerName = TEXT("");
 }
 
 void UDWGameInstance::CreatePlayerData(FCharacterData InPlayerData, bool bSaveData)
@@ -232,12 +221,11 @@ void UDWGameInstance::CreatePlayerData(FCharacterData InPlayerData, bool bSaveDa
 	
 	if(UPlayerDataSave* PlayerDataSave = Cast<UPlayerDataSave>(UGameplayStatics::CreateSaveGameObject(UPlayerDataSave::StaticClass())))
 	{
+		CurrentPlayerName = InPlayerData.Name;
 		PlayerDataSave->SetPlayerData(InPlayerData);
 		PlayerDataSaves.Add(InPlayerData.Name, PlayerDataSave);
-		if(bSaveData)
-		{
-			PlayerDataSave->SavePlayerData(UserIndex);
-		}
+		if(GameDataSave) GameDataSave->GetPlayerDatas().Add(InPlayerData.Name, InPlayerData);
+		if(bSaveData) SavePlayerData(InPlayerData.Name, false);
 	}
 }
 
@@ -245,37 +233,19 @@ void UDWGameInstance::RemovePlayerData(const FString& InPlayerName)
 {
 	if (!IsExistPlayerData(InPlayerName)) return;
 
-	if(UPlayerDataSave* PlayerDataSave = LoadPlayerData(InPlayerName))
+	if(GameDataSave)
 	{
-		PlayerDataSave->RemovePlayerData(UserIndex);
-		PlayerDataSave->ConditionalBeginDestroy();
-		PlayerDataSaves.Remove(InPlayerName);
+		GameDataSave->GetPlayerDatas().Remove(InPlayerName);
+		UnloadPlayerData(InPlayerName, false);
+		UGameplayStatics::DeleteGameInSlot(TEXT("Player_") + InPlayerName, UserIndex);
 	}
 }
 
-TArray<FString> UDWGameInstance::GetPlayerNames() const
+TMap<FString, FCharacterBasicData> UDWGameInstance::GetPlayerDatas() const
 {
-	TArray<FString> playerNames;
-	PlayerDataSaves.GenerateKeyArray(playerNames);
-	return playerNames;
-}
-
-TArray<FCharacterData> UDWGameInstance::GetPlayerDatas() const
-{
-	TArray<FCharacterData> playerDatas;
-	for (auto iter : GetPlayerDatas())
+	if(GameDataSave)
 	{
-		playerDatas.Add(iter);
+		return GameDataSave->GetPlayerDatas();
 	}
-	return playerDatas;
-}
-
-TArray<UPlayerDataSave*> UDWGameInstance::GetPlayerDataSaves() const
-{
-	auto dataSaves = TArray<UPlayerDataSave*>();
-	for (auto iter : PlayerDataSaves)
-	{
-		dataSaves.Add(iter.Value);
-	}
-	return dataSaves;
+	return TMap<FString, FCharacterBasicData>();
 }

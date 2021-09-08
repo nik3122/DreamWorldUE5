@@ -43,7 +43,17 @@ void ADWGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 
 void ADWGameMode::StartGame()
 {
-	AWorldManager::Get()->LoadWorld();
+	if(UDWGameInstance* GameInstance = UDWHelper::GetGameInstance(this))
+	{
+		if(AWorldManager* WorldManager = AWorldManager::Get())
+		{
+			WorldManager->LoadWorld(GameInstance->GetCurrentWorldName());
+		}
+		if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
+		{
+			PlayerController->LoadPlayer(GameInstance->GetCurrentPlayerName());
+		}
+	}
 }
 
 void ADWGameMode::PauseGame()
@@ -66,9 +76,13 @@ void ADWGameMode::UnPauseGame()
 
 void ADWGameMode::BackMainMenu()
 {
-	if (!AWorldManager::GetInfo().WorldName.IsEmpty())
+	if(AWorldManager* WorldManager = AWorldManager::Get())
 	{
-		AWorldManager::Get()->UnloadWorld();
+		WorldManager->UnloadWorld();
+	}
+	if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
+	{
+		PlayerController->UnLoadPlayer();
 	}
 	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
 	{
@@ -82,12 +96,13 @@ void ADWGameMode::BackMainMenu()
 
 void ADWGameMode::QuitGame()
 {
-	if (!AWorldManager::GetInfo().WorldName.IsEmpty())
+	if(AWorldManager* WorldManager = AWorldManager::Get())
 	{
-		//AWorldManager::GetCurrent()->UnloadWorld();
+		//WorldManager->UnloadWorld();
 	}
 	if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
 	{
+		PlayerController->UnLoadPlayer();
 		UKismetSystemLibrary::QuitGame(this, PlayerController, EQuitPreference::Quit, true);
 	}
 }

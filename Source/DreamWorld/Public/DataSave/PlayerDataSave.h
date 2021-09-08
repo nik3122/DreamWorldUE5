@@ -23,27 +23,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FCharacterData PlayerData;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TMap<FString, FWorldRecordData> WorldRecordDatas;
-
 public:
 	UFUNCTION(BlueprintCallable)
-	void SavePlayerData(const int32 InUserIndex = 0);
-	
-	UFUNCTION(BlueprintCallable)
-	void RemovePlayerData(const int32 InUserIndex = 0);
-
-	UFUNCTION(BlueprintCallable)
-	bool IsExistWorldRecord(const FString& InWorldName);
-
-	UFUNCTION(BlueprintCallable)
-	FWorldRecordData LoadWorldRecord(const FString& InWorldName);
-
-	UFUNCTION(BlueprintCallable)
-	void RemoveWorldRecord(const FString& InWorldName);
+	void RefreshPlayerData();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterData GetPlayerData() const { return PlayerData; }
+	FCharacterData& GetPlayerData() { return PlayerData; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerData(FCharacterData InPlayerData) {PlayerData = InPlayerData;}

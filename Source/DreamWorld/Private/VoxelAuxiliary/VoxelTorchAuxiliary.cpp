@@ -40,5 +40,5 @@ void AVoxelTorchAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
 
 	if(!InOwner || !InOwner->IsValidLowLevel()) return;
 
-	LightComponent->SetRelativeLocation(FVector::UpVector * InOwner->GetVoxelData().GetFinalRange().Z * 0.5f * AWorldManager::GetInfo().BlockSize);
+	LightComponent->SetRelativeLocation(FVector::UpVector * InOwner->GetVoxelData().GetFinalRange().Z * 0.5f * AWorldManager::GetData().BlockSize);
 }

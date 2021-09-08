@@ -429,7 +429,7 @@ FCharacterData ADWCharacter::ToData()
 	SaveData.Location = GetActorLocation();
 	SaveData.Rotation = GetActorRotation();
 
-	SaveData.Class = GetClass();
+	SaveData.SpawnClass = GetClass();
 
 	return SaveData;
 }
@@ -2055,7 +2055,7 @@ FDWCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionTyp
 bool ADWCharacter::RaycastStep(FHitResult& OutHitResult)
 {
 	FVector rayStart = GetActorLocation() + FVector::DownVector * (GetHalfHeight() - GetCharacterMovement()->MaxStepHeight);
-	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetInfo().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
+	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetData().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
 	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, UDWHelper::GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 }
 

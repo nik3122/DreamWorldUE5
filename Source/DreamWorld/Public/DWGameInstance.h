@@ -31,10 +31,25 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SaveGameData();
+	void SaveGameData(bool bRefresh = true);
 
 	UFUNCTION(BlueprintCallable)
 	UGameDataSave* LoadGameData();
+	
+	UFUNCTION(BlueprintCallable)
+	void CreateGameData(FGameData InGameData, bool bSaveData = true);
+
+	UFUNCTION(BlueprintCallable)
+	void DeleteGameData();
+
+	UFUNCTION(BlueprintPure)
+	FGameData GetGameData() const;
+
+	UFUNCTION(BlueprintPure)
+	int32 GetUserIndex() const { return UserIndex; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetUserIndex(int32 InUserIndex) { UserIndex = InUserIndex; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// WorldData
@@ -42,16 +57,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TMap<FString, class UWorldDataSave*> WorldDataSaves;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FString CurrentWorldName;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	bool IsExistWorldData(const FString& InWorldName);
 	
 	UFUNCTION(BlueprintCallable)
-	void SaveWorldData(const FString& InWorldName);
+	void SaveWorldData(const FString& InWorldName, bool bRefresh = true);
 		
 	UFUNCTION(BlueprintCallable)
-	class UWorldDataSave* LoadWorldData(const FString& InWorldName);
-			
+	class UWorldDataSave* LoadWorldData(const FString& InWorldName = TEXT(""));
+	
 	UFUNCTION(BlueprintCallable)
 	void UnloadWorldData(const FString& InWorldName, bool bSaveData = true);
 
@@ -62,13 +80,13 @@ public:
 	void RemoveWorldData(const FString& InWorldName);
 
 	UFUNCTION(BlueprintPure)
-	TArray<FString> GetWorldNames() const;
-
+	TMap<FString, FWorldBasicData> GetWorldDatas() const;
+	
 	UFUNCTION(BlueprintPure)
-	TArray<FWorldData> GetWorldDatas() const;
+	FString GetCurrentWorldName() const { return CurrentWorldName; }
 
-	UFUNCTION(BlueprintPure)
-	TArray<class UWorldDataSave*> GetWorldDataSaves() const;
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentWorldName(const FString& InCurrentWorldName) { CurrentWorldName = InCurrentWorldName; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// PlayerData
@@ -76,15 +94,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TMap<FString, class UPlayerDataSave*> PlayerDataSaves;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FString CurrentPlayerName;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	bool IsExistPlayerData(const FString& InPlayerName);
 		
 	UFUNCTION(BlueprintCallable)
-	void SavePlayerData(const FString& InPlayerName);
+	void SavePlayerData(const FString& InPlayerName, bool bRefresh = true);
 	
 	UFUNCTION(BlueprintCallable)
-	class UPlayerDataSave* LoadPlayerData(const FString& InPlayerName);
+	class UPlayerDataSave* LoadPlayerData(const FString& InPlayerName = TEXT(""));
 	
 	UFUNCTION(BlueprintCallable)
 	void UnloadPlayerData(const FString& InPlayerName, bool bSaveData = true);
@@ -96,11 +117,11 @@ public:
 	void RemovePlayerData(const FString& InPlayerName);
 
 	UFUNCTION(BlueprintPure)
-	TArray<FString> GetPlayerNames() const;
-
+	TMap<FString, FCharacterBasicData> GetPlayerDatas() const;
+	
 	UFUNCTION(BlueprintPure)
-	TArray<FCharacterData> GetPlayerDatas() const;
+	FString GetCurrentPlayerName() const { return CurrentPlayerName; }
 
-	UFUNCTION(BlueprintPure)
-	TArray<class UPlayerDataSave*> GetPlayerDataSaves() const;
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentPlayerName(const FString& InCurrentPlayerName) { CurrentPlayerName = InCurrentPlayerName; }
 };

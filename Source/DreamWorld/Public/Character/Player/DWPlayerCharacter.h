@@ -27,7 +27,7 @@ class ADWPlayerCharacter : public ADWHumanCharacter
 
 public:
 	ADWPlayerCharacter();
-	
+
 protected:
 	// states
 

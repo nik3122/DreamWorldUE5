@@ -24,21 +24,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TMap<FVector, FChunkData> ChunkDatas;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TMap<FString, FPlayerRecordData> PlayerRecordDatas;
+
 public:
 	UFUNCTION(BlueprintCallable)
-	void SaveWorldData(const int32 InUserIndex = 0);
-
-	UFUNCTION(BlueprintCallable)
-	void RemoveWorldData(const int32 InUserIndex = 0);
-
-	UFUNCTION(BlueprintCallable)
-	bool IsExistChunkData(FIndex InChunkIndex);
-
-	UFUNCTION(BlueprintCallable)
-	void SaveChunkData(FIndex InChunkIndex, FChunkData InChunkData);
-	
-	UFUNCTION(BlueprintCallable)
-	FChunkData LoadChunkData(FIndex InChunkIndex);
+	void RefreshWorldData();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FWorldData GetWorldData() const { return WorldData; }
@@ -47,5 +38,23 @@ public:
 	void SetWorldData(FWorldData InWorldData) { WorldData = InWorldData; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	TMap<FVector, FChunkData> GetChunkDatas() const { return ChunkDatas; }
+	bool IsExistPlayerRecord(const FString& InPlayerName);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FPlayerRecordData LoadPlayerRecord(const FString& InPlayerName);
+
+	UFUNCTION(BlueprintCallable)
+	void RemovePlayerRecord(const FString& InPlayerName);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsExistChunkData(FIndex InChunkIndex);
+
+	UFUNCTION(BlueprintCallable)
+	void SaveChunkData(FIndex InChunkIndex, FChunkData InChunkData);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FChunkData LoadChunkData(FIndex InChunkIndex);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TMap<FVector, FChunkData>& GetChunkDatas() { return ChunkDatas; }
 };

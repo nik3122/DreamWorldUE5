@@ -203,8 +203,6 @@ void ADWPlayerCharacter::BeginPlay()
 
 	//AWorldManager::GetCurrent()->CreateTeam(this);
 
-	Disable(true, true);
-
 	SetControlMode(ControlMode);
 }
 
@@ -1062,7 +1060,7 @@ bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
 				AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
 				if (chunk != nullptr)
 				{
-					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetInfo().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
 					if (UVoxel::IsValid(voxel))
 					{
 						OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);

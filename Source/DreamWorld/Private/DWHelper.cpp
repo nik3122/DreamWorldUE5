@@ -58,7 +58,7 @@ ADWPlayerCharacter* UDWHelper::GetPlayerCharacter(const UObject* InWorldContext)
 {
 	if (ADWPlayerCharacterController* PlayerController = GetPlayerController(InWorldContext))
 	{
-		return PlayerController->GetPossessedCharacter();
+		return PlayerController->GetPlayerCharacter();
 	}
 	return nullptr;
 }

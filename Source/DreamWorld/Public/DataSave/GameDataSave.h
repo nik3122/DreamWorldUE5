@@ -25,15 +25,19 @@ protected:
 	FGameData GameData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TArray<FString> WorldNames;
+	TMap<FString, FWorldBasicData> WorldDatas;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TArray<FString> PlayerNames;
+	TMap<FString, FCharacterBasicData> PlayerDatas;
 
 public:
-	void SaveGameData(const int32 InUserIndex = 0);
+	void RefreshGameData();
 
-	TArray<FString> GetWorldNames() const { return WorldNames; }
+	FGameData& GetGameData() { return GameData; }
 
-	TArray<FString> GetPlayerNames() const { return PlayerNames; }
+	void SetGameData(FGameData InGameData) { GameData = InGameData; }
+
+	TMap<FString, FWorldBasicData>& GetWorldDatas() { return WorldDatas; }
+
+	TMap<FString, FCharacterBasicData>& GetPlayerDatas() { return PlayerDatas; }
 };

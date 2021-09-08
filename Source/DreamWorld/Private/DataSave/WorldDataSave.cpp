@@ -1,6 +1,8 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "DataSave/WorldDataSave.h"
+
+#include "WorldTimerComponent.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,25 +15,60 @@ UWorldDataSave::UWorldDataSave()
 	
 	WorldData = FWorldData();
 	ChunkDatas = TMap<FVector, FChunkData>();
+	PlayerRecordDatas = TMap<FString, FPlayerRecordData>();
+}
+
+void UWorldDataSave::RefreshWorldData()
+{
+	if(AWorldManager* WorldManager = AWorldManager::Get())
+	{
+		WorldData = WorldManager->GetData();
+
+		if(ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this))
+		{
+			FPlayerRecordData RecordData;
+			RecordData.Name = PlayerCharacter->GetName();
+			RecordData.Location = PlayerCharacter->GetActorLocation();
+			RecordData.Rotation = PlayerCharacter->GetActorRotation();
+			
+			if(UWorldTimerComponent* WorldTimer = WorldManager->GetWorldTimer())
+			{
+				RecordData.TimeSeconds = WorldTimer->GetTimeSeconds();
+			}
+
+			if (!PlayerRecordDatas.Contains(RecordData.Name))
+				PlayerRecordDatas.Add(RecordData.Name, RecordData);
+			else
+				PlayerRecordDatas[RecordData.Name] = RecordData;
+		}
+	}
+}
+
+bool UWorldDataSave::IsExistPlayerRecord(const FString& InPlayerName)
+{
+	return PlayerRecordDatas.Contains(InPlayerName);
+}
+
+FPlayerRecordData UWorldDataSave::LoadPlayerRecord(const FString& InPlayerName)
+{
+	if (IsExistPlayerRecord(InPlayerName))
+	{
+		return PlayerRecordDatas[InPlayerName];
+	}
+	return FPlayerRecordData();
+}
+
+void UWorldDataSave::RemovePlayerRecord(const FString& InPlayerName)
+{
+	if (IsExistPlayerRecord(InPlayerName))
+	{
+		PlayerRecordDatas.Remove(InPlayerName);
+	}
 }
 
 bool UWorldDataSave::IsExistChunkData(FIndex InChunkIndex)
 {
 	return ChunkDatas.Contains(InChunkIndex.ToVector());
-}
-
-void UWorldDataSave::SaveWorldData(const int32 InUserIndex)
-{
-	WorldData.Name = AWorldManager::GetInfo().WorldName;
-	WorldData.Seed = AWorldManager::GetInfo().WorldSeed;
-	
-	UDWHelper::Debug(FString::Printf(TEXT("Saving world : %s, %dchunks."), *GetWorldData().Name, GetChunkDatas().Num()), EDebugType::Console);
-	UGameplayStatics::SaveGameToSlot(this, TEXT("World_") + GetWorldData().Name, InUserIndex);
-}
-
-void UWorldDataSave::RemoveWorldData(const int32 InUserIndex)
-{
-	UGameplayStatics::DeleteGameInSlot(TEXT("World_") + GetWorldData().Name, InUserIndex);
 }
 
 void UWorldDataSave::SaveChunkData(FIndex InChunkIndex, FChunkData InChunkData)

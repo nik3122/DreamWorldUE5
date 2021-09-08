@@ -10,7 +10,6 @@ UGameDataSave::UGameDataSave()
 	// set default pawn class to our Blueprinted character
 }
 
-void UGameDataSave::SaveGameData(const int32 InUserIndex)
+void UGameDataSave::RefreshGameData()
 {
-	UGameplayStatics::SaveGameToSlot(this, TEXT("GameData"), InUserIndex);
 }

@@ -1321,21 +1321,147 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FWorldData : public FSaveData
+struct DREAMWORLD_API FWorldBasicData : public FSaveData
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FString Name;
+	FORCEINLINE FWorldBasicData()
+	{
+		WorldName = TEXT("");
+		WorldSeed = 0;
+	}
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 Seed;
-	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString WorldName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 WorldSeed;
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FWorldData : public FWorldBasicData
+{
+	GENERATED_BODY()
+
+public:
 	FORCEINLINE FWorldData()
 	{
-		Name = TEXT("");
-		Seed = 0;
+		BlockSize = 80;
+		ChunkSize = 16;
+		ChunkHeightRange = 3;
+		ChunkSpawnRange = 5;
+		ChunkSpawnDistance = 2;
+
+		ChunkSpawnSpeed = 100;
+		ChunkDestroySpeed = 100;
+		ChunkMapBuildSpeed = 5;
+		ChunkGenerateSpeed = 1;
+
+		VitalityRateDensity = 0.2f;
+		CharacterRateDensity = 0.2f;
+
+		TerrainBaseHeight = 0.1f;
+		TerrainPlainScale = FVector(0.005f, 0.005f, 0.2f);
+		TerrainMountainScale = FVector(0.03f, 0.03f, 0.25f);
+		TerrainStoneVoxelScale = FVector(0.05f, 0.05f, 0.18f);
+		TerrainSandVoxelScale = FVector(0.04f, 0.04f, 0.21f);
+		TerrainWaterVoxelScale = 0.3f;
+		TerrainBedrockVoxelScale = 0.01f;
+
+		ChunkMaterials = TArray<FChunkMaterial>();
+	}
+
+public:
+	static FWorldData Empty;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 BlockSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkHeightRange;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnDistance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkSpawnSpeed;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkDestroySpeed;
+					
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkMapBuildSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ChunkGenerateSpeed;
+						
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float VitalityRateDensity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CharacterRateDensity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainBaseHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainPlainScale;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainMountainScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainStoneVoxelScale;
+				
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainSandVoxelScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainWaterVoxelScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainBedrockVoxelScale;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FChunkMaterial> ChunkMaterials;
+
+public:
+	FORCEINLINE float GetChunkLength() const
+	{
+		return ChunkSize * BlockSize;
+	}
+
+	FORCEINLINE float GetWorldLength() const
+	{
+		return ChunkSize * ChunkSpawnRange * 2;
+	}
+
+	FORCEINLINE int32 GetWorldHeight() const
+	{
+		return ChunkSize * ChunkHeightRange;
+	}
+
+	FORCEINLINE int32 GetChunkDistance() const
+	{
+		return ChunkSpawnRange + ChunkSpawnDistance;
+	}
+
+	FORCEINLINE FChunkMaterial GetChunkMaterial(ETransparency Transparency) const
+	{
+		return ChunkMaterials[FMath::Clamp((int32)Transparency, 0, ChunkMaterials.Num())];
+	}
+
+	FORCEINLINE FVector GetBlockSizedNormal(FVector InNormal, float InLength = 0.25f) const
+	{
+		return BlockSize * InNormal * InLength;
 	}
 };
 
@@ -1429,9 +1555,19 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FCharacterData : public FSaveData
+struct DREAMWORLD_API FCharacterBasicData : public FSaveData
 {
 	GENERATED_BODY()
+
+public:
+	FORCEINLINE FCharacterBasicData()
+	{
+		Name = TEXT("");
+		RaceID = TEXT("");
+		TeamID = TEXT("");
+		Level = 0;
+		EXP = 0;
+	}
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -1448,7 +1584,14 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 EXP;
+};
 
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FCharacterData : public FCharacterBasicData
+{
+	GENERATED_BODY()
+
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FVector Location;
 	
@@ -1459,23 +1602,45 @@ public:
 	FInventoryData InventoryData;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UDWCharacterAttributeSet* AttributeSet;
+	TSubclassOf<ADWCharacter> SpawnClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TSubclassOf<ADWCharacter> Class;
+	UDWCharacterAttributeSet* AttributeSet;
 
 	FORCEINLINE FCharacterData()
 	{
-		Name = TEXT("");
-		RaceID = TEXT("");
-		TeamID = TEXT("");
-		Level = 0;
-		EXP = 0;
 		Location = FVector::ZeroVector;
 		Rotation = FRotator::ZeroRotator;
 		InventoryData = FInventoryData();
+		SpawnClass = nullptr;
 		AttributeSet = nullptr;
-		Class = nullptr;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FPlayerRecordData : public FSaveData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FString Name;
+		
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector Location;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FRotator Rotation;
+		
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	int TimeSeconds;
+
+	FORCEINLINE FPlayerRecordData()
+	{
+		Name = TEXT("");
+		Location = FVector::ZeroVector;
+		Rotation = FRotator::ZeroRotator;
+		TimeSeconds = 0;
 	}
 };
 
@@ -1554,33 +1719,6 @@ public:
 		PickUpDatas = TArray<FPickUpData>();
 		CharacterDatas = TArray<FCharacterData>();
 		VitalityObjectDatas = TArray<FVitalityObjectData>();
-	}
-};
-
-USTRUCT(BlueprintType)
-struct DREAMWORLD_API FWorldRecordData : public FSaveData
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FString WorldName;
-		
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FVector PlayerLocation;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FRotator PlayerRotation;
-		
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int TimeSeconds;
-
-	FORCEINLINE FWorldRecordData()
-	{
-		WorldName = TEXT("");
-		PlayerLocation = FVector::ZeroVector;
-		PlayerRotation = FRotator::ZeroRotator;
-		TimeSeconds = 0;
 	}
 };
 

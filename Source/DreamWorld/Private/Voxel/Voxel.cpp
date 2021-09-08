@@ -132,7 +132,7 @@ void UVoxel::OnGenerate()
 		{
 			Auxiliary->AttachToActor(Cast<AActor>(GetOuter()), FAttachmentTransformRules::KeepRelativeTransform);
 			FVector location = FVector::ZeroVector;
-			if(Owner) location = Owner->IndexToLocation(Index, true) + GetVoxelData().GetCeilRange() * AWorldManager::GetInfo().BlockSize * 0.5f;
+			if(Owner) location = Owner->IndexToLocation(Index, true) + GetVoxelData().GetCeilRange() * AWorldManager::GetData().BlockSize * 0.5f;
 			Auxiliary->Initialize(this, location);
 			Owner->SetVoxelSample(Index, this);
 		}
@@ -174,7 +174,7 @@ void UVoxel::OnDestroy()
 			}
 		}
 		if(GetVoxelData().GenerateSound) UGameplayStatics::PlaySoundAtLocation(this, GetVoxelData().GenerateSound, Owner->IndexToLocation(Index));
-		Owner->SpawnPickUp(FItem(VoxelID), Owner->IndexToLocation(Index) + range * AWorldManager::GetInfo().BlockSize * 0.5f);
+		Owner->SpawnPickUp(FItem(VoxelID), Owner->IndexToLocation(Index) + range * AWorldManager::GetData().BlockSize * 0.5f);
 	}
 
 	if (Auxiliary) Auxiliary->Destroy();
@@ -348,7 +348,7 @@ bool UVoxel::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult
 		}
 		case EMouseButton::Right:
 		{
-			FIndex index = Owner->LocationToIndex(InHitResult.Point - AWorldManager::GetInfo().GetBlockSizedNormal(InHitResult.Normal)) + FIndex(InHitResult.Normal);
+			FIndex index = Owner->LocationToIndex(InHitResult.Point - AWorldManager::GetData().GetBlockSizedNormal(InHitResult.Normal)) + FIndex(InHitResult.Normal);
 			UVoxel* voxel = Owner->GetVoxel(index);
 			
 			if(!IsValid(voxel) || (voxel->GetVoxelData().Transparency == ETransparency::Transparent && voxel != this))
