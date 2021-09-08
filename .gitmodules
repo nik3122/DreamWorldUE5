@@ -1,0 +1,3 @@
+[submodule "Plugins/WHFramework"]
+	path = Plugins/WHFramework
+	url = git@github.com:Kiritie/WHFramework.git
