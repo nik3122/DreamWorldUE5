@@ -9,7 +9,7 @@
 class UBoxComponent;
 
 /**
- * ¹ÖÎï½ÇÉ«
+ * ï¿½ï¿½ï¿½ï¿½ï¿½É«
  */
 UCLASS()
 class DREAMWORLD_API ADWMonsterCharacter : public ADWCharacter
@@ -20,7 +20,7 @@ public:
 	ADWMonsterCharacter();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* AttackPoint;
 
 protected:

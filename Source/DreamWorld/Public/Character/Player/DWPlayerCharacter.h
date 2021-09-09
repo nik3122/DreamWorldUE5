@@ -71,16 +71,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* FollowCamera;
 		
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UVoxelMeshComponent* VoxelMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* HammerMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneCaptureComponent2D* PreviewCapture;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneCaptureComponent2D* MiniMapCapture;
 
 private:
@@ -88,192 +88,192 @@ private:
 	
 protected:
 	// Called when the game starts or when spawned
-	void BeginPlay() override;
+	virtual void BeginPlay() override;
 
-	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 public:
-	void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override;
 
-	void Active(bool bResetStats = true) override;
+	virtual void Active(bool bResetStats = false) override;
 
-	void Disable(bool bDisableMovement = false, bool bDisableCollision = false) override;
+	virtual void Disable(bool bDisableMovement = false, bool bDisableCollision = false) override;
 
-	void Revive() override;
+	virtual void Revive() override;
 
-	void Interrupt(float InDuration  = -1, bool bInPlayAnim  = false) override;
+	virtual void Interrupt(float InDuration  = -1, bool bInPlayAnim  = false) override;
 
-	void LookAtTarget(ADWCharacter* InTargetCharacter) override;
+	virtual void LookAtTarget(ADWCharacter* InTargetCharacter) override;
 
-	FString GetHeadInfo() const override;
+	virtual FString GetHeadInfo() const override;
 
-	void LoadData(FCharacterData InSaveData) override;
+	virtual void LoadData(FCharacterData InSaveData) override;
 
-	FCharacterData ToData() override;
+	virtual FCharacterData ToData(bool bSaved = true) override;
 
-	void UnAttack() override;
+	virtual void UnAttack() override;
 
-	void AttackStart() override;
+	virtual void AttackStart() override;
 
-	void RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot) override;
+	virtual void RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void SetControlMode(EControlMode InControlMode);
+	virtual void SetControlMode(EControlMode InControlMode);
 	
 	UFUNCTION(BlueprintPure)
 	EControlMode GetControlMode() const { return ControlMode; }
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateVoxelMesh();
+	virtual void UpdateVoxelMesh();
 	
-	void HandleNameChanged(const FString& NewValue) override;
+	virtual void HandleNameChanged(const FString& NewValue) override;
 
-	void HandleTeamIDChanged(const FString& NewValue) override;
+	virtual void HandleTeamIDChanged(const FString& NewValue) override;
 
-	void HandleRaceIDChanged(const FString& NewValue) override;
+	virtual void HandleRaceIDChanged(const FString& NewValue) override;
 
-	void HandleLevelChanged(int32 NewValue, int32 DeltaValue = 0) override;
+	virtual void HandleLevelChanged(int32 NewValue, int32 DeltaValue = 0) override;
 
-	void HandleEXPChanged(int32 NewValue, int32 DeltaValue = 0) override;
+	virtual void HandleEXPChanged(int32 NewValue, int32 DeltaValue = 0) override;
 
-	void HandleHealthChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleHealthChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleMaxHealthChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleMaxHealthChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleManaChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleManaChanged(float NewValue, float DeltaValue = 0.f) override;
 	
-	void HandleMaxManaChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleMaxManaChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleStaminaChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleStaminaChanged(float NewValue, float DeltaValue = 0.f) override;
 	
-	void HandleMaxStaminaChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleMaxStaminaChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleMoveSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleMoveSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleSwimSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleSwimSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleRideSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleRideSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleFlySpeedChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleFlySpeedChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleRotationSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleRotationSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleJumpForceChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleJumpForceChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleDodgeForceChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleDodgeForceChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleAttackForceChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleAttackForceChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleRepulseForceChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleRepulseForceChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleAttackSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleAttackSpeedChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleAttackCritRateChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleAttackCritRateChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleAttackStealRateChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleAttackStealRateChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleDefendRateChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleDefendRateChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleDefendScopeChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleDefendScopeChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandlePhysicsDefRateChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandlePhysicsDefRateChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleMagicDefRateChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleMagicDefRateChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleToughnessRateChanged(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleToughnessRateChanged(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleRegenSpeedAttribute(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleRegenSpeedAttribute(float NewValue, float DeltaValue = 0.f) override;
 
-	void HandleExpendSpeedAttribute(float NewValue, float DeltaValue = 0.f) override;
+	virtual void HandleExpendSpeedAttribute(float NewValue, float DeltaValue = 0.f) override;
 
 protected:
-	void TurnCam(float InRate);
+	virtual void TurnCam(float InRate);
 
-	void LookUpCam(float InRate);
+	virtual void LookUpCam(float InRate);
 
-	void MoveForward(float InValue);
+	virtual void MoveForward(float InValue);
 
-	void MoveRight(float InValue);
+	virtual void MoveRight(float InValue);
 	
-	void ZoomNear();
+	virtual void ZoomNear();
 	
-	void ZoomFar();
+	virtual void ZoomFar();
 
-	void ToggleControlMode();
+	virtual void ToggleControlMode();
 	
-	void ToggleFly();
+	virtual void ToggleFly();
 
-	void ToggleCrouch();
+	virtual void ToggleCrouch();
 		
-	void ToggleAutoJump();
+	virtual void ToggleAutoJump();
 
-	void ToggleLockSightTarget();
+	virtual void ToggleLockSightTarget();
 
-	void OnJumpPressed();
+	virtual void OnJumpPressed();
 
-	void OnJumpReleased();
+	virtual void OnJumpReleased();
 
-	void OnDodgePressed();
+	virtual void OnDodgePressed();
 
-	void OnDodgeReleased();
+	virtual void OnDodgeReleased();
 
-	void OnSprintPressed();
+	virtual void OnSprintPressed();
 
-	void OnSprintReleased();
+	virtual void OnSprintReleased();
 
-	void OnAttackDestroyPressed();
+	virtual void OnAttackDestroyPressed();
 
-	void OnAttackDestroyRepeat();
+	virtual void OnAttackDestroyRepeat();
 
-	void OnAttackDestroyReleased();
+	virtual void OnAttackDestroyReleased();
 
-	void OnDefendGeneratePressed();
+	virtual void OnDefendGeneratePressed();
 
-	void OnDefendGenerateRepeat();
+	virtual void OnDefendGenerateRepeat();
 
-	void OnDefendGenerateReleased();
+	virtual void OnDefendGenerateReleased();
 
-	void ReleaseSkillAbility1();
+	virtual void ReleaseSkillAbility1();
 
-	void ReleaseSkillAbility2();
+	virtual void ReleaseSkillAbility2();
 
-	void ReleaseSkillAbility3();
+	virtual void ReleaseSkillAbility3();
 
-	void ReleaseSkillAbility4();
+	virtual void ReleaseSkillAbility4();
 
-	void ToggleInventoryPanel();
+	virtual void ToggleInventoryPanel();
 
-	void UseInventoryItem();
+	virtual void UseInventoryItem();
 
-	void DiscardInventoryItem();
+	virtual void DiscardInventoryItem();
 
-	void PrevInventorySlot();
+	virtual void PrevInventorySlot();
 
-	void NextInventorySlot();
+	virtual void NextInventorySlot();
 
-	void SelectInventorySlot1();
+	virtual void SelectInventorySlot1();
 		
-	void SelectInventorySlot2();
+	virtual void SelectInventorySlot2();
 		
-	void SelectInventorySlot3();
+	virtual void SelectInventorySlot3();
 		
-	void SelectInventorySlot4();
+	virtual void SelectInventorySlot4();
 		
-	void SelectInventorySlot5();
+	virtual void SelectInventorySlot5();
 		
-	void SelectInventorySlot6();
+	virtual void SelectInventorySlot6();
 		
-	void SelectInventorySlot7();
+	virtual void SelectInventorySlot7();
 		
-	void SelectInventorySlot8();
+	virtual void SelectInventorySlot8();
 		
-	void SelectInventorySlot9();
+	virtual void SelectInventorySlot9();
 		
-	void SelectInventorySlot10();
+	virtual void SelectInventorySlot10();
 
-	void PauseOrContinueGame();
+	virtual void PauseOrContinueGame();
 
-	bool RaycastVoxel(FVoxelHitResult& OutHitResult);
+	virtual bool RaycastVoxel(FVoxelHitResult& OutHitResult);
 
 public:
 	UFUNCTION(BlueprintPure)

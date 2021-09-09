@@ -22,7 +22,7 @@ public:
 	AVoxelTorchAuxiliary();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UPointLightComponent* LightComponent;
 
 protected:

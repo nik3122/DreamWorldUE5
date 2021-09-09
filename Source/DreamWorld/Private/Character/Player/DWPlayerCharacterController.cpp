@@ -116,7 +116,7 @@ void ADWPlayerCharacterController::LoadPlayer(const FString& InPlayerName)
 					}
 				}
 				
-				if (!PlayerDataSave->GetPlayerData().InventoryData.bInitialized)
+				if (!PlayerDataSave->GetPlayerData().InventoryData.bSaved)
 				{
 					auto VoxelDatas = UDWHelper::LoadVoxelDatas();
 					for (int32 i = 0; i < VoxelDatas.Num(); i++)

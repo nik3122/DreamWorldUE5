@@ -188,28 +188,28 @@ protected:
 	FDWCharacterAttackAbilityData FallingAttackAbility;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UAIPerceptionStimuliSourceComponent* StimuliSource;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UWidgetCharacterHPComponent* WidgetCharacterHP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UDWCharacterAnim* AnimInstance;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UDWAbilitySystemComponent* AbilitySystem;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UDWCharacterAttributeSet* AttributeSet;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBehaviorTree* BehaviorTree;
 		
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UDWAIBlackboard* Blackboard;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCharacterInventory* Inventory;
 
 protected:
@@ -229,8 +229,10 @@ protected:
 
 	ECharacterActionType ActionType;
 
+	UPROPERTY()
 	ADWCharacter* LockedTarget;
 	
+	UPROPERTY()
 	TMap<EEquipPartType, AEquip*> Equips;
 
 	TArray<FDWCharacterPassiveEffectData> PassiveEffects;
@@ -251,7 +253,7 @@ public:
 	virtual void LoadData(FCharacterData InSaveData);
 
 	UFUNCTION(BlueprintPure)
-	virtual FCharacterData ToData();
+	virtual FCharacterData ToData(bool bSaved = true);
 
 	UFUNCTION(BlueprintPure)
 	bool HasTeam() const;

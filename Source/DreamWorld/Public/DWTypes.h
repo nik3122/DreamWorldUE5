@@ -1190,7 +1190,7 @@ public:
 	{
 		ID = NAME_None;
 		Level = 1;
-		Count = 0;
+		Count = 1;
 	}
 		
 	FORCEINLINE FItem(const FName& InID, int32 InLevel = 1, int32 InCount = 1)
@@ -1299,12 +1299,12 @@ struct DREAMWORLD_API FSaveData
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite)
-	bool bInitialized;
+	UPROPERTY(VisibleAnywhere)
+	bool bSaved;
 
 	FORCEINLINE FSaveData()
 	{
-		bInitialized = false;
+		bSaved = false;
 	}
 };
 
@@ -1328,16 +1328,16 @@ struct DREAMWORLD_API FWorldBasicData : public FSaveData
 public:
 	FORCEINLINE FWorldBasicData()
 	{
-		WorldName = TEXT("");
-		WorldSeed = 0;
+		Name = TEXT("");
+		Seed = 0;
 	}
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString WorldName;
+	FString Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 WorldSeed;
+	int32 Seed;
 };
 
 USTRUCT(BlueprintType)
@@ -1456,7 +1456,12 @@ public:
 
 	FORCEINLINE FChunkMaterial GetChunkMaterial(ETransparency Transparency) const
 	{
-		return ChunkMaterials[FMath::Clamp((int32)Transparency, 0, ChunkMaterials.Num())];
+		const int32 Index = FMath::Clamp((int32)Transparency, 0, ChunkMaterials.Num());
+		if(ChunkMaterials.IsValidIndex(Index))
+		{
+			return ChunkMaterials[Index];
+		}
+		return FChunkMaterial();
 	}
 
 	FORCEINLINE FVector GetBlockSizedNormal(FVector InNormal, float InLength = 0.25f) const
@@ -1555,16 +1560,15 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FCharacterBasicData : public FSaveData
+struct DREAMWORLD_API FVitalityBasicData : public FSaveData
 {
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE FCharacterBasicData()
+	FORCEINLINE FVitalityBasicData()
 	{
 		Name = TEXT("");
 		RaceID = TEXT("");
-		TeamID = TEXT("");
 		Level = 0;
 		EXP = 0;
 	}
@@ -1575,15 +1579,37 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FString RaceID;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FString TeamID;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 Level;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 EXP;
+	
+	UPROPERTY(VisibleAnywhere)
+	FVector SpawnLocation;
+	
+	UPROPERTY(VisibleAnywhere)
+	FRotator SpawnRotation;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FInventoryData InventoryData;
+};
+
+USTRUCT(BlueprintType)
+struct DREAMWORLD_API FCharacterBasicData : public FVitalityBasicData
+{
+	GENERATED_BODY()
+
+public:
+	FORCEINLINE FCharacterBasicData()
+	{
+		TeamID = TEXT("");
+	}
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FString TeamID;
 };
 
 USTRUCT(BlueprintType)
@@ -1593,27 +1619,11 @@ struct DREAMWORLD_API FCharacterData : public FCharacterBasicData
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FVector Location;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FRotator Rotation;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FInventoryData InventoryData;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TSubclassOf<ADWCharacter> SpawnClass;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UDWCharacterAttributeSet* AttributeSet;
 
 	FORCEINLINE FCharacterData()
 	{
-		Location = FVector::ZeroVector;
-		Rotation = FRotator::ZeroRotator;
-		InventoryData = FInventoryData();
 		SpawnClass = nullptr;
-		AttributeSet = nullptr;
 	}
 };
 
@@ -1645,49 +1655,17 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FVitalityObjectData : public FSaveData
+struct DREAMWORLD_API FVitalityObjectData : public FVitalityBasicData
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FString Name;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FString RaceID;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 Level;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 EXP;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FVector Location;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FRotator Rotation;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FInventoryData InventoryData;
-		
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UDWAttributeSet* AttributeSet;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TSubclassOf<AVitalityObject> Class;
+	TSubclassOf<AVitalityObject> SpawnClass;
 
 	FORCEINLINE FVitalityObjectData()
 	{
-		Name = TEXT("");
-		RaceID = TEXT("");
-		Level = 0;
-		EXP = 0;
-		Location = FVector::ZeroVector;
-		Rotation = FRotator::ZeroRotator;
-		InventoryData = FInventoryData();
-		AttributeSet = nullptr;
-		Class = nullptr;
+		SpawnClass = nullptr;
 	}
 };
 

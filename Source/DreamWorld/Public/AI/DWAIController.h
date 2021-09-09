@@ -24,7 +24,7 @@ public:
     ADWAIController();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UAIPerceptionComponent* AIPerception;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")

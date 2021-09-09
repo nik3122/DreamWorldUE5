@@ -377,7 +377,7 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 {
 	if (!Inventory) Inventory = NewObject<UCharacterInventory>(this);
 
-	if (InSaveData.bInitialized)
+	if (InSaveData.bSaved)
 	{
 		SetName(InSaveData.Name);
 		SetRaceID(InSaveData.RaceID);
@@ -388,8 +388,8 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 		//AttributeSet = InSaveData.AttributeSet;
 		Inventory->LoadData(InSaveData.InventoryData, this);
 
-		SetActorLocation(InSaveData.Location);
-		SetActorRotation(InSaveData.Rotation);
+		SetActorLocation(InSaveData.SpawnLocation);
+		SetActorRotation(InSaveData.SpawnRotation);
 	}
 	else
 	{
@@ -406,16 +406,16 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 			}
 		}
 
-		SetActorLocation(InSaveData.Location);
-		SetActorRotation(InSaveData.Rotation);
+		SetActorLocation(InSaveData.SpawnLocation);
+		SetActorRotation(InSaveData.SpawnRotation);
 	}
 }
 
-FCharacterData ADWCharacter::ToData()
+FCharacterData ADWCharacter::ToData(bool bSaved)
 {
 	auto SaveData = FCharacterData();
 
-	SaveData.bInitialized = true;
+	SaveData.bSaved = bSaved;
 
 	SaveData.Name = Name;
 	SaveData.TeamID = TeamID;
@@ -426,8 +426,8 @@ FCharacterData ADWCharacter::ToData()
 	SaveData.AttributeSet = AttributeSet;
 	SaveData.InventoryData = Inventory->ToData();
 
-	SaveData.Location = GetActorLocation();
-	SaveData.Rotation = GetActorRotation();
+	SaveData.SpawnLocation = GetActorLocation();
+	SaveData.SpawnRotation = GetActorRotation();
 
 	SaveData.SpawnClass = GetClass();
 

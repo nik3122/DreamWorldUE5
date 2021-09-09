@@ -275,15 +275,15 @@ void ADWPlayerCharacter::LoadData(FCharacterData InSaveData)
 
 	Super::LoadData(InSaveData);
 
-	if (!InSaveData.bInitialized)
+	if (!InSaveData.bSaved)
 	{
 		Name = InSaveData.Name;
 	}
 }
 
-FCharacterData ADWPlayerCharacter::ToData()
+FCharacterData ADWPlayerCharacter::ToData(bool bSaved)
 {
-	return Super::ToData();
+	return Super::ToData(bSaved);
 }
 
 void ADWPlayerCharacter::UnAttack()

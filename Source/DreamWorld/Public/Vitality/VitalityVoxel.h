@@ -24,7 +24,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Default")
 	FName VoxelID;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Component")
+	UPROPERTY(BlueprintReadOnly, Category = "Components")
 	UVoxelMeshComponent* VoxelMesh;
 
 protected:

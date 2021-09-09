@@ -143,14 +143,22 @@ void UDWGameInstance::UnloadWorldData(const FString& InWorldName, bool bSaveData
 
 void UDWGameInstance::CreateWorldData(FWorldData InWorldData, bool bSaveData)
 {
-	if (IsExistWorldData(InWorldData.WorldName)) return;
+	if (IsExistWorldData(InWorldData.Name)) return;
 	
 	if(UWorldDataSave* WorldDataSave = Cast<UWorldDataSave>(UGameplayStatics::CreateSaveGameObject(UWorldDataSave::StaticClass())))
 	{
-		CurrentWorldName = InWorldData.WorldName;
+		CurrentWorldName = InWorldData.Name;
 		WorldDataSave->SetWorldData(InWorldData);
-		WorldDataSaves.Add(InWorldData.WorldName, WorldDataSave);
-		if(bSaveData) SaveWorldData(InWorldData.WorldName, false);
+		WorldDataSaves.Add(InWorldData.Name, WorldDataSave);
+		if(GameDataSave)
+		{
+			GameDataSave->GetWorldDatas().Add(InWorldData.Name, InWorldData);
+		}
+		if(bSaveData)
+		{
+			SaveWorldData(InWorldData.Name, false);
+			SaveGameData(false);
+		}
 	}
 }
 
@@ -160,9 +168,10 @@ void UDWGameInstance::RemoveWorldData(const FString& InWorldName)
 
 	if(GameDataSave)
 	{
-		GameDataSave->GetWorldDatas().Remove(InWorldName);
 		UnloadWorldData(InWorldName, false);
 		UGameplayStatics::DeleteGameInSlot(TEXT("World_") + InWorldName, UserIndex);
+		GameDataSave->GetWorldDatas().Remove(InWorldName);
+		SaveGameData(false);
 	}
 }
 
@@ -224,8 +233,15 @@ void UDWGameInstance::CreatePlayerData(FCharacterData InPlayerData, bool bSaveDa
 		CurrentPlayerName = InPlayerData.Name;
 		PlayerDataSave->SetPlayerData(InPlayerData);
 		PlayerDataSaves.Add(InPlayerData.Name, PlayerDataSave);
-		if(GameDataSave) GameDataSave->GetPlayerDatas().Add(InPlayerData.Name, InPlayerData);
-		if(bSaveData) SavePlayerData(InPlayerData.Name, false);
+		if(GameDataSave)
+		{
+			GameDataSave->GetPlayerDatas().Add(InPlayerData.Name, InPlayerData);
+		}
+		if(bSaveData)
+		{
+			SavePlayerData(InPlayerData.Name, false);
+			SaveGameData(false);
+		}
 	}
 }
 
@@ -235,9 +251,10 @@ void UDWGameInstance::RemovePlayerData(const FString& InPlayerName)
 
 	if(GameDataSave)
 	{
-		GameDataSave->GetPlayerDatas().Remove(InPlayerName);
 		UnloadPlayerData(InPlayerName, false);
 		UGameplayStatics::DeleteGameInSlot(TEXT("Player_") + InPlayerName, UserIndex);
+		GameDataSave->GetPlayerDatas().Remove(InPlayerName);
+		SaveGameData(false);
 	}
 }
 

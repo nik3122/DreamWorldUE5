@@ -39,7 +39,7 @@ public:
 	virtual void LoadData(FInventoryData InInventoryData, AActor* InOwner);
 
 	UFUNCTION(BlueprintCallable)
-	virtual FInventoryData ToData();
+	virtual FInventoryData ToData(bool bSaved = true);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AdditionItems(FItem& InItem, int InStartIndex = 0);

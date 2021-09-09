@@ -18,7 +18,7 @@ void UCharacterInventory::LoadData(FInventoryData InInventoryData, AActor* InOwn
 	Super::LoadData(InInventoryData, InOwner);
 }
 
-FInventoryData UCharacterInventory::ToData()
+FInventoryData UCharacterInventory::ToData(bool bSaved)
 {
 	return Super::ToData();
 }

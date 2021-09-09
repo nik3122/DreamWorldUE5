@@ -59,19 +59,19 @@ protected:
 	AChunk* OwnerChunk;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BoxComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UWidgetVitalityHPComponent* WidgetVitalityHP;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UDWAbilitySystemComponent* AbilitySystem;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UDWAttributeSet* AttributeSet;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UInventory* Inventory;
 
 protected:
@@ -86,7 +86,7 @@ public:
 	void LoadData(FVitalityObjectData InSaveData);
 
 	UFUNCTION(BlueprintPure)
-	FVitalityObjectData ToData();
+	FVitalityObjectData ToData(bool bSaved = true);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SpawnWidgetWorldText(EWorldTextType InContextType, FString InContext) override;

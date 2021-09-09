@@ -83,7 +83,7 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 {
 	if (!Inventory) Inventory = NewObject<UInventory>(this);
 
-	if (InSaveData.bInitialized)
+	if (InSaveData.bSaved)
 	{
 		SetName(InSaveData.Name);
 		SetRaceID(InSaveData.RaceID);
@@ -93,8 +93,8 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 		//AttributeSet = InSaveData.AttributeSet;
 		Inventory->LoadData(InSaveData.InventoryData, this);
 
-		SetActorLocation(InSaveData.Location);
-		SetActorRotation(InSaveData.Rotation);
+		SetActorLocation(InSaveData.SpawnLocation);
+		SetActorRotation(InSaveData.SpawnRotation);
 	}
 	else
 	{
@@ -107,16 +107,16 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 		}
 		Inventory->LoadData(InventoryData, this);
 
-		SetActorLocation(InSaveData.Location);
-		SetActorRotation(InSaveData.Rotation);
+		SetActorLocation(InSaveData.SpawnLocation);
+		SetActorRotation(InSaveData.SpawnRotation);
 	}
 }
 
-FVitalityObjectData AVitalityObject::ToData()
+FVitalityObjectData AVitalityObject::ToData(bool bSaved)
 {
 	auto SaveData = FVitalityObjectData();
 
-	SaveData.bInitialized = true;
+	SaveData.bSaved = bSaved;
 
 	SaveData.Name = Name;
 	SaveData.RaceID = RaceID;
@@ -126,10 +126,10 @@ FVitalityObjectData AVitalityObject::ToData()
 	SaveData.AttributeSet = AttributeSet;
 	SaveData.InventoryData = Inventory->ToData();
 
-	SaveData.Location = GetActorLocation();
-	SaveData.Rotation = GetActorRotation();
+	SaveData.SpawnLocation = GetActorLocation();
+	SaveData.SpawnRotation = GetActorRotation();
 
-	SaveData.Class = GetClass();
+	SaveData.SpawnClass = GetClass();
 
 	return SaveData;
 }

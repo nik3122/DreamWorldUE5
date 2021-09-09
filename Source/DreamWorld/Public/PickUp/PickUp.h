@@ -31,13 +31,13 @@ public:
 	AChunk* OwnerChunk;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BoxComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UMeshComponent* MeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	URotatingMovementComponent* RotatingComponent;
 
 protected:
@@ -55,7 +55,7 @@ public:
 
 	void LoadData(FPickUpData InPickUpData);
 
-	FPickUpData ToData() const;
+	FPickUpData ToData(bool bSaved = true) const;
 
 	virtual void Initialize(FItem InItem, bool bPreview = false);
 

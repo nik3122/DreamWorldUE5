@@ -126,12 +126,20 @@ void AWorldManager::LoadWorld(const FString& InWorldName)
 			{
 				DataSave = WorldDataSave;
 				WorldData = WorldDataSave->GetWorldData();
-				if(WorldData.WorldSeed == 0)
+				// if(WorldDataSave->GetWorldData().bSaved)
+				// {
+				// 	WorldData.WorldName = WorldDataSave->GetWorldData();
+				// }
+				// else
+				// {
+				// 	
+				// }
+				if(WorldData.Seed == 0)
 				{
-					WorldData.WorldSeed = FMath::Rand();
+					WorldData.Seed = FMath::Rand();
 				}
-				RandomStream = FRandomStream(WorldData.WorldSeed);
-				UDWHelper::Debug(FString::FromInt(WorldData.WorldSeed), EDebugType::Console);
+				RandomStream = FRandomStream(WorldData.Seed);
+				UDWHelper::Debug(FString::FromInt(WorldData.Seed), EDebugType::Console);
 				UDWHelper::Debug(FString::SanitizeFloat(RandomStream.FRand()), EDebugType::Console);
 			}
 		}
@@ -151,7 +159,7 @@ void AWorldManager::UnloadWorld()
 
 	if(UDWGameInstance* GameInstance = UDWHelper::GetGameInstance(this))
 	{
-		GameInstance->UnloadWorldData(WorldData.WorldName);
+		GameInstance->UnloadWorldData(WorldData.Name);
 	}
 
 	WorldData = FWorldData();
@@ -171,7 +179,7 @@ void AWorldManager::UnloadWorld()
 
 void AWorldManager::InitRandomStream(int32 InDeltaSeed)
 {
-	RandomStream.Initialize(WorldData.WorldSeed + InDeltaSeed);
+	RandomStream.Initialize(WorldData.Seed + InDeltaSeed);
 }
 
 void AWorldManager::GenerateTerrain()
@@ -337,7 +345,7 @@ void AWorldManager::BuildChunkMap(AChunk* InChunk)
 
 	if(UDWGameInstance* GameInstance = UDWHelper::GetGameInstance(this))
 	{
-		if (UWorldDataSave* WorldDataSave = GameInstance->LoadWorldData(WorldData.WorldName))
+		if (UWorldDataSave* WorldDataSave = GameInstance->LoadWorldData(WorldData.Name))
 		{
 			if (WorldDataSave->IsExistChunkData(InChunk->GetIndex()))
 			{
@@ -449,7 +457,7 @@ AChunk* AWorldManager::FindChunk(FIndex InIndex)
 
 EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex) const
 {
-	const FVector offsetIndex = FVector(InIndex.X + WorldData.WorldSeed, InIndex.Y + WorldData.WorldSeed, InIndex.Z);
+	const FVector offsetIndex = FVector(InIndex.X + WorldData.Seed, InIndex.Y + WorldData.Seed, InIndex.Z);
 	
 	const int plainHeight = GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainPlainScale);
 	const int mountainHeight = GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainMountainScale);

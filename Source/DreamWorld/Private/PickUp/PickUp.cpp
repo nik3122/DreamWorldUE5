@@ -70,17 +70,17 @@ void APickUp::OnPickUp(ADWCharacter* InPicker)
 
 void APickUp::LoadData(FPickUpData InPickUpData)
 {
-	if (!InPickUpData.bInitialized) return;
+	if (!InPickUpData.bSaved) return;
 
 	SetActorLocation(InPickUpData.Location);
 	Item = InPickUpData.Item;
 }
 
-FPickUpData APickUp::ToData() const
+FPickUpData APickUp::ToData(bool bSaved) const
 {
 	auto data = FPickUpData();
 
-	data.bInitialized = true;
+	data.bSaved = bSaved;
 
 	data.Item = Item;
 	data.Location = GetActorLocation();

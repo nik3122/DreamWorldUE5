@@ -124,7 +124,7 @@ void AChunk::Destroyed()
 		FChunkData chunkData = FChunkData();
 
 		chunkData.Index = Index;
-		chunkData.bInitialized = true;
+		chunkData.bSaved = true;
 
 		for (auto iter = VoxelMap.CreateConstIterator(); iter; ++iter)
 		{
@@ -698,10 +698,10 @@ void AChunk::OnGenerated()
 					if (AWorldManager::Get()->ChunkTraceSingle(this, FMath::Max(raceItem.Range.X, raceItem.Range.Y) * 0.5f * AWorldManager::GetData().BlockSize, raceItem.Range.Z * 0.5f * AWorldManager::GetData().BlockSize, hitResult))
 					{
 						auto saveData = FVitalityObjectData();
-						saveData.Class = raceItem.Class;
+						saveData.SpawnClass = raceItem.Class;
 						saveData.RaceID = raceData.ID.ToString();
-						saveData.Location = hitResult.Location;
-						saveData.Rotation = FRotator(0, FMath::RandRange(0, 360), 0);
+						saveData.SpawnLocation = hitResult.Location;
+						saveData.SpawnRotation = FRotator(0, FMath::RandRange(0, 360), 0);
 						SpawnVitalityObject(saveData);
 					}
 				}
@@ -718,10 +718,10 @@ void AChunk::OnGenerated()
 					if (AWorldManager::Get()->ChunkTraceSingle(this, FMath::Max(raceItem.Range.X, raceItem.Range.Y) * 0.5f * AWorldManager::GetData().BlockSize, raceItem.Range.Z * 0.5f * AWorldManager::GetData().BlockSize, hitResult))
 					{
 						auto saveData = FCharacterData();
-						saveData.SpawnClass = raceItem.Class;
 						saveData.RaceID = raceData.ID.ToString();
-						saveData.Location = hitResult.Location;
-						saveData.Rotation = FRotator(0, FMath::RandRange(0, 360), 0);
+						saveData.SpawnClass = raceItem.Class;
+						saveData.SpawnLocation = hitResult.Location;
+						saveData.SpawnRotation = FRotator(0, FMath::RandRange(0, 360), 0);
 
 						auto character = SpawnCharacter(saveData);
 
@@ -961,7 +961,7 @@ AVitalityObject* AChunk::SpawnVitalityObject(FVitalityObjectData InSaveData)
 {
 	FActorSpawnParameters spawnParams = FActorSpawnParameters();
 	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	auto vitalityObject = GetWorld()->SpawnActor<AVitalityObject>(InSaveData.Class, spawnParams);
+	auto vitalityObject = GetWorld()->SpawnActor<AVitalityObject>(InSaveData.SpawnClass, spawnParams);
 	if (vitalityObject != nullptr)
 	{
 		vitalityObject->LoadData(InSaveData);

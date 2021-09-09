@@ -1,0 +1,36 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.7",
+	"FriendlyName": "Achievement System",
+	"Description": "Define and manage progress and goal based player achievements using Blueprints or C++",
+	"Category": "Other",
+	"CreatedBy": "Sam Carey",
+	"CreatedByURL": "https://samcarey.itch.io/",
+	"DocsURL": "https://docs.google.com/document/d/1zecum6FcEZaa0txqu_r4QSkdS_alQRi97r5jH603xrI/edit?usp=sharing",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/d9f6e0a8c92f47db9e2fde6080bed630",
+	"SupportURL": "contact@samcarey.tech",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "AchievementSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "AchievementSystemEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"BlueprintGraph",
+				"CoreUObject"
+			]
+		}
+	]
+}
