@@ -4,7 +4,7 @@
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Character/Player/DWPlayerCharacterController.h"
 #include "Engine/World.h"
-#include "Widget/WidgetPanelBase.h"
+#include "UserWidgetBase.h"
 #include "Widget/WidgetMainMenu.h"
 #include "Widget/WidgetPausingMenu.h"
 #include "Widget/WidgetLoadingPanel.h"
@@ -195,7 +195,7 @@ void UDWGameInstance::SavePlayerData(const FString& InPlayerName, bool bRefresh)
 	{
 		if(bRefresh) PlayerDataSave->RefreshPlayerData();
 		UGameplayStatics::SaveGameToSlot(PlayerDataSave, TEXT("Player_") + InPlayerName, UserIndex);
-	}	
+	}
 }
 
 UPlayerDataSave* UDWGameInstance::LoadPlayerData(const FString& InPlayerName)

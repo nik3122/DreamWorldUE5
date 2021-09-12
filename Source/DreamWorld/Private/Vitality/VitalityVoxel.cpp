@@ -28,7 +28,7 @@ void AVitalityVoxel::BeginPlay()
 
 	FVector range = GetVoxelData().GetFinalRange();
 	BoxComponent->SetBoxExtent(range * AWorldManager::GetData().BlockSize);
-	AddActorLocalOffset(FVector::UpVector * range.Z * VoxelMesh->BlockScale * 0.5f);
+	//AddActorLocalOffset(FVector::UpVector * range.Z * VoxelMesh->BlockScale * 0.5f);
 
 	if (GetVoxelData().IsValid())
 	{
@@ -49,7 +49,7 @@ void AVitalityVoxel::Tick(float DeltaTime)
 
 }
 
-FVoxelData AVitalityVoxel::GetVoxelData()
+FVoxelData AVitalityVoxel::GetVoxelData() const
 {
 	return UDWHelper::LoadVoxelData(VoxelID);
 }

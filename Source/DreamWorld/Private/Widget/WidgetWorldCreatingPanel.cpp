@@ -5,13 +5,14 @@
 
 UWidgetWorldCreatingPanel::UWidgetWorldCreatingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	WidgetName = FName("WorldCreatingPanel");
-	WidgetType = EWidgetPanelType::Temporary;
+	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }
 
-void UWidgetWorldCreatingPanel::RefreshPanel()
+void UWidgetWorldCreatingPanel::OnRefresh_Implementation()
 {
+	Super::OnRefresh_Implementation();
+	
 	if(IsVisible())
 	{
 		ResetData();

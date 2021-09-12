@@ -9,7 +9,6 @@
 
 UWidgetInventoryPanel::UWidgetInventoryPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	WidgetName = FName("InventoryPanel");
-	WidgetType = EWidgetPanelType::Permanent;
+	WidgetType = EWidgetType::Permanent;
 	InputMode = EInputMode::GameAndUI;
 }

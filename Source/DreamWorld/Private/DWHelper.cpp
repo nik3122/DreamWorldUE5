@@ -9,14 +9,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "DWGameInstance.h"
-#include "DataSave/WorldDataSave.h"
 #include "DWGameState.h"
 #include "Engine/DataTable.h"
 #include "Widget/Worlds/WidgetWorldText.h"
 #include "Widget/Worlds/WidgetVitalityHP.h"
 #include "Widget/Worlds/WidgetCharacterHP.h"
-#include "DataSave/GameDataSave.h"
-#include "DataSave/PlayerDataSave.h"
 #include "Widget/WidgetPrimaryPanel.h"
 
 ADWGameState* UDWHelper::CurrentGameState = nullptr;
@@ -58,7 +55,7 @@ ADWPlayerCharacter* UDWHelper::GetPlayerCharacter(const UObject* InWorldContext)
 {
 	if (ADWPlayerCharacterController* PlayerController = GetPlayerController(InWorldContext))
 	{
-		return PlayerController->GetPlayerCharacter();
+		return PlayerController->GetPossessedCharacter();
 	}
 	return nullptr;
 }
@@ -486,15 +483,6 @@ FCharacterRaceData UDWHelper::RandomCharacterRaceData()
 		}
 	}
 	return FCharacterRaceData();
-}
-
-UWidgetPanelBase* UDWHelper::K2_GetWidgetPanelByClass(const UObject* InWorldContext, TSubclassOf<UWidgetPanelBase> InWidgetPanelClass)
-{
-	if(ADWGameMode* GameMode = GetGameMode(InWorldContext))
-	{
-		return GameMode->K2_GetWidgetPanelByClass(InWidgetPanelClass);
-	}
-	return nullptr;
 }
 
 void UDWHelper::Debug(const FString& Message, EDebugType DebugType, float Duration)

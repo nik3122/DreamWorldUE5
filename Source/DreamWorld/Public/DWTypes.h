@@ -71,30 +71,6 @@ enum class EGameState : uint8
 };
 
 /**
- * ??????
- */
-UENUM(BlueprintType)
-enum class EInputMode : uint8
-{
-	None,
-	UIOnly,
-	GameAndUI,
-	GameOnly
-};
-
-/**
- * UI???????
- */
-UENUM(BlueprintType)
-enum class EWidgetPanelType : uint8
-{
-	// ???
-	Temporary,
-	// ???
-	Permanent
-};
-
-/**
  * ????
  */
 UENUM(BlueprintType)
@@ -1641,15 +1617,19 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FRotator Rotation;
-		
+			
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int TimeSeconds;
+	float CamDistance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	int32 TimeSeconds;
 
 	FORCEINLINE FPlayerRecordData()
 	{
 		Name = TEXT("");
 		Location = FVector::ZeroVector;
 		Rotation = FRotator::ZeroRotator;
+		CamDistance = -1.f;
 		TimeSeconds = 0;
 	}
 };

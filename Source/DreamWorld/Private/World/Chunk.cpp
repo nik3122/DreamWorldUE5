@@ -132,54 +132,32 @@ void AChunk::Destroyed()
 			chunkData.VoxelDatas.Add(voxel->ToData());
 			if (voxel->GetAuxiliary())
 			{
-				voxel->GetAuxiliary()->ConditionalBeginDestroy();
+				voxel->GetAuxiliary()->Destroy();
 			}
+			voxel->ConditionalBeginDestroy();
 		}
 		for (int32 i = 0; i < PickUps.Num(); i++)
 		{
 			chunkData.PickUpDatas.Add(PickUps[i]->ToData());
+			PickUps[i]->Destroy();
 		}
 		for (int32 i = 0; i < Characters.Num(); i++)
 		{
-			if (IsOnTheChunk(Characters[i]->GetActorLocation()))
+			if(Characters[i]->GetNature() != ECharacterNature::Player)
 			{
 				chunkData.CharacterDatas.Add(Characters[i]->ToData());
+				Characters[i]->Destroy();
 			}
 		}
 		for (int32 i = 0; i < VitalityObjects.Num(); i++)
 		{
 			chunkData.VitalityObjectDatas.Add(VitalityObjects[i]->ToData());
+			VitalityObjects[i]->Destroy();
 		}
 
 		if(UWorldDataSave* WorldDataSave = AWorldManager::GetDataSave())
 		{
 			WorldDataSave->SaveChunkData(Index, chunkData);
-		}
-
-		for (int32 i = 0; i < PickUps.Num(); i++)
-		{
-			PickUps[i]->Destroy();
-		}
-
-		for (int32 i = 0; i < Characters.Num(); i++)
-		{
-			if (IsOnTheChunk(Characters[i]->GetActorLocation()))
-			{
-				Characters[i]->Destroy();
-			}
-			else
-			{
-				AChunk* chunk = AWorldManager::Get()->FindChunk(Characters[i]->GetActorLocation());
-				if (chunk && chunk->IsValidLowLevel())
-				{
-					chunk->AttachCharacter(Characters[i]);
-				}
-			}
-		}
-
-		for (int32 i = 0; i < VitalityObjects.Num(); i++)
-		{
-			VitalityObjects[i]->Destroy();
 		}
 	}
 
@@ -555,14 +533,14 @@ void AChunk::BuildMap()
 							{
 								if ((x > 2 && x <= AWorldManager::GetData().ChunkSize - 2) && (y > 2 && y <= AWorldManager::GetData().ChunkSize - 2))
 								{
-									int treeHight = FMath::RandRange(4, 5);
-									int leavesHight = 2/*FMath::RandRange(2, 2)*/;
-									int leavesWidth = FMath::FRandRange(0, 1) < 0.5f ? 3 : 5;
-									for (int trunkHeight = 0; trunkHeight < treeHight; trunkHeight++)
+									const int treeHeight = FMath::RandRange(4, 5);
+									const int leavesHeight = 2/*FMath::RandRange(2, 2)*/;
+									const int leavesWidth = FMath::FRandRange(0, 1) < 0.5f ? 3 : 5;
+									for (int trunkHeight = 0; trunkHeight < treeHeight; trunkHeight++)
 									{
 										SetVoxelComplex(FIndex(x, y, z + trunkHeight + 1), UVoxel::NewVoxel(EVoxelType::Oak, this));
 									}
-									for (int offsetZ = treeHight - leavesHight; offsetZ < treeHight + 1; offsetZ++)
+									for (int offsetZ = treeHeight - leavesHeight; offsetZ < treeHeight + 1; offsetZ++)
 									{
 										for (int offsetX = -leavesWidth / 2; offsetX <= leavesWidth / 2; offsetX++)
 										{

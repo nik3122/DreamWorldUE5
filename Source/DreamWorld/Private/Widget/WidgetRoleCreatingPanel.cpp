@@ -5,13 +5,13 @@
 
 UWidgetRoleCreatingPanel::UWidgetRoleCreatingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	WidgetName = FName("RoleCreatingPanel");
-	WidgetType = EWidgetPanelType::Temporary;
+	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }
 
-void UWidgetRoleCreatingPanel::RefreshPanel()
+void UWidgetRoleCreatingPanel::OnRefresh_Implementation()
 {
+	Super::OnRefresh_Implementation();
 	if(IsVisible())
 	{
 		ResetData();

@@ -6,8 +6,6 @@
 #include "GameFramework/PlayerController.h"
 #include "DWPlayerCharacterController.generated.h"
 
-class ADWPlayerCharacter;
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerSpawned, ADWPlayerCharacter*, InPlayerCharacter);
 
 /**
@@ -23,6 +21,9 @@ public:
 	
 protected:
 	static class UPlayerDataSave* DataSave;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class ADWPlayerCharacter* PossessedCharacter;
 
 public:
 	static UPlayerDataSave* GetDataSave() { return DataSave; }
@@ -48,7 +49,7 @@ public:
 	virtual void UnLoadPlayer();
 
 	UFUNCTION(BlueprintPure)
-	ADWPlayerCharacter* GetPlayerCharacter() const;
+	class ADWPlayerCharacter* GetPossessedCharacter() const {return PossessedCharacter; }
 
 	bool RaycastFromAimPoint(FHitResult& OutHitResult, EGameTraceType InGameTraceType, float InRayDistance = 1000);
 };

@@ -1,20 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
+#include "UserWidgetBase.h"
 
-#include "DreamWorld.h"
-#include "Widget/WidgetPanelBase.h"
 #include "WidgetSettingPanel.generated.h"
 
 /**
- * …Ë÷√√Ê∞Â
+ * ËÆæÁΩÆÈù¢Êùø
  */
 UCLASS()
-class DREAMWORLD_API UWidgetSettingPanel : public UWidgetPanelBase
+class DREAMWORLD_API UWidgetSettingPanel : public UUserWidgetBase
 {
 	GENERATED_BODY()
 	
 public:
 	UWidgetSettingPanel(const FObjectInitializer& ObjectInitializer);
-
 };

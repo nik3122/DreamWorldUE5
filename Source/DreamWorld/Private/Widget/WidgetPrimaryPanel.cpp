@@ -7,12 +7,6 @@
 
 UWidgetPrimaryPanel::UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	WidgetName = FName("PrimaryPanel");
-	WidgetType = EWidgetPanelType::Permanent;
+	WidgetType = EWidgetType::Permanent;
 	InputMode = EInputMode::GameOnly;
-}
-
-AActor* UWidgetPrimaryPanel::GetOwnerActor() const
-{
-	return UDWHelper::GetPlayerCharacter(this);
 }

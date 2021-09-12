@@ -16,62 +16,50 @@ ADWPlayerCharacterCameraManager::ADWPlayerCharacterCameraManager()
 	CameraZoomSpeed = 50.f;
 
 	TargetCameraDistance = 0.f;
-
-	CameraBoom = nullptr;
 }
 
 void ADWPlayerCharacterCameraManager::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetCameraDistance(InitCameraDistance);
 }
 
 void ADWPlayerCharacterCameraManager::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (GetCameraBoom() && CameraBoom->TargetArmLength != TargetCameraDistance)
+	if (GetCameraBoom() && GetCameraBoom()->TargetArmLength != TargetCameraDistance)
 	{
-		CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, TargetCameraDistance, DeltaSeconds, CameraZoomSpeed);
+		GetCameraBoom()->TargetArmLength = FMath::FInterpTo(GetCameraBoom()->TargetArmLength, TargetCameraDistance, DeltaSeconds, CameraZoomSpeed);
 	}
 }
 
-float ADWPlayerCharacterCameraManager::GetCameraDistance()
+float ADWPlayerCharacterCameraManager::GetCameraDistance() const
 {
-	if(GetCameraBoom())
-	{
-		return CameraBoom->TargetArmLength;
-	}
-	return 0.f;
+	return TargetCameraDistance;
 }
 
-void ADWPlayerCharacterCameraManager::SetCameraDistance(float InCameraDistance)
+void ADWPlayerCharacterCameraManager::SetCameraDistance(float InCameraDistance, bool bInstant)
 {
-	TargetCameraDistance = FMath::Clamp(InCameraDistance, MinCameraDistance, MaxCameraDistance);
+	TargetCameraDistance = InCameraDistance != -1.f ? FMath::Clamp(InCameraDistance, MinCameraDistance, MaxCameraDistance) : InitCameraDistance;
+	if(bInstant && GetCameraBoom()) GetCameraBoom()->TargetArmLength = TargetCameraDistance;
 }
 
 void ADWPlayerCharacterCameraManager::ZoomCamera(float InDeltaValue)
 {
-	if (InDeltaValue != 0.f)
+	if (InDeltaValue != 0.f && GetCameraBoom())
 	{
-		SetCameraDistance(CameraBoom->TargetArmLength + InDeltaValue);
+		SetCameraDistance(GetCameraBoom()->TargetArmLength + InDeltaValue);
 	}
 }
 
-USpringArmComponent* ADWPlayerCharacterCameraManager::GetCameraBoom()
+USpringArmComponent* ADWPlayerCharacterCameraManager::GetCameraBoom() const
 {
-	if(CameraBoom == nullptr)
+	if (ADWPlayerCharacterController* PlayerController = Cast<ADWPlayerCharacterController>(GetOwningPlayerController()))
 	{
-		ADWPlayerCharacterController* PlayerController = Cast<ADWPlayerCharacterController>(GetOwningPlayerController());
-		if (PlayerController != nullptr)
+		if (ADWPlayerCharacter* PlayerCharacter = Cast<ADWPlayerCharacter>(PlayerController->GetPawn()))
 		{
-			ADWPlayerCharacter* PlayerCharacter = Cast<ADWPlayerCharacter>(PlayerController->GetPawn());
-			if (PlayerCharacter != nullptr)
-			{
-				CameraBoom = PlayerCharacter->GetCameraBoom();
-			}
+			return PlayerCharacter->GetCameraBoom();
 		}
 	}
-	return CameraBoom;
+	return nullptr;
 }

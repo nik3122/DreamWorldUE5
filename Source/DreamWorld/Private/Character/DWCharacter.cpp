@@ -234,7 +234,7 @@ void ADWCharacter::BeginPlay()
 		GetWidgetCharacterHPWidget()->SetOwnerCharacter(this);
 	}
 
-	Revive();
+	Spawn();
 }
 
 // Called every frame
@@ -296,19 +296,21 @@ void ADWCharacter::Tick(float DeltaTime)
 		}
 
 		FVector Location = GetMesh()->GetSocketLocation(FName("Foot"));
-		
-		AChunk* Chunk = AWorldManager::Get()->FindChunk(Location);
-		if(Chunk != nullptr)
+
+		if(AWorldManager* WorldManager = AWorldManager::Get())
 		{
-			if(OwnerChunk != nullptr)
+			if(AChunk* Chunk = WorldManager->FindChunk(Location))
+			{
+				if(OwnerChunk != nullptr)
+				{
+					OwnerChunk->DetachCharacter(this);
+				}
+				Chunk->AttachCharacter(this);
+			}
+			else if(OwnerChunk != nullptr)
 			{
 				OwnerChunk->DetachCharacter(this);
 			}
-			Chunk->AttachCharacter(this);
-		}
-		else if(OwnerChunk != nullptr)
-		{
-			OwnerChunk->DetachCharacter(this);
 		}
 
 		if(OwnerChunk != nullptr)
@@ -365,6 +367,7 @@ void ADWCharacter::Tick(float DeltaTime)
 			}
 			break;
 		}
+		default: break;
 	}
 
 	if (bDying && (!bFalling || GetActorLocation().Z < 0) && ActionType != ECharacterActionType::Death)
@@ -385,7 +388,6 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 		SetLevelC(InSaveData.Level);
 		SetEXP(InSaveData.EXP);
 
-		//AttributeSet = InSaveData.AttributeSet;
 		Inventory->LoadData(InSaveData.InventoryData, this);
 
 		SetActorLocation(InSaveData.SpawnLocation);
@@ -395,19 +397,19 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 	{
 		SetRaceID(InSaveData.RaceID);
 
-		Inventory->LoadData(InventoryData, this);
+		SetActorLocation(InSaveData.SpawnLocation);
+		SetActorRotation(InSaveData.SpawnRotation);
 
 		if(Nature != ECharacterNature::Player)
 		{
 			const auto ItemDatas = UDWHelper::LoadItemDatas();
-			if(FMath::FRandRange(0, 1) < 0.5f)
+			if(ItemDatas.Num() > 0 && FMath::FRand() < 0.5f)
 			{
 				InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID));
 			}
 		}
 
-		SetActorLocation(InSaveData.SpawnLocation);
-		SetActorRotation(InSaveData.SpawnRotation);
+		Inventory->LoadData(InventoryData, this);
 	}
 }
 
@@ -423,7 +425,6 @@ FCharacterData ADWCharacter::ToData(bool bSaved)
 	SaveData.Level = Level;
 	SaveData.EXP = EXP;
 
-	SaveData.AttributeSet = AttributeSet;
 	SaveData.InventoryData = Inventory->ToData();
 
 	SaveData.SpawnLocation = GetActorLocation();
@@ -648,7 +649,7 @@ void ADWCharacter::SetMotionRate(float InMovementRate, float InRotationRate)
 	HandleFlySpeedChanged(GetFlySpeed());
 }
 
-void ADWCharacter::Active(bool bResetStats /*= false*/)
+void ADWCharacter::Active(bool bResetData /*= false*/)
 {
 	if (!bActive)
 	{
@@ -658,32 +659,7 @@ void ADWCharacter::Active(bool bResetStats /*= false*/)
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		WidgetCharacterHP->SetVisibility(true);
 	}
-	if (bResetStats)
-	{
-		// states
-		bDead = false;
-		bDying = false;
-		bDodging = false;
-		bSprinting = false;
-		bCrouching = false;
-		bSwimming = false;
-		bAttacking = false;
-		bDefending = false;
-		bDamaging = false;
-		bBlocking = false;
-
-		// stats
-		SetMotionRate(1, 1);
-		SetLockedTarget(nullptr);
-			
-		// local
-		AttackAbilityIndex = 0;
-		AIMoveLocation = Vector_Empty;
-		AIMoveStopDistance = 0;
-		DodgeRemainTime = 0;
-		InterruptRemainTime = 0;
-		ActionType = ECharacterActionType::None;
-	}
+	if (bResetData) ResetData();
 }
 
 void ADWCharacter::Disable(bool bDisableMovement, bool bDisableCollision)
@@ -701,6 +677,29 @@ void ADWCharacter::Disable(bool bDisableMovement, bool bDisableCollision)
 		{
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
+	}
+}
+
+void ADWCharacter::Spawn()
+{
+	Active(true);
+	SetVisible(true);
+	SetHealth(GetMaxHealth());
+	SetMana(GetMaxMana());
+	SetStamina(GetMaxStamina());
+	DoAction(ECharacterActionType::Revive);
+}
+
+void ADWCharacter::Revive()
+{
+	if (bDead && !bDying)
+	{
+		Active(true);
+		SetVisible(true);
+		SetHealth(GetMaxHealth());
+		SetMana(GetMaxMana());
+		SetStamina(GetMaxStamina());
+		DoAction(ECharacterActionType::Revive);
 	}
 }
 
@@ -727,22 +726,36 @@ void ADWCharacter::Death(ADWCharacter* InKiller /*= nullptr*/)
 	}
 }
 
-void ADWCharacter::Revive()
+void ADWCharacter::ResetData(bool bRefresh)
 {
-	if (bDead && !bDying)
-	{
-		bDead = false;
-		bDying = false;
-		Active(true);
-		SetVisible(true);
-		SetHealth(GetMaxHealth());
-		SetMana(GetMaxMana());
-		SetStamina(GetMaxStamina());
-		DoAction(ECharacterActionType::Revive);
-	}
+	// states
+	bDead = false;
+	bDying = false;
+	bDodging = false;
+	bSprinting = false;
+	bCrouching = false;
+	bSwimming = false;
+	bAttacking = false;
+	bDefending = false;
+	bDamaging = false;
+	bBlocking = false;
+
+	// stats
+	SetMotionRate(1, 1);
+	SetLockedTarget(nullptr);
+			
+	// local
+	AttackAbilityIndex = 0;
+	AIMoveLocation = Vector_Empty;
+	AIMoveStopDistance = 0;
+	DodgeRemainTime = 0;
+	InterruptRemainTime = 0;
+	ActionType = ECharacterActionType::None;
+
+	if(bRefresh) RefreshData();
 }
 
-void ADWCharacter::Refresh()
+void ADWCharacter::RefreshData()
 {
 	HandleEXPChanged(GetEXP());
 	HandleLevelChanged(GetLevelC());
@@ -766,14 +779,14 @@ void ADWCharacter::Refresh()
 	HandleToughnessRateChanged(GetToughnessRate());
 }
 
-void ADWCharacter::FreeToAnim(bool bResetStats /*= false*/)
+void ADWCharacter::FreeToAnim(bool bResetData /*= false*/)
 {
 	if (!bFreeToAnimate && !bInterrupting && !bFalling)
 	{
 		bFreeToAnimate = true;
 		bLockRotation = false;
 	}
-	if (bResetStats)
+	if (bResetData)
 	{
 		SetMotionRate(1, 1);
 	}
@@ -1925,6 +1938,11 @@ float ADWCharacter::GetPhysicsDamage() const
 float ADWCharacter::GetMagicDamage() const
 {
 	return AttributeSet->GetMagicDamage();
+}
+
+UInventory* ADWCharacter::GetInventory() const
+{
+	return Inventory;
 }
 
 float ADWCharacter::GetRadius() const

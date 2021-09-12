@@ -22,7 +22,7 @@ void UInventoryShortcutSlot::Refresh()
 	Super::Refresh();
 	if(ADWPlayerCharacter* PlayerCharacter = Cast<ADWPlayerCharacter>(GetOwner()->GetOwnerActor()))
 	{
-		if (UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->GetSelectedSlot() == this)
+		if (UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlot() == this)
 		{
 			PlayerCharacter->UpdateVoxelMesh();
 		}

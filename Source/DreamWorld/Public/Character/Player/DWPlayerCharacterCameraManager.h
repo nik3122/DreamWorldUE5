@@ -33,10 +33,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Setup")
 	float CameraZoomSpeed;
 
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	USpringArmComponent* CameraBoom;
-
 private:
 	float TargetCameraDistance;
 
@@ -47,14 +43,14 @@ protected:
 
 public:
 	UFUNCTION(BlueprintPure)
-	float GetCameraDistance();
+	float GetCameraDistance() const;
 
 	UFUNCTION(BlueprintCallable)
-	void SetCameraDistance(float InCameraDistance);
+	void SetCameraDistance(float InCameraDistance = -1.f, bool bInstant = false);
 
 	UFUNCTION(BlueprintCallable)
 	void ZoomCamera(float InDeltaValue);
 
 	UFUNCTION(BlueprintPure)
-	USpringArmComponent* GetCameraBoom();
+	USpringArmComponent* GetCameraBoom() const;
 };

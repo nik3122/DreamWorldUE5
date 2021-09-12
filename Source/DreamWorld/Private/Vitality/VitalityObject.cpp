@@ -52,6 +52,8 @@ AVitalityObject::AVitalityObject()
 	EXPFactor = 2.f;
 
 	InventoryData = FInventoryData();
+	InventoryData.Items.SetNum(5);
+	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 4));
 
 	OwnerChunk = nullptr;
 	Inventory = nullptr;
@@ -69,14 +71,13 @@ void AVitalityObject::BeginPlay()
 		GetWidgetVitalityHPWidget()->SetOwnerObject(this);
 	}
 
-	Revive();
+	Spawn();
 }
 
 // Called every frame
 void AVitalityObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
@@ -90,25 +91,24 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 		SetLevelC(InSaveData.Level);
 		SetEXP(InSaveData.EXP);
 
-		//AttributeSet = InSaveData.AttributeSet;
-		Inventory->LoadData(InSaveData.InventoryData, this);
-
 		SetActorLocation(InSaveData.SpawnLocation);
 		SetActorRotation(InSaveData.SpawnRotation);
+
+		Inventory->LoadData(InSaveData.InventoryData, this);
 	}
 	else
 	{
 		SetRaceID(InSaveData.RaceID);
 
+		SetActorLocation(InSaveData.SpawnLocation);
+		SetActorRotation(InSaveData.SpawnRotation);
+
 		const auto ItemDatas = UDWHelper::LoadItemDatas();
-		if(FMath::FRandRange(0, 1) < 0.2f)
+		if(ItemDatas.Num() > 0 && FMath::FRand() < 0.2f)
 		{
 			InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID));
 		}
 		Inventory->LoadData(InventoryData, this);
-
-		SetActorLocation(InSaveData.SpawnLocation);
-		SetActorRotation(InSaveData.SpawnRotation);
 	}
 }
 
@@ -123,7 +123,6 @@ FVitalityObjectData AVitalityObject::ToData(bool bSaved)
 	SaveData.Level = Level;
 	SaveData.EXP = EXP;
 	
-	SaveData.AttributeSet = AttributeSet;
 	SaveData.InventoryData = Inventory->ToData();
 
 	SaveData.SpawnLocation = GetActorLocation();
@@ -150,16 +149,28 @@ void AVitalityObject::Death(ADWCharacter* InKiller /*= nullptr*/)
 	}
 }
 
+void AVitalityObject::Spawn()
+{
+	ResetData();
+	SetHealth(GetMaxHealth());
+}
+
 void AVitalityObject::Revive()
 {
 	if (bDead)
 	{
-		bDead = false;
+		ResetData();
 		SetHealth(GetMaxHealth());
 	}
 }
 
-void AVitalityObject::Refresh()
+void AVitalityObject::ResetData(bool bRefresh)
+{
+	bDead = false;
+	if(bRefresh) ResetData();
+}
+
+void AVitalityObject::RefreshData()
 {
 	HandleHealthChanged(GetHealth());
 	HandleNameChanged(GetName());

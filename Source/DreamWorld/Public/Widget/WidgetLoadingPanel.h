@@ -3,18 +3,17 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/WidgetPanelBase.h"
+#include "UserWidgetBase.h"
 #include "WidgetLoadingPanel.generated.h"
 
 /**
- * ¼ÓÔØ½çÃæ
+ * ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½
  */
 UCLASS()
-class DREAMWORLD_API UWidgetLoadingPanel : public UWidgetPanelBase
+class DREAMWORLD_API UWidgetLoadingPanel : public UUserWidgetBase
 {
 	GENERATED_BODY()
 
 public:
 	UWidgetLoadingPanel(const FObjectInitializer& ObjectInitializer);
-	
 };

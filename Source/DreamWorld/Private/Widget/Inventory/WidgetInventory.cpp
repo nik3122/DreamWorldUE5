@@ -2,41 +2,34 @@
 
 #include "Inventory.h"
 #include "InventorySlot.h"
+#include "Vitality.h"
 #include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 
 UWidgetInventory::UWidgetInventory(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	Inventory = nullptr;
+
 }
 
-void UWidgetInventory::RefreshPanel()
+void UWidgetInventory::OnRefresh_Implementation()
 {
-	Super::RefreshPanel();
-	if (!Inventory)
+	Super::OnRefresh_Implementation();
+}
+
+UInventory* UWidgetInventory::GetInventory() const
+{
+	if(IVitality* Vitality = Cast<IVitality>(OwnerActor))
 	{
-		SetActive(false);
+		return Vitality->GetInventory();
 	}
-}
-
-void UWidgetInventory::InitInventory(UInventory* InInventory)
-{
-	Inventory = InInventory;
-	K2_InitInventory(Inventory);
-	RefreshPanel();
-}
-
-AActor* UWidgetInventory::GetOwnerActor() const
-{
-	if(Inventory) return Inventory->GetOwnerActor();
 	return nullptr;
 }
 
-TArray<UWidgetInventorySlot*> UWidgetInventory::GetSplitUISlots(ESplitSlotType InSplitSlotType)
+TArray<UWidgetInventorySlot*> UWidgetInventory::GetSplitUISlots(ESplitSlotType InSplitSlotType) const
 {
 	TArray<UWidgetInventorySlot*> UISlots = TArray<UWidgetInventorySlot*>();
-	if(Inventory)
+	if(GetInventory())
 	{
-		TArray<UInventorySlot*> Slots = Inventory->GetSplitSlots<UInventorySlot>(InSplitSlotType);
+		TArray<UInventorySlot*> Slots = GetInventory()->GetSplitSlots<UInventorySlot>(InSplitSlotType);
 		for (int32 i = 0; i < Slots.Num(); i++)
 		{
 			if(Slots[i]->GetUISlot())

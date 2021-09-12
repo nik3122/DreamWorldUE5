@@ -45,30 +45,36 @@ void ADWPlayerCharacterController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (GetPlayerCharacter())
+	PossessedCharacter = Cast<ADWPlayerCharacter>(GetCharacter());
+	if (PossessedCharacter)
 	{
-		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->InitInventory(GetPlayerCharacter()->GetInventory());
-		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->InitInventory(GetPlayerCharacter()->GetInventory());
-		GetPlayerCharacter()->Refresh();
+		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->InitInventory(PossessedCharacter->GetInventory());
+		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->InitInventory(PossessedCharacter->GetInventory());
+		PossessedCharacter->RefreshData();
 	}
 }
 
 void ADWPlayerCharacterController::OnUnPossess()
 {
-	if (GetPlayerCharacter())
+	if (PossessedCharacter)
 	{
-		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->InitInventory(nullptr);
-		UDWHelper::GetWidgetPanelByClass<UWidgetInventoryPanel>(this)->InitInventory(nullptr);
-		GetPlayerCharacter()->Destroy();
+		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->InitInventory(nullptr);
+		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->InitInventory(nullptr);
+		PossessedCharacter->Destroy();
+		PossessedCharacter = nullptr;
 	}
 	Super::OnUnPossess();
 }
 
 void ADWPlayerCharacterController::OnBasicGenerated(FVector InPlayerLocation)
 {
-	if(GetPlayerCharacter())
+	if(PossessedCharacter)
 	{
-		GetPlayerCharacter()->Active(true);
+		if(PossessedCharacter->GetActorLocation().IsNearlyZero())
+		{
+			PossessedCharacter->SetActorLocation(InPlayerLocation);
+		}
+		PossessedCharacter->Active(true);
 	}
 }
 
@@ -91,19 +97,14 @@ void ADWPlayerCharacterController::LoadPlayer(const FString& InPlayerName)
 				Possess(PlayerCharacter);
 				PlayerCharacter->Disable(true, true);
 				PlayerCharacter->LoadData(PlayerDataSave->GetPlayerData());
-
+				
 				if(AWorldManager* WorldManager = AWorldManager::Get())
 				{
 					if(UWorldDataSave* WorldDataSave = WorldManager->GetDataSave())
 					{
 						if (WorldDataSave->IsExistPlayerRecord(InPlayerName))
 						{
-							auto PlayerRecord = WorldDataSave->LoadPlayerRecord(InPlayerName);
-							if(WorldManager->GetWorldTimer())
-							{
-								WorldManager->GetWorldTimer()->SetTimeSeconds(PlayerRecord.TimeSeconds);
-							}
-							PlayerCharacter->SetActorLocationAndRotation(PlayerRecord.Location, PlayerRecord.Rotation);
+							PlayerCharacter->LoadRecordData(WorldDataSave->LoadPlayerRecord(InPlayerName));
 						}
 						else
 						{
@@ -112,6 +113,8 @@ void ADWPlayerCharacterController::LoadPlayer(const FString& InPlayerName)
 								WorldManager->GetWorldTimer()->SetTimeSeconds(0);
 							}
 							PlayerCharacter->SetActorLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
+							PlayerCharacter->GetCameraManager()->SetCameraDistance(-1.f, true);
+							SetControlRotation(PlayerCharacter->GetActorRotation());
 						}
 					}
 				}
@@ -157,17 +160,25 @@ void ADWPlayerCharacterController::UnLoadPlayer()
 {
 	if(UDWGameInstance* GameInstance = UDWHelper::GetGameInstance(this))
     {
-		if(GetPlayerCharacter())
+		DataSave = nullptr;
+		if(PossessedCharacter)
 		{
-			GameInstance->UnloadPlayerData(GetPlayerCharacter()->GetName());
+			if(AWorldManager* WorldManager = AWorldManager::Get())
+			{
+				if(UWorldDataSave* WorldDataSave = WorldManager->GetDataSave())
+				{
+					FPlayerRecordData PlayerRecordData = PossessedCharacter->ToRecordData();
+					if(UWorldTimerComponent* WorldTimer = WorldManager->GetWorldTimer())
+					{
+						PlayerRecordData.TimeSeconds = WorldTimer->GetTimeSeconds();
+					}
+					WorldDataSave->SavePlayerRecord(PlayerRecordData);
+				}
+			}
+			GameInstance->UnloadPlayerData(PossessedCharacter->GetName());
 		}
-    }
+   }
 	UnPossess();
-}
-
-ADWPlayerCharacter* ADWPlayerCharacterController::GetPlayerCharacter() const
-{
-	return Cast<ADWPlayerCharacter>(GetCharacter());
 }
 
 bool ADWPlayerCharacterController::RaycastFromAimPoint(FHitResult& OutHitResult, EGameTraceType InGameTraceType, float InRayDistance)
@@ -179,7 +190,7 @@ bool ADWPlayerCharacterController::RaycastFromAimPoint(FHitResult& OutHitResult,
 	{
 		FVector rayStart = PlayerCameraManager->GetCameraLocation();
 		FVector rayEnd = rayStart + rayDirection * InRayDistance;
-		return UKismetSystemLibrary::LineTraceSingle(GetPlayerCharacter(), rayStart, rayEnd, UDWHelper::GetGameTrace(InGameTraceType), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
+		return UKismetSystemLibrary::LineTraceSingle(PossessedCharacter, rayStart, rayEnd, UDWHelper::GetGameTrace(InGameTraceType), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 	}
 	return false;
 }

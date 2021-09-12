@@ -18,6 +18,6 @@ void UPlayerInventory::Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSl
 
 TArray<UInventorySlot*> UPlayerInventory::GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int InStartIndex /*= 0*/)
 {
-	if (InStartIndex == -1) InStartIndex = GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex + UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->GetSelectedSlotIndex();
+	if (InStartIndex == -1) InStartIndex = GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex + UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlotIndex();
 	return Super::GetValidatedList(InActionType, InItem, InStartIndex);
 }

@@ -38,10 +38,10 @@ public:
 	void SelectInventorySlot(int32 InSlotIndex);
 
 	UFUNCTION(BlueprintPure)
-	UInventorySlot* GetSelectedSlot();
+	UInventorySlot* GetSelectedSlot() const;
 	
 	UFUNCTION(BlueprintPure)
-	FItem GetSelectedItem();
+	FItem GetSelectedItem() const;
 
 	UFUNCTION(BlueprintPure)
 	int32 GetSelectedSlotIndex() const { return SelectedSlotIndex; }

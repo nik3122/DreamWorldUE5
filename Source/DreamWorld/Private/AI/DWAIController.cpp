@@ -38,7 +38,7 @@ ADWAIController::ADWAIController()
 	auto damageSenseConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageSenseConfig"));
 	AIPerception->ConfigureSense(*damageSenseConfig);
 
-	OwnerCharacter = nullptr;
+	PossessedCharacter = nullptr;
 
 	bLostPerceptionTarget = false;
 	RedirectRemainTime = 0;
@@ -48,20 +48,20 @@ void ADWAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	OwnerCharacter = Cast<ADWCharacter>(InPawn);
+	PossessedCharacter = Cast<ADWCharacter>(InPawn);
 
-	if (OwnerCharacter)
+	if (PossessedCharacter)
 	{
-		OwnerCharacter->Refresh();
-		if (OwnerCharacter->HasBehaviorTree())
+		PossessedCharacter->RefreshData();
+		if (PossessedCharacter->HasBehaviorTree())
 		{
-			RunBehaviorTree(OwnerCharacter->GetBehaviorTree());
+			RunBehaviorTree(PossessedCharacter->GetBehaviorTree());
 
-			SetCharacterNature(OwnerCharacter->GetNature());
-			SetAttackDistance(OwnerCharacter->GetAttackDistance());
-			SetFollowDistance(OwnerCharacter->GetFollowDistance());
-			SetPatrolDistance(OwnerCharacter->GetPatrolDistance());
-			SetPatrolDuration(OwnerCharacter->GetPatrolDuration());
+			SetCharacterNature(PossessedCharacter->GetNature());
+			SetAttackDistance(PossessedCharacter->GetAttackDistance());
+			SetFollowDistance(PossessedCharacter->GetFollowDistance());
+			SetPatrolDistance(PossessedCharacter->GetPatrolDistance());
+			SetPatrolDuration(PossessedCharacter->GetPatrolDuration());
 			SetTargetCharacter(nullptr);
 			SetIsLostTarget(false);
 		}
@@ -82,7 +82,7 @@ void ADWAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!OwnerCharacter) return;
+	if (!PossessedCharacter) return;
 
 	if (GetTargetCharacter() && GetTargetCharacter()->IsDead())
 	{
@@ -93,11 +93,11 @@ void ADWAIController::Tick(float DeltaTime)
 
 void ADWAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (!OwnerCharacter) return;
+	if (!PossessedCharacter) return;
 	
 	ADWCharacter* character = Cast<ADWCharacter>(Actor);
 	
-	if (character && character != OwnerCharacter && !character->IsDead())
+	if (character && character != PossessedCharacter && !character->IsDead())
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{

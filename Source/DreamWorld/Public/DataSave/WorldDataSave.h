@@ -40,6 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsExistPlayerRecord(const FString& InPlayerName);
 
+	UFUNCTION(BlueprintCallable)
+	void SavePlayerRecord(FPlayerRecordData InPlayerRecordData);
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FPlayerRecordData LoadPlayerRecord(const FString& InPlayerName);
 

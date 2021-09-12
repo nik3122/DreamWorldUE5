@@ -3,14 +3,14 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/WidgetPanelBase.h"
+#include "UserWidgetBase.h"
 #include "WidgetWorldCreatingPanel.generated.h"
 
 /**
  * ���紴�����
  */
 UCLASS()
-class DREAMWORLD_API UWidgetWorldCreatingPanel : public UWidgetPanelBase
+class DREAMWORLD_API UWidgetWorldCreatingPanel : public UUserWidgetBase
 {
 	GENERATED_BODY()
 	
@@ -18,7 +18,7 @@ public:
 	UWidgetWorldCreatingPanel(const FObjectInitializer& ObjectInitializer);
 
 public:
-	void RefreshPanel() override;
+	virtual void OnRefresh_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void ResetData();

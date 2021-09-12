@@ -14,7 +14,7 @@ ADWMonsterCharacter::ADWMonsterCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	InventoryData = FInventoryData();
-	InventoryData.Items.SetNumZeroed(16);
+	InventoryData.Items.SetNum(16);
 	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 10));
 	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(10, 6));
 

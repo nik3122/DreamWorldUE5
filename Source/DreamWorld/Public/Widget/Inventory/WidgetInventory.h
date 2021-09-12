@@ -3,7 +3,7 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/WidgetPanelBase.h"
+#include "UserWidgetBase.h"
 #include "WidgetInventory.generated.h"
 
 class UWidgetInventorySlot;
@@ -13,31 +13,19 @@ class UWidgetInventoryEquipSlot;
  * ��Ʒ������
  */
 UCLASS()
-class DREAMWORLD_API UWidgetInventory : public UWidgetPanelBase
+class DREAMWORLD_API UWidgetInventory : public UUserWidgetBase
 {
 	GENERATED_BODY()
 
 public:
 	UWidgetInventory(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	UInventory* Inventory;
-
 public:
-	virtual void RefreshPanel() override;
-	
-	UFUNCTION(BlueprintCallable)
-	void InitInventory(UInventory* InInventory);
-
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "InitInventory"))
-	void K2_InitInventory(UInventory* InInventory);
+	virtual void OnRefresh_Implementation() override;
 
 	UFUNCTION(BlueprintPure)
-	UInventory* GetInventory() const { return Inventory; }
-	
-	virtual AActor* GetOwnerActor() const override;
-		
+	UInventory* GetInventory() const;
+
 	UFUNCTION(BlueprintPure)
-	TArray<UWidgetInventorySlot*> GetSplitUISlots(ESplitSlotType InSplitSlotType);
+	TArray<UWidgetInventorySlot*> GetSplitUISlots(ESplitSlotType InSplitSlotType) const;
 };

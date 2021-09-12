@@ -28,7 +28,7 @@ protected:
 	UAIPerceptionComponent* AIPerception;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	ADWCharacter* OwnerCharacter;
+	ADWCharacter* PossessedCharacter;
 
 private:
 	bool bLostPerceptionTarget;
@@ -75,6 +75,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetPatrolDuration(float InPatrolDuration);
+
+	UFUNCTION(BlueprintPure)
+	ADWCharacter* GetPossessedCharacter() const {return PossessedCharacter; }
 
 	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetTargetCharacter() const;

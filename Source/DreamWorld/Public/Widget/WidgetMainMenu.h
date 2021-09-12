@@ -3,14 +3,14 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/WidgetPanelBase.h"
+#include "UserWidgetBase.h"
 #include "WidgetMainMenu.generated.h"
 
 /**
- * Ö÷²Ëµ¥
+ * ï¿½ï¿½ï¿½Ëµï¿½
  */
 UCLASS()
-class DREAMWORLD_API UWidgetMainMenu : public UWidgetPanelBase
+class DREAMWORLD_API UWidgetMainMenu : public UUserWidgetBase
 {
 	GENERATED_BODY()
 	

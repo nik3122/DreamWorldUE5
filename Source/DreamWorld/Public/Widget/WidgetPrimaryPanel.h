@@ -3,7 +3,7 @@
 #pragma once
 
 #include "DreamWorld.h"
-#include "Widget/WidgetPanelBase.h"
+#include "UserWidgetBase.h"
 #include "WidgetPrimaryPanel.generated.h"
 
 class ADWPlayerCharacter;
@@ -12,7 +12,7 @@ class ADWPlayerCharacter;
  * 主界面
  */
 UCLASS()
-class DREAMWORLD_API UWidgetPrimaryPanel : public UWidgetPanelBase
+class DREAMWORLD_API UWidgetPrimaryPanel : public UUserWidgetBase
 {
 	GENERATED_BODY()
 
@@ -20,8 +20,6 @@ public:
 	UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitializer);
 
 public:
-	AActor* GetOwnerActor() const override;
-
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void SetHeadInfo(const FString& InHeadInfo);
 	

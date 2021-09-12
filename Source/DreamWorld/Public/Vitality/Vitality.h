@@ -20,11 +20,15 @@ class DREAMWORLD_API IVitality
 	GENERATED_BODY()
 
 public:
-	virtual void Death(ADWCharacter* InKiller = nullptr) = 0;
+	virtual void Spawn() = 0;
 	
 	virtual void Revive() = 0;
-	
-	virtual void Refresh() = 0;
+
+	virtual void Death(ADWCharacter* InKiller = nullptr) = 0;
+		
+	virtual void ResetData(bool bRefresh = false) = 0;
+
+	virtual void RefreshData() = 0;
 	
 	virtual void ModifyHealth(float InDetlaValue) = 0;
 	
@@ -65,10 +69,12 @@ public:
 	virtual float GetMaxHealth() const = 0;
 			
 	virtual void SetMaxHealth(float InValue) = 0;
-	
+
 	virtual float GetPhysicsDamage() const = 0;
 		
 	virtual float GetMagicDamage() const = 0;
+	
+	virtual class UInventory* GetInventory() const = 0;
 
 	virtual FGameplayAbilitySpecHandle AcquireAbility(TSubclassOf<UDWGameplayAbility> InAbility, int32 InLevel = 1) = 0;
 

@@ -2,11 +2,8 @@
 
 #include "DataSave/WorldDataSave.h"
 
-#include "WorldTimerComponent.h"
 #include "Character/Player/DWPlayerCharacter.h"
-#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "World/Chunk.h"
 #include "World/WorldManager.h"
 
 UWorldDataSave::UWorldDataSave()
@@ -23,30 +20,21 @@ void UWorldDataSave::RefreshWorldData()
 	if(AWorldManager* WorldManager = AWorldManager::Get())
 	{
 		WorldData = WorldManager->GetData();
-
-		if(ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this))
-		{
-			FPlayerRecordData RecordData;
-			RecordData.Name = PlayerCharacter->GetName();
-			RecordData.Location = PlayerCharacter->GetActorLocation();
-			RecordData.Rotation = PlayerCharacter->GetActorRotation();
-			
-			if(UWorldTimerComponent* WorldTimer = WorldManager->GetWorldTimer())
-			{
-				RecordData.TimeSeconds = WorldTimer->GetTimeSeconds();
-			}
-
-			if (!PlayerRecordDatas.Contains(RecordData.Name))
-				PlayerRecordDatas.Add(RecordData.Name, RecordData);
-			else
-				PlayerRecordDatas[RecordData.Name] = RecordData;
-		}
+		WorldData.bSaved = true;
 	}
 }
 
 bool UWorldDataSave::IsExistPlayerRecord(const FString& InPlayerName)
 {
 	return PlayerRecordDatas.Contains(InPlayerName);
+}
+
+void UWorldDataSave::SavePlayerRecord(FPlayerRecordData InPlayerRecordData)
+{
+	if (!PlayerRecordDatas.Contains(InPlayerRecordData.Name))
+		PlayerRecordDatas.Add(InPlayerRecordData.Name, InPlayerRecordData);
+	else
+		PlayerRecordDatas[InPlayerRecordData.Name] = InPlayerRecordData;
 }
 
 FPlayerRecordData UWorldDataSave::LoadPlayerRecord(const FString& InPlayerName)

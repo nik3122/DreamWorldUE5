@@ -3,18 +3,18 @@
 using UnrealBuildTool;
 
 /// <summary>
-/// Ö÷Ä£¿é¹æÔòC#Àà
+/// ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½C#ï¿½ï¿½
 /// </summary>
 public class DreamWorld : ModuleRules
 {
 	public DreamWorld(ReadOnlyTargetRules Target) : base(Target)
 	{
-		// ÉèÖÃÔ¤±àÒëÍ·ÎÄ¼þ
+		// ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½Í·ï¿½Ä¼ï¿½
 		PrivatePCHHeaderFile = "DreamWorld.h";
 
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		// Ìí¼Ó¹«ÓÐÒÀÀµÄ£¿é
+		// ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
 		PublicDependencyModuleNames.AddRange(
 			new string[] {
 				"Core",
@@ -23,7 +23,7 @@ public class DreamWorld : ModuleRules
 			}
 		);
 
-		// Ìí¼ÓË½ÓÐÒÀÀµÄ£¿é
+		// ï¿½ï¿½ï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
 		PrivateDependencyModuleNames.AddRange(
 			new string[] {
 				"InputCore",
@@ -32,7 +32,9 @@ public class DreamWorld : ModuleRules
 				"GameplayAbilities",
 				"GameplayTags",
 				"GameplayTasks",
-				"ProceduralMeshComponent"
+				"ProceduralMeshComponent",
+				"WHFramework",
+				"AchievementSystem"
 			}
 		);
 	}

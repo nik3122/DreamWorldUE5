@@ -95,11 +95,15 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Active(bool bResetStats = false) override;
+	virtual void Active(bool bResetData = false) override;
 
 	virtual void Disable(bool bDisableMovement = false, bool bDisableCollision = false) override;
 
+	virtual void Spawn() override;
+
 	virtual void Revive() override;
+
+	virtual void ResetData(bool bRefresh) override;
 
 	virtual void Interrupt(float InDuration  = -1, bool bInPlayAnim  = false) override;
 
@@ -110,6 +114,10 @@ public:
 	virtual void LoadData(FCharacterData InSaveData) override;
 
 	virtual FCharacterData ToData(bool bSaved = true) override;
+
+	virtual void LoadRecordData(FPlayerRecordData InRecordData);
+
+	virtual FPlayerRecordData ToRecordData(bool bSaved = true);
 
 	virtual void UnAttack() override;
 

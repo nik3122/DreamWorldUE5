@@ -36,5 +36,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintPure)
-	FVoxelData GetVoxelData();
+	FVoxelData GetVoxelData() const;
 };

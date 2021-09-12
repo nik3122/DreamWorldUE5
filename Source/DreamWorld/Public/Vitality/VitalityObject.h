@@ -95,6 +95,9 @@ public:
 	virtual void Death(ADWCharacter* InKiller = nullptr) override;
 
 	UFUNCTION(BlueprintCallable)
+	virtual void Spawn() override;
+
+	UFUNCTION(BlueprintCallable)
 	virtual void Revive() override;
 	
 	UFUNCTION(BlueprintCallable)
@@ -124,7 +127,10 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual void Refresh() override;
+	virtual void ResetData(bool bRefresh = false) override;
+	
+	UFUNCTION(BlueprintCallable)
+	virtual void RefreshData() override;
 
 	UFUNCTION(BlueprintPure)
 	bool IsDead() const override;
@@ -193,7 +199,7 @@ public:
 	void SetOwnerChunk(AChunk* InOwnerChunk) { OwnerChunk = InOwnerChunk; }
 
 	UFUNCTION(BlueprintPure)
-	UInventory* GetInventory() const { return Inventory; }
+	UInventory* GetInventory() const override { return Inventory; }
 		
 	UFUNCTION(BlueprintPure)
 	UWidgetVitalityHP* GetWidgetVitalityHPWidget();

@@ -311,22 +311,28 @@ public:
 	void SetMotionRate(float InMovementRate, float InRotationRate);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void Active(bool bResetStats = false);
+	virtual void Active(bool bResetData = false);
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void Disable(bool bDisableMovement = false, bool bDisableCollision = false);
+						
+	UFUNCTION(BlueprintCallable)
+	virtual void Spawn() override;
+		
+	UFUNCTION(BlueprintCallable)
+	virtual void Revive() override;
 			
 	UFUNCTION(BlueprintCallable)
 	virtual void Death(ADWCharacter* InKiller = nullptr) override;
-				
-	UFUNCTION(BlueprintCallable)
-	virtual void Revive() override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void Refresh() override;
+	virtual void ResetData(bool bRefresh = false) override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void FreeToAnim(bool bResetStats = false);
+	virtual void RefreshData() override;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void FreeToAnim(bool bResetData = false);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void LimitToAnim(bool bInLockRotation = false, bool bUnSprint = false);
@@ -798,7 +804,7 @@ public:
 	float GetMagicDamage() const override;
 
 	UFUNCTION(BlueprintPure)
-	UCharacterInventory* GetInventory() const { return Inventory; }
+	class UInventory* GetInventory() const override;
 
 	UFUNCTION(BlueprintPure)
 	FVector GetMoveVelocity() const { return MoveVelocity; }

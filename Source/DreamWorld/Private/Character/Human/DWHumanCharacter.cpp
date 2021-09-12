@@ -28,7 +28,7 @@ ADWHumanCharacter::ADWHumanCharacter()
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -70));
 
 	InventoryData = FInventoryData();
-	InventoryData.Items.SetNumZeroed(22);
+	InventoryData.Items.SetNum(22);
 	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 10));
 	InventoryData.SplitInfos.Add(ESplitSlotType::Shortcut, FSplitSlotInfo(10, 1));
 	InventoryData.SplitInfos.Add(ESplitSlotType::Auxiliary, FSplitSlotInfo(11, 1));

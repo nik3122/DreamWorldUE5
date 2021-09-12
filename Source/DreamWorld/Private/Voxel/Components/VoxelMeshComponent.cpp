@@ -31,8 +31,8 @@ void UVoxelMeshComponent::Initialize(EVoxelMeshType InMeshType, ETransparency In
 	{
 		case EVoxelMeshType::Chunk:
 		{
-			BlockScale = 1;
-			OffsetScale = 1;
+			BlockScale = 1.f;
+			OffsetScale = 1.f;
 			CenterOffset = FVector(0.5f);
 			break;
 		}
@@ -52,7 +52,7 @@ void UVoxelMeshComponent::Initialize(EVoxelMeshType InMeshType, ETransparency In
 		}
 		case EVoxelMeshType::VitalityVoxel:
 		{
-			BlockScale = 1.5f;
+			BlockScale = 1.f;
 			OffsetScale = 0;
 			CenterOffset = FVector::ZeroVector;
 			break;

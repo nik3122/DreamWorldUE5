@@ -353,7 +353,7 @@ bool UVoxel::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult
 			
 			if(!IsValid(voxel) || (voxel->GetVoxelData().Transparency == ETransparency::Transparent && voxel != this))
 			{
-				auto tmpSlot = UDWHelper::GetWidgetPanelByClass<UWidgetInventoryBar>(this)->GetSelectedSlot();
+				auto tmpSlot = UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlot();
 				if (!tmpSlot->IsEmpty() && tmpSlot->GetItem().GetData().Type == EItemType::Voxel)
 				{
 					UVoxel* tmpVoxel = NewVoxel(tmpSlot->GetItem().ID, Owner);

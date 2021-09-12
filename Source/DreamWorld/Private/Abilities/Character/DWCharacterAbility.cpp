@@ -3,15 +3,10 @@
 
 UDWCharacterAbility::UDWCharacterAbility()
 {
-	OwnerCharacter = nullptr;
 	AnimMontage = nullptr;
 }
 
-void UDWCharacterAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+ADWCharacter* UDWCharacterAbility::GetOwnerCharacter() const
 {
-	Super::OnGiveAbility(ActorInfo, Spec);
-	if(IsInstantiated())
-	{
-		OwnerCharacter = Cast<ADWCharacter>(GetOwningActorFromActorInfo());
-	}
+	return Cast<ADWCharacter>(GetOwningActorFromActorInfo());
 }

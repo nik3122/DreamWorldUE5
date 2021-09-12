@@ -126,14 +126,6 @@ void AWorldManager::LoadWorld(const FString& InWorldName)
 			{
 				DataSave = WorldDataSave;
 				WorldData = WorldDataSave->GetWorldData();
-				// if(WorldDataSave->GetWorldData().bSaved)
-				// {
-				// 	WorldData.WorldName = WorldDataSave->GetWorldData();
-				// }
-				// else
-				// {
-				// 	
-				// }
 				if(WorldData.Seed == 0)
 				{
 					WorldData.Seed = FMath::Rand();
@@ -162,6 +154,7 @@ void AWorldManager::UnloadWorld()
 		GameInstance->UnloadWorldData(WorldData.Name);
 	}
 
+	DataSave = nullptr;
 	WorldData = FWorldData();
 	
 	ChunkSpawnBatch = 0;

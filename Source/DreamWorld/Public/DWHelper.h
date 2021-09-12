@@ -172,22 +172,6 @@ public:
 	static TSubclassOf<UWidgetWorldText> LoadWidgetWorldTextClass();
 
 	//////////////////////////////////////////////////////////////////////////
-	// WidgetPanels
-public:
-	template<class T>
-	static T* GetWidgetPanelByClass(const UObject* InWorldContext)
-	{
-		if(ADWGameMode* GameMode = GetGameMode(InWorldContext))
-		{
-			return GameMode->GetWidgetPanelByClass<T>();
-		}
-		return nullptr;
-	}
-
-	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext", DisplayName = "GetWidgetPanelByClass", DeterminesOutputType = "InWidgetPanelClass"), Category = "DWHelper")
-	static class UWidgetPanelBase* K2_GetWidgetPanelByClass(const UObject* InWorldContext, TSubclassOf<UWidgetPanelBase> InWidgetPanelClass);
-
-	//////////////////////////////////////////////////////////////////////////
 	// Debug
 public:
 	UFUNCTION(BlueprintCallable, Category = "DWHelper")
