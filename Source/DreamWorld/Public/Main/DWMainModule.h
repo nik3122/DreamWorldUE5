@@ -1,3 +1,4 @@
+/*
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
@@ -7,7 +8,7 @@
 
 /**
  * 游戏模式基类
- */
+ #1#
 UCLASS()
 class ADWGameMode : public AGameModeBase
 {
@@ -20,16 +21,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
-
-	virtual void StartPlay() override;
-
-public:
 	UFUNCTION(BlueprintCallable)
-	void StartGame(const FString& InPlayerName, const FString& InWorldName);
+	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
 	UFUNCTION(BlueprintCallable)
-	void ContinueGame();
+	void StartGame();
 
 	UFUNCTION(BlueprintCallable)
 	void PauseGame();
@@ -43,3 +39,4 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void QuitGame();
 };
+*/

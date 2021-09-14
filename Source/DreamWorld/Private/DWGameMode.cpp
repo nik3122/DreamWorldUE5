@@ -18,35 +18,46 @@ ADWGameMode::ADWGameMode()
 void ADWGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
-	{
-		DWGameState->SetCurrentState(EGameState::MainMenu);
-	}
-	if(UDWGameInstance* DWGameInstance = UDWHelper::GetGameInstance(this))
-	{
-		DWGameInstance->LoadGameData();
-	}
 }
 
 void ADWGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
+	if(UDWGameInstance* DWGameInstance = UDWHelper::GetGameInstance(this))
+	{
+		DWGameInstance->LoadGameData();
+	}
 }
 
-void ADWGameMode::StartGame()
+void ADWGameMode::StartPlay()
+{
+	Super::StartPlay();
+	
+	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
+	{
+		// DWGameState->SetCurrentState(EGameState::Initializing);
+		DWGameState->SetCurrentState(EGameState::MainMenu);
+	}
+}
+
+void ADWGameMode::StartGame(const FString& InPlayerName, const FString& InWorldName)
+{
+	if(AWorldManager* WorldManager = AWorldManager::Get())
+	{
+		WorldManager->LoadWorld(InWorldName);
+	}
+	if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
+	{
+		PlayerController->LoadPlayer(InPlayerName);
+	}
+}
+
+void ADWGameMode::ContinueGame()
 {
 	if(UDWGameInstance* GameInstance = UDWHelper::GetGameInstance(this))
 	{
-		if(AWorldManager* WorldManager = AWorldManager::Get())
-		{
-			WorldManager->LoadWorld(GameInstance->GetCurrentWorldName());
-		}
-		if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
-		{
-			PlayerController->LoadPlayer(GameInstance->GetCurrentPlayerName());
-		}
+		StartGame(GameInstance->GetCurrentPlayerName(), GameInstance->GetCurrentWorldName());
 	}
 }
 

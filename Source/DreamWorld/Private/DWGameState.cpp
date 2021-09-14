@@ -4,7 +4,14 @@
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Engine/World.h"
 #include "DWGameInstance.h"
-#include "Public/DWGameMode.h"
+#include "WidgetInventoryBar.h"
+#include "WidgetLoadingPanel.h"
+#include "WidgetMainMenu.h"
+#include "WidgetModuleBPLibrary.h"
+#include "WidgetPausingMenu.h"
+#include "WidgetPrimaryPanel.h"
+#include "WidgetRoleChoosingPanel.h"
+#include "WidgetWorldChoosingPanel.h"
 
 ADWGameState::ADWGameState()
 {
@@ -21,48 +28,45 @@ void ADWGameState::BeginPlay()
 
 void ADWGameState::SetCurrentState(EGameState InGameState)
 {
-	if(ADWGameMode* GameMode = UDWHelper::GetGameMode(this))
+	if (CurrentState != InGameState)
 	{
-		if (CurrentState != InGameState)
+		CurrentState = InGameState;
+		switch (InGameState)
 		{
-			CurrentState = InGameState;
-			switch (InGameState)
+			case EGameState::MainMenu:
 			{
-				case EGameState::MainMenu:
-				{
-					GameMode->ActivePermanentPanels(false);
-					GameMode->ShowWidgetPanelByName(FName("MainMenu"));
-					break;
-				}
-				case EGameState::ChoosingRole:
-				{
-					GameMode->ShowWidgetPanelByName(FName("RoleChoosingPanel"));
-					break;
-				}
-				case EGameState::ChoosingWorld:
-				{
-					GameMode->ShowWidgetPanelByName(FName("WorldChoosingPanel"));
-					break;
-				}
-				case EGameState::Loading:
-				{
-					GameMode->ShowWidgetPanelByName(FName("LoadingPanel"));
-					break;
-				}
-				case EGameState::Playing:
-				{
-					GameMode->ActiveTemporaryPanel(false);
-					GameMode->ShowWidgetPanelByName(FName("PrimaryPanel"));
-					GameMode->ShowWidgetPanelByName(FName("InventoryBar"));
-					break;
-				}
-				case EGameState::Pausing:
-				{
-					GameMode->ShowWidgetPanelByName(FName("PausingMenu"));
-					break;
-				}
-				default: break;
+				UWidgetModuleBPLibrary::CloseAllUserWidget(this, EWidgetType::Permanent);
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetMainMenu>(this);
+				break;
 			}
+			case EGameState::ChoosingRole:
+			{
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetRoleChoosingPanel>(this);
+				break;
+			}
+			case EGameState::ChoosingWorld:
+			{
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetWorldChoosingPanel>(this);
+				break;
+			}
+			case EGameState::Loading:
+			{
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetLoadingPanel>(this);
+				break;
+			}
+			case EGameState::Playing:
+			{
+				UWidgetModuleBPLibrary::CloseAllUserWidget(this, EWidgetType::Temporary);
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetPrimaryPanel>(this);
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetInventoryBar>(this);
+				break;
+			}
+			case EGameState::Pausing:
+			{
+				UWidgetModuleBPLibrary::OpenUserWidget<UWidgetPausingMenu>(this);
+				break;
+			}
+			default: break;
 		}
 	}
 }

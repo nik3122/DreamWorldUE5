@@ -13,6 +13,7 @@
 #include "Widget/WidgetPrimaryPanel.h"
 #include "DWGameInstance.h"
 #include "PlayerDataSave.h"
+#include "WidgetModuleBPLibrary.h"
 #include "WorldDataSave.h"
 #include "WorldTimerComponent.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
@@ -48,8 +49,8 @@ void ADWPlayerCharacterController::OnPossess(APawn* InPawn)
 	PossessedCharacter = Cast<ADWPlayerCharacter>(GetCharacter());
 	if (PossessedCharacter)
 	{
-		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->InitInventory(PossessedCharacter->GetInventory());
-		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->InitInventory(PossessedCharacter->GetInventory());
+		UWidgetModuleBPLibrary::InitializeUserWidget<UWidgetInventoryBar>(this, PossessedCharacter);
+		UWidgetModuleBPLibrary::InitializeUserWidget<UWidgetInventoryPanel>(this, PossessedCharacter);
 		PossessedCharacter->RefreshData();
 	}
 }
@@ -58,8 +59,8 @@ void ADWPlayerCharacterController::OnUnPossess()
 {
 	if (PossessedCharacter)
 	{
-		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->InitInventory(nullptr);
-		UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->InitInventory(nullptr);
+		UWidgetModuleBPLibrary::InitializeUserWidget<UWidgetInventoryBar>(this, nullptr);
+		UWidgetModuleBPLibrary::InitializeUserWidget<UWidgetInventoryPanel>(this, nullptr);
 		PossessedCharacter->Destroy();
 		PossessedCharacter = nullptr;
 	}

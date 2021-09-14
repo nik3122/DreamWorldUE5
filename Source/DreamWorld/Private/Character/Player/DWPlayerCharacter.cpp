@@ -982,7 +982,7 @@ void ADWPlayerCharacter::ReleaseSkillAbility4()
 
 void ADWPlayerCharacter::ToggleInventoryPanel()
 {
-	UDWHelper::GetGameMode(this)->ToggleWidgetPanelByName(FName("InventoryPanel"));
+	UWidgetModuleBPLibrary::ToggleUserWidget<UWidgetInventoryPanel>(this);
 }
 
 void ADWPlayerCharacter::UseInventoryItem()
