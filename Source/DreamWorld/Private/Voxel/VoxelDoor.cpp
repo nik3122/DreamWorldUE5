@@ -46,6 +46,12 @@ void UVoxelDoor::OnReplace()
 	Super::OnReplace();
 }
 
+void UVoxelDoor::OnDespawn_Implementation()
+{
+	Super::OnDespawn_Implementation();
+	bClosed = true;
+}
+
 bool UVoxelDoor::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
 {
 	return Super::GetMeshDatas(OutMeshVertices, OutMeshNormals);
@@ -88,27 +94,27 @@ void UVoxelDoor::CloseTheDoor()
 	Owner->SetVoxelSample(Index, this);
 }
 
-void UVoxelDoor::OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelDoor::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelDoor::OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelDoor::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
 }
 
-void UVoxelDoor::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelDoor::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
 }
 
-void UVoxelDoor::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelDoor::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 }
 
-bool UVoxelDoor::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelDoor::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	switch (InMouseButton)
 	{
@@ -130,17 +136,17 @@ bool UVoxelDoor::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitRe
 	return false;
 }
 
-bool UVoxelDoor::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelDoor::OnMouseUp(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return Super::OnMouseUp(InMouseButton, InHitResult);
 }
 
-bool UVoxelDoor::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelDoor::OnMouseHold(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return Super::OnMouseHold(InMouseButton, InHitResult);
 }
 
-void UVoxelDoor::OnMouseHover(FVoxelHitResult InHitResult)
+void UVoxelDoor::OnMouseHover(const FVoxelHitResult& InHitResult)
 {
 	Super::OnMouseHover(InHitResult);
 }

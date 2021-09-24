@@ -125,7 +125,10 @@ protected:
 			
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CharacterStats")
 	float AttackDistance;
-			
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CharacterStats")
+	float InteractDistance;
+		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CharacterStats")
 	float FollowDistance;
 			
@@ -248,6 +251,8 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void Serialize(FArchive& Ar) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void LoadData(FCharacterData InSaveData);
@@ -432,6 +437,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void OnFallEnd();
 	
+	virtual bool OnUseItem(FItem& InItem);
+		
+	UFUNCTION(BlueprintCallable)
+	virtual bool GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem& InItem);
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool DestroyVoxel(const FVoxelHitResult& InVoxelHitResult);
+
 	UFUNCTION(BlueprintCallable)
 	virtual void RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot);
 
@@ -460,7 +473,9 @@ public:
 	FActiveGameplayEffectHandle ApplyEffect(TSubclassOf<UGameplayEffect> EffectClass);
 	
 	FActiveGameplayEffectHandle ApplyEffect(const FGameplayEffectSpecHandle& SpecHandle);
-	
+		
+	FActiveGameplayEffectHandle ApplyEffect(const FGameplayEffectSpec& GameplayEffect);
+
 	UFUNCTION(BlueprintCallable)
 	bool RemoveEffect(FActiveGameplayEffectHandle Handle, int32 StacksToRemove=-1);
 
@@ -477,16 +492,16 @@ public:
 	virtual bool StopAction(ECharacterActionType InActionType = ECharacterActionType::None, bool bCancelAbility = true);
 				
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyEXP(float InDetlaValue);
+	virtual void ModifyEXP(float InDeltaValue);
 				
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyHealth(float InDetlaValue) override;
+	virtual void ModifyHealth(float InDeltaValue) override;
 					
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyMana(float InDetlaValue);
+	virtual void ModifyMana(float InDeltaValue);
 									
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyStamina(float InDetlaValue);
+	virtual void ModifyStamina(float InDeltaValue);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void LookAtTarget(ADWCharacter* InTargetCharacter);
@@ -511,6 +526,8 @@ protected:
 	virtual void SetDamaging(bool bInDamaging);
 
 	virtual bool RaycastStep(FHitResult& OutHitResult);
+
+	virtual bool RaycastVoxel(FVoxelHitResult& OutHitResult);
 
 public:
 	UFUNCTION(BlueprintPure)

@@ -2,51 +2,70 @@
 
 
 #include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
+
+#include "TextBlock.h"
 #include "Character/DWCharacter.h"
 #include "Inventory/Slot/InventorySlot.h"
 #include "Inventory/Slot/InventorySkillSlot.h"
 #include "Abilities/Character/DWCharacterSkillAbility.h"
-#include "Public/Inventory/Character/CharacterInventory.h"
+#include "Kismet/KismetTextLibrary.h"
+#include "Public/Inventory/CharacterInventory.h"
 
 UWidgetInventorySkillSlot::UWidgetInventorySkillSlot(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	OwnerSlot = nullptr;
-	AbilityInfo = FDWAbilityInfo();
+	
 }
 
 void UWidgetInventorySkillSlot::InitSlot(UInventorySlot* InOwnerSlot)
 {
 	Super::InitSlot(InOwnerSlot);
+}
 
-	ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(OwnerSlot->GetOwner()->GetOwnerActor());
-	if (OwnerCharacter && !OwnerSlot->IsEmpty())
+void UWidgetInventorySkillSlot::UseItem(int InCount)
+{
+	if(OwnerSlot)
 	{
-		//OwnerCharacter->GetAbilityInfo(Cast<UInventorySkillSlot>(OwnerSlot)->GetData().AbilityClass, AbilityInfo);
+		OwnerSlot->ActiveItem();
 	}
 }
 
-bool UWidgetInventorySkillSlot::ActiveSkill()
+void UWidgetInventorySkillSlot::Refresh()
 {
-	ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(OwnerSlot->GetOwner()->GetOwnerActor());
-	if (OwnerCharacter && !OwnerSlot->IsEmpty())
-	{
-		if (Cast<UInventorySkillSlot>(OwnerSlot)->ActiveItem())
-		{
-			return true;
-		}
-	}
-	return false;
-}
+	Super::Refresh();
 
-bool UWidgetInventorySkillSlot::CancelSkill()
-{
-	ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(OwnerSlot->GetOwner()->GetOwnerActor());
-	if (OwnerCharacter && !OwnerSlot->IsEmpty())
+	if(!IsEmpty())
 	{
-		if (Cast<UInventorySkillSlot>(OwnerSlot)->CancelItem())
+		TxtName->SetVisibility(ESlateVisibility::Visible);
+		TxtName->SetText(GetItem().GetData().Name);
+
+		TxtCost->SetVisibility(ESlateVisibility::Visible);
+		if(OwnerSlot)
 		{
-			return true;
+			TxtCost->SetText(FText::FromString(FString::FromInt(FMath::Abs(OwnerSlot->GetAbilityInfo().Cost))));
+			switch (OwnerSlot->GetAbilityInfo().CostType)
+			{
+				case EAbilityCostType::Health:
+				{
+					TxtCost->SetColorAndOpacity(FLinearColor(1.f, 0.f, 0.f, 1.f));
+					break;
+				}
+				case EAbilityCostType::Mana:
+				{
+					TxtCost->SetColorAndOpacity(FLinearColor(0.f, 0.65f, 1.f, 1.f));
+					break;
+				}
+				case EAbilityCostType::Stamina:
+				{
+					TxtCost->SetColorAndOpacity(FLinearColor(0.f, 0.7f, 0.04f, 1.f));
+					break;
+				}
+				default: break;
+			}
 		}
 	}
-	return false;
+	else
+	{
+		TxtName->SetVisibility(ESlateVisibility::Hidden);
+		TxtCost->SetVisibility(ESlateVisibility::Hidden);
+	}
 }

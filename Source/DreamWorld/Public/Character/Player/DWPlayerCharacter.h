@@ -35,9 +35,6 @@ protected:
 	EControlMode ControlMode;
 	
 	// stats
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CharacterStats")
-	float InteractDistance;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CharacterStats")
 	UVoxel* PreviewVoxel;
@@ -52,17 +49,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterInputs")
 	bool bPressedSprint;
-
-	// camera
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
-	float CameraTurnRate;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
-	float CameraLookUpRate;
-		
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
-	FVector2D CameraDistanceRange;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -123,13 +109,9 @@ public:
 
 	virtual void AttackStart() override;
 
+	virtual bool OnUseItem(FItem& InItem) override;
+
 	virtual void RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot) override;
-	
-	UFUNCTION(BlueprintCallable)
-	virtual void SetControlMode(EControlMode InControlMode);
-	
-	UFUNCTION(BlueprintPure)
-	EControlMode GetControlMode() const { return ControlMode; }
 
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateVoxelMesh();
@@ -195,17 +177,11 @@ public:
 	virtual void HandleExpendSpeedAttribute(float NewValue, float DeltaValue = 0.f) override;
 
 protected:
-	virtual void TurnCam(float InRate);
-
-	virtual void LookUpCam(float InRate);
+	virtual bool RaycastVoxel(FVoxelHitResult& OutHitResult) override;
 
 	virtual void MoveForward(float InValue);
 
 	virtual void MoveRight(float InValue);
-	
-	virtual void ZoomNear();
-	
-	virtual void ZoomFar();
 
 	virtual void ToggleControlMode();
 	
@@ -249,41 +225,13 @@ protected:
 
 	virtual void ReleaseSkillAbility4();
 
-	virtual void ToggleInventoryPanel();
-
-	virtual void UseInventoryItem();
-
-	virtual void DiscardInventoryItem();
-
-	virtual void PrevInventorySlot();
-
-	virtual void NextInventorySlot();
-
-	virtual void SelectInventorySlot1();
-		
-	virtual void SelectInventorySlot2();
-		
-	virtual void SelectInventorySlot3();
-		
-	virtual void SelectInventorySlot4();
-		
-	virtual void SelectInventorySlot5();
-		
-	virtual void SelectInventorySlot6();
-		
-	virtual void SelectInventorySlot7();
-		
-	virtual void SelectInventorySlot8();
-		
-	virtual void SelectInventorySlot9();
-		
-	virtual void SelectInventorySlot10();
-
-	virtual void PauseOrContinueGame();
-
-	virtual bool RaycastVoxel(FVoxelHitResult& OutHitResult);
-
 public:
+	UFUNCTION(BlueprintPure)
+	EControlMode GetControlMode() const { return ControlMode; }
+		
+	UFUNCTION(BlueprintCallable)
+	virtual void SetControlMode(EControlMode InControlMode);
+	
 	UFUNCTION(BlueprintPure)
 	float GetInteractDistance() const { return InteractDistance; }
 
@@ -297,15 +245,6 @@ public:
 	bool IsPressedSprint() const { return bPressedSprint; }
 
 	UFUNCTION(BlueprintPure)
-	float GetCameraTurnRate() const { return CameraTurnRate; }
-
-	UFUNCTION(BlueprintPure)
-	float GetCameraLookUpRate() const { return CameraLookUpRate; }
-
-	UFUNCTION(BlueprintPure)
-	FVector2D GetCameraDistanceRange() const { return CameraDistanceRange; }
-
-	UFUNCTION(BlueprintPure)
 	USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
 	UFUNCTION(BlueprintPure)
@@ -313,7 +252,4 @@ public:
 		
 	UFUNCTION(BlueprintPure)
 	ADWPlayerCharacterController* GetPlayerController() const;
-
-	UFUNCTION(BlueprintPure)
-	ADWPlayerCharacterCameraManager* GetCameraManager() const;
 };

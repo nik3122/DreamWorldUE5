@@ -14,11 +14,6 @@ AVitalityPlant::AVitalityPlant()
 
 }
 
-void AVitalityPlant::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-}
-
 // Called when the game starts or when spawned
 void AVitalityPlant::BeginPlay()
 {

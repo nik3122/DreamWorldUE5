@@ -17,6 +17,7 @@ class DREAMWORLD_API UVoxelDoor : public UVoxel
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY()
 	bool bClosed;
 
 public:
@@ -37,6 +38,8 @@ public:
 
 	virtual void OnReplace() override;
 
+	virtual void OnDespawn_Implementation() override;
+
 	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals) override;
 
 	virtual bool CheckAdjacent(EDirection InDirection) override;
@@ -50,19 +53,19 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Events
 public:
-	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+	virtual bool OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 
-	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+	virtual bool OnMouseUp(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 
-	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+	virtual bool OnMouseHold(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnMouseHover(FVoxelHitResult InHitResult) override;
+	virtual void OnMouseHover(const FVoxelHitResult& InHitResult) override;
 };

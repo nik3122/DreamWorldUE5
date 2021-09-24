@@ -3,6 +3,7 @@
 #pragma once
 
 #include "DreamWorld.h"
+#include "SpawnPoolInterface.h"
 #include "GameFramework/Actor.h"
 #include "Chunk.generated.h"
 
@@ -15,7 +16,7 @@ class UVoxelMeshComponent;
  * 体素块
  */
 UCLASS()
-class DREAMWORLD_API AChunk : public AActor
+class DREAMWORLD_API AChunk : public AActor, public ISpawnPoolInterface
 {
 	GENERATED_BODY()
 	
@@ -39,8 +40,10 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void OnSpawn_Implementation() override;
 		
-	virtual void Destroyed() override;
+	virtual void OnDespawn_Implementation() override;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Components

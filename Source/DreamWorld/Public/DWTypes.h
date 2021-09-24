@@ -4,6 +4,7 @@
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "GameplayAbilitySpec.h"
 #include "GameplayEffectTypes.h"
+#include "ObjectAndNameAsStringProxyArchive.h"
 #include "DWTypes.generated.h"
 
 class AWorldManager;
@@ -423,7 +424,7 @@ enum class ESkillMode : uint8
 	None,
 	// 被动
 	Passive,
-	// ???????
+	// 主动
 	Initiative
 };
 
@@ -560,12 +561,12 @@ public:
 		Z = FCString::Atoi(*tmpArr[2]);
 	}
 
-	FORCEINLINE FVector ToVector()
+	FORCEINLINE FVector ToVector() const
 	{
 		return FVector(X, Y, Z);
 	}
 
-	FORCEINLINE FString ToString()
+	FORCEINLINE FString ToString() const
 	{
 		return FString::Printf(TEXT("%d,%d,%d"), X, Y, Z);
 	}
@@ -1144,20 +1145,20 @@ public:
 	FName ID;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	int32 Level;
+	int32 Count;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	int32 Count;
+	int32 Level;
 
 	static FItem Empty;
 
 	FORCEINLINE static FItem Clone(FItem InItem, int InCount = -1)
 	{
 		if (InItem == Empty) return Empty;
-		FItem tmpItem = FItem();
+		FItem tmpItem;
 		tmpItem.ID = InItem.ID;
-		tmpItem.Level = InItem.Level;
 		tmpItem.Count = InCount == -1 ? InItem.Count : InCount;
+		tmpItem.Level = InItem.Level;
 		return tmpItem;
 	}
 
@@ -1165,15 +1166,15 @@ public:
 	FORCEINLINE FItem()
 	{
 		ID = NAME_None;
-		Level = 1;
-		Count = 1;
+		Count = 0;
+		Level = 0;
 	}
 		
-	FORCEINLINE FItem(const FName& InID, int32 InLevel = 1, int32 InCount = 1)
+	FORCEINLINE FItem(const FName& InID, int32 InCount, int32 InLevel = 0)
 	{
 		ID = InID;
-		Level = InLevel;
 		Count = InCount;
+		Level = InLevel;
 	}
 	
 	FORCEINLINE bool IsValid() const
@@ -1269,18 +1270,30 @@ public:
 	}
 };
 
+struct FSaveDataArchive : public FObjectAndNameAsStringProxyArchive
+{
+	FSaveDataArchive(FArchive& InInnerArchive) : FObjectAndNameAsStringProxyArchive(InInnerArchive, false)
+	{
+		ArIsSaveGame = true;
+	}
+};
+
 USTRUCT(BlueprintType)
 struct DREAMWORLD_API FSaveData
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	bool bSaved;
+
+	UPROPERTY()
+	TArray<uint8> Datas;
 
 	FORCEINLINE FSaveData()
 	{
 		bSaved = false;
+		Datas = TArray<uint8>();
 	}
 };
 
@@ -1326,25 +1339,19 @@ public:
 	{
 		BlockSize = 80;
 		ChunkSize = 16;
+		
 		ChunkHeightRange = 3;
-		ChunkSpawnRange = 5;
-		ChunkSpawnDistance = 2;
 
-		ChunkSpawnSpeed = 100;
-		ChunkDestroySpeed = 100;
-		ChunkMapBuildSpeed = 5;
-		ChunkGenerateSpeed = 1;
-
-		VitalityRateDensity = 0.2f;
-		CharacterRateDensity = 0.2f;
+		VitalityRateDensity = 0.5f;
+		CharacterRateDensity = 0.5f;
 
 		TerrainBaseHeight = 0.1f;
 		TerrainPlainScale = FVector(0.005f, 0.005f, 0.2f);
 		TerrainMountainScale = FVector(0.03f, 0.03f, 0.25f);
 		TerrainStoneVoxelScale = FVector(0.05f, 0.05f, 0.18f);
 		TerrainSandVoxelScale = FVector(0.04f, 0.04f, 0.21f);
-		TerrainWaterVoxelScale = 0.3f;
-		TerrainBedrockVoxelScale = 0.01f;
+		TerrainWaterVoxelHeight = 0.3f;
+		TerrainBedrockVoxelHeight = 0.02f;
 
 		ChunkMaterials = TArray<FChunkMaterial>();
 	}
@@ -1360,24 +1367,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 ChunkHeightRange;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSpawnRange;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSpawnDistance;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkSpawnSpeed;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkDestroySpeed;
-					
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkMapBuildSpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ChunkGenerateSpeed;
 						
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float VitalityRateDensity;
@@ -1389,8 +1378,14 @@ public:
 	float TerrainBaseHeight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector TerrainPlainScale;
+	float TerrainBedrockVoxelHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TerrainWaterVoxelHeight;
 		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector TerrainPlainScale;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector TerrainMountainScale;
 
@@ -1401,12 +1396,6 @@ public:
 	FVector TerrainSandVoxelScale;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TerrainWaterVoxelScale;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TerrainBedrockVoxelScale;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FChunkMaterial> ChunkMaterials;
 
 public:
@@ -1415,19 +1404,9 @@ public:
 		return ChunkSize * BlockSize;
 	}
 
-	FORCEINLINE float GetWorldLength() const
-	{
-		return ChunkSize * ChunkSpawnRange * 2;
-	}
-
 	FORCEINLINE int32 GetWorldHeight() const
 	{
 		return ChunkSize * ChunkHeightRange;
-	}
-
-	FORCEINLINE int32 GetChunkDistance() const
-	{
-		return ChunkSpawnRange + ChunkSpawnDistance;
 	}
 
 	FORCEINLINE FChunkMaterial GetChunkMaterial(ETransparency Transparency) const
@@ -1758,6 +1737,29 @@ public:
 		CostType = InCostType;
 		Cost = InCost;
 		Cooldown = InCooldown;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FDWCooldownInfo
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	float TotalTime;
+
+	UPROPERTY(BlueprintReadOnly)
+	float RemainTime;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bCooldowning;
+
+	FDWCooldownInfo()
+	{
+		TotalTime = 0.f;
+		RemainTime = 0.f;
+		bCooldowning = false;
 	}
 };
 

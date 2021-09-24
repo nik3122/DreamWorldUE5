@@ -5,6 +5,7 @@
 
 UWidgetWorldCreatingPanel::UWidgetWorldCreatingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	WidgetName = FName("WorldCreatingPanel");
 	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }

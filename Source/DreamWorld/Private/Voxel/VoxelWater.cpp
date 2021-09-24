@@ -55,17 +55,17 @@ bool UVoxelWater::CheckAdjacent(EDirection InDirection)
 	return Super::CheckAdjacent(InDirection);
 }
 
-void UVoxelWater::OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelWater::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelWater::OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelWater::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
 }
 
-void UVoxelWater::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelWater::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
 
@@ -80,7 +80,7 @@ void UVoxelWater::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResu
 	}
 }
 
-void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 
@@ -91,22 +91,22 @@ void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResu
 	}
 }
 
-bool UVoxelWater::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelWater::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return false;
 }
 
-bool UVoxelWater::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelWater::OnMouseUp(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return Super::OnMouseUp(InMouseButton, InHitResult);
 }
 
-bool UVoxelWater::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelWater::OnMouseHold(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return Super::OnMouseHold(InMouseButton, InHitResult);
 }
 
-void UVoxelWater::OnMouseHover(FVoxelHitResult InHitResult)
+void UVoxelWater::OnMouseHover(const FVoxelHitResult& InHitResult)
 {
 	Super::OnMouseHover(InHitResult);
 }

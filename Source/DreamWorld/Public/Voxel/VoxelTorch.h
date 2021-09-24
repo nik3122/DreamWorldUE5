@@ -19,7 +19,6 @@ class DREAMWORLD_API UVoxelTorch : public UVoxel
 public:
 	UVoxelTorch();
 	
-	
 	//////////////////////////////////////////////////////////////////////////
 	// Defaults
 public:
@@ -42,19 +41,19 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Events
 public:
-	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult) override;
+	virtual void OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+	virtual bool OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 
-	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+	virtual bool OnMouseUp(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 
-	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult) override;
+	virtual bool OnMouseHold(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnMouseHover(FVoxelHitResult InHitResult) override;
+	virtual void OnMouseHover(const FVoxelHitResult& InHitResult) override;
 };

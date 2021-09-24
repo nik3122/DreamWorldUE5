@@ -11,6 +11,7 @@
 #include "Voxel/Components/VoxelMeshComponent.h"
 #include "Vitality/VitalityObject.h"
 #include "DWGameInstance.h"
+#include "ObjectPoolModuleBPLibrary.h"
 #include "DataSave/WorldDataSave.h"
 #include "Engine/World.h"
 #include "PickUp/PickUpVoxel.h"
@@ -115,10 +116,12 @@ void AChunk::Tick(float DeltaTime)
 
 }
 
-void AChunk::Destroyed()
+void AChunk::OnSpawn_Implementation()
 {
-	Super::Destroyed();
+}
 
+void AChunk::OnDespawn_Implementation()
+{
 	if (bGenerated)
 	{
 		FChunkData chunkData = FChunkData();
@@ -134,7 +137,7 @@ void AChunk::Destroyed()
 			{
 				voxel->GetAuxiliary()->Destroy();
 			}
-			voxel->ConditionalBeginDestroy();
+			UObjectPoolModuleBPLibrary::DespawnObject(this, voxel);
 		}
 		for (int32 i = 0; i < PickUps.Num(); i++)
 		{
@@ -162,6 +165,31 @@ void AChunk::Destroyed()
 	}
 
 	BreakNeighbors();
+
+	Index = FIndex::ZeroIndex;
+	Batch = 0;
+	bGenerated = false;
+	
+	VoxelMap.Empty();
+	PickUps.Empty();
+	Characters.Empty();
+	VitalityObjects.Empty();
+
+	if(SolidMesh)
+	{
+		SolidMesh->DestroyComponent();
+		SolidMesh = nullptr;
+	}
+	if(SemiMesh)
+	{
+		SemiMesh->DestroyComponent();
+		SemiMesh = nullptr;
+	}
+	if(TransMesh)
+	{
+		TransMesh->DestroyComponent();
+		TransMesh = nullptr;
+	}
 }
 
 UVoxelMeshComponent* AChunk::GetSolidMesh()
@@ -295,39 +323,39 @@ UVoxel* AChunk::GetVoxel(int InX, int InY, int InZ)
 	if (InX < 0) {
 		if (Neighbors[(int32)EDirection::Back] != nullptr)
 			return Neighbors[(int32)EDirection::Back]->GetVoxel(InX + AWorldManager::GetData().ChunkSize, InY, InZ);
-		return UVoxel::Unknown();
+		return UVoxel::UnknownVoxel;
 	}
 	else if (InX >= AWorldManager::GetData().ChunkSize) {
 		if (Neighbors[(int32)EDirection::Forward] != nullptr)
 			return Neighbors[(int32)EDirection::Forward]->GetVoxel(InX - AWorldManager::GetData().ChunkSize, InY, InZ);
-		return UVoxel::Unknown();
+		return UVoxel::UnknownVoxel;
 	}
 	else if (InY < 0) {
 		if (Neighbors[(int32)EDirection::Left] != nullptr)
 			return Neighbors[(int32)EDirection::Left]->GetVoxel(InX, InY + AWorldManager::GetData().ChunkSize, InZ);
-		return UVoxel::Unknown();
+		return UVoxel::UnknownVoxel;
 	}
 	else if (InY >= AWorldManager::GetData().ChunkSize) {
 		if (Neighbors[(int32)EDirection::Right] != nullptr)
 			return Neighbors[(int32)EDirection::Right]->GetVoxel(InX, InY - AWorldManager::GetData().ChunkSize, InZ);
-		return UVoxel::Unknown();
+		return UVoxel::UnknownVoxel;
 	}
 	else if (InZ < 0) {
 		if (Neighbors[(int32)EDirection::Down] != nullptr)
 			return Neighbors[(int32)EDirection::Down]->GetVoxel(InX, InY, InZ + AWorldManager::GetData().ChunkSize);
 		else if (Index.Z > 0)
-			return UVoxel::Unknown();
+			return UVoxel::UnknownVoxel;
 	}
 	else if (InZ >= AWorldManager::GetData().ChunkSize) {
 		if (Neighbors[(int32)EDirection::Up] != nullptr)
 			return Neighbors[(int32)EDirection::Up]->GetVoxel(InX, InY, InZ - AWorldManager::GetData().ChunkSize);
 		else if (Index.Z < AWorldManager::GetData().ChunkHeightRange)
-			return UVoxel::Unknown();
+			return UVoxel::UnknownVoxel;
 	}
 	else if (VoxelMap.Contains(FIndex(InX, InY, InZ))) {
 		return VoxelMap[FIndex(InX, InY, InZ)];
 	}
-	return UVoxel::Empty();
+	return UVoxel::EmptyVoxel;
 }
 
 bool AChunk::CheckVoxel(FIndex InIndex, FVector InRange/* = FVector::OneVector*/, bool bIgnoreTransparent /*= true*/)
@@ -446,7 +474,7 @@ bool AChunk::SetVoxelComplex(int InX, int InY, int InZ, UVoxel* InVoxel, bool bG
 	else {
 		if (InVoxel->GetVoxelData().IsComplex())
 		{
-			if (InVoxel != UVoxel::Empty())
+			if (InVoxel != UVoxel::EmptyVoxel)
 			{
 				FVector range = InVoxel->GetVoxelData().GetCeilRange(InVoxel);
 				if (!CheckVoxel(InX, InY, InZ, range))
@@ -526,7 +554,7 @@ void AChunk::BuildMap()
 							// plant
 							if (tmpNum < 0.2f)
 							{
-								SetVoxelComplex(FIndex(x, y, z + 1), UVoxel::NewVoxel(FMath::FRandRange(0, 1) > 0.2f ? EVoxelType::Tall_Grass : (EVoxelType)FMath::RandRange((int)EVoxelType::Flower_Allium, (int32)EVoxelType::Flower_Tulip_White), this));
+								SetVoxelComplex(FIndex(x, y, z + 1), UVoxel::NewVoxel(this, FMath::FRandRange(0, 1) > 0.2f ? EVoxelType::Tall_Grass : (EVoxelType)FMath::RandRange((int)EVoxelType::Flower_Allium, (int32)EVoxelType::Flower_Tulip_White)));
 							}
 							// tree
 							else if (tmpNum < 0.21f)
@@ -538,7 +566,7 @@ void AChunk::BuildMap()
 									const int leavesWidth = FMath::FRandRange(0, 1) < 0.5f ? 3 : 5;
 									for (int trunkHeight = 0; trunkHeight < treeHeight; trunkHeight++)
 									{
-										SetVoxelComplex(FIndex(x, y, z + trunkHeight + 1), UVoxel::NewVoxel(EVoxelType::Oak, this));
+										SetVoxelComplex(FIndex(x, y, z + trunkHeight + 1), UVoxel::NewVoxel(this, EVoxelType::Oak));
 									}
 									for (int offsetZ = treeHeight - leavesHeight; offsetZ < treeHeight + 1; offsetZ++)
 									{
@@ -549,7 +577,7 @@ void AChunk::BuildMap()
 												UVoxel* voxel = GetVoxel(x + offsetX, y + offsetY, z + offsetZ + 1);
 												if (!UVoxel::IsValid(voxel) || voxel->GetVoxelData().Transparency == ETransparency::Transparent)
 												{
-													SetVoxelComplex(FIndex(x + offsetX, y + offsetY, z + offsetZ + 1), UVoxel::NewVoxel(EVoxelType::Oak_Leaves, this));
+													SetVoxelComplex(FIndex(x + offsetX, y + offsetY, z + offsetZ + 1), UVoxel::NewVoxel(this, EVoxelType::Oak_Leaves));
 												}
 											}
 										}
@@ -560,7 +588,7 @@ void AChunk::BuildMap()
 						}
 						default: break;
 					}
-					SetVoxelSample(voxelIndex, UVoxel::NewVoxel(voxelType, this));
+					SetVoxelSample(voxelIndex, UVoxel::NewVoxel(this, voxelType));
 				}
 			}
 		}
@@ -571,7 +599,7 @@ void AChunk::LoadMap(FChunkData InChunkData)
 {
 	for (int32 i = 0; i < InChunkData.VoxelDatas.Num(); i++)
 	{
-		UVoxel* voxel = UVoxel::LoadVoxel(InChunkData.VoxelDatas[i], this);
+		UVoxel* voxel = UVoxel::LoadVoxel(this, InChunkData.VoxelDatas[i]);
 		SetVoxelComplex(voxel->GetIndex(), voxel);
 	}
 }
@@ -663,7 +691,7 @@ void AChunk::OnGenerated()
 		{
 			LoadActors(WorldDataSave->LoadChunkData(Index));
 		}
-		else
+		else if(VoxelMap.Num() > 0)
 		{
 			if (FMath::FRand() <= AWorldManager::GetData().VitalityRateDensity)
 			{
@@ -751,7 +779,7 @@ bool AChunk::DestroyVoxel(UVoxel* InVoxel)
 {
 	if(!InVoxel || !InVoxel->IsValidLowLevel()) return false;
 
-	if (SetVoxelComplex(InVoxel->GetIndex(), UVoxel::Empty(), true))
+	if (SetVoxelComplex(InVoxel->GetIndex(), UVoxel::EmptyVoxel, true))
 	{
 		InVoxel->OnDestroy();
 		if(InVoxel->GetVoxelData().GenerateSound)

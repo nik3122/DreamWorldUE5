@@ -5,6 +5,7 @@
 
 UWidgetWorldChoosingPanel::UWidgetWorldChoosingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	WidgetName = FName("WorldChoosingPanel");
 	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }

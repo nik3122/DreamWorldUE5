@@ -19,20 +19,21 @@ void UDWAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 {
 	UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent();
 	IVitality* TargetVitality = Cast<IVitality>(AbilityComp->GetAvatarActor());
-	float DeltaValue = NewValue - Attribute.GetGameplayAttributeData(this)->GetCurrentValue();
+	
+	const float CurrentValue = Attribute.GetGameplayAttributeData(this)->GetCurrentValue();
 	if (Attribute == GetHealthAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
 		if (TargetVitality)
 		{
-			TargetVitality->HandleHealthChanged(NewValue, DeltaValue);
+			TargetVitality->HandleHealthChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetMaxHealthAttribute())
 	{
 		if (TargetVitality)
 		{
-			TargetVitality->HandleMaxHealthChanged(NewValue, DeltaValue);
+			TargetVitality->HandleMaxHealthChanged(NewValue, NewValue - CurrentValue);
 		}
 		AdjustAttributeForMaxChange(Health, MaxHealth, NewValue, GetHealthAttribute());
 	}
@@ -134,4 +135,9 @@ void UDWAttributeSet::AdjustAttributeForMaxChange(FGameplayAttributeData& Affect
 		float NewDelta = CurrentMaxValue > 0.f ? (CurrentValue / CurrentMaxValue * NewMaxValue - CurrentValue) : NewMaxValue;
 		AbilityComp->ApplyModToAttributeUnsafe(AffectedAttributeProperty, EGameplayModOp::Additive, NewDelta);
 	}
+}
+
+FGameplayAttributeData* UDWAttributeSet::GetAttributeData(const FGameplayAttribute& Attribute)
+{
+	return Attribute.GetGameplayAttributeData(this);
 }

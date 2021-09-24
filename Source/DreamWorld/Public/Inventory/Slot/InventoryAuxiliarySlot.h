@@ -20,5 +20,5 @@ public:
 	UInventoryAuxiliarySlot();
 
 public:
-	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::NoZne */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
+	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::None */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
 };

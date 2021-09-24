@@ -9,7 +9,7 @@
 class UVoxelMeshComponent;
 
 /**
- * 有生命的植物
+ * 鏈夌敓鍛界殑妞嶇墿
  */
 UCLASS()
 class DREAMWORLD_API AVitalityPlant : public AVitalityVoxel
@@ -19,8 +19,6 @@ class DREAMWORLD_API AVitalityPlant : public AVitalityVoxel
 public:
 	// Sets default values for this actor's properties
 	AVitalityPlant();
-
-	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
 	// Called when the game starts or when spawned

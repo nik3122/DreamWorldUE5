@@ -4,7 +4,7 @@
 #include "Widget/Components/WidgetVitalityHPComponent.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Vitality/VitalityObject.h"
-#include "Widget/Worlds/WidgetCharacterHP.h"
+#include "Widget/Other/WidgetCharacterHP.h"
 
 UWidgetVitalityHPComponent::UWidgetVitalityHPComponent()
 {

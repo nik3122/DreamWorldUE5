@@ -62,9 +62,10 @@ public:
 	virtual void EndSet();
 
 	UFUNCTION(BlueprintCallable)
-	virtual void SetItem(FItem& InItem, bool bReplace);
-		
-	virtual void SetItem(FItem& InItem);
+	virtual void Replace(UInventorySlot* InSlot);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetItem(FItem& InItem, bool bRefresh = true);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AddItem(FItem& InItem);
@@ -94,6 +95,24 @@ public:
 	virtual void ClearItem();
 
 public:
+	void StartCooldown();
+
+	void StopCooldown();
+
+	void RefreshCooldown(float DeltaSeconds);
+
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	FDWCooldownInfo CooldownInfo;
+
+public:
+	UFUNCTION(BlueprintPure)
+	FDWCooldownInfo GetCooldownInfo() const { return CooldownInfo; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCooldownInfo(const FDWCooldownInfo& InCooldownInfo) { CooldownInfo = InCooldownInfo; }
+
+public:
 	UFUNCTION(BlueprintCallable)
 	bool IsEmpty() const;
 
@@ -120,6 +139,9 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	ESplitSlotType GetSplitType() const { return SplitType; }
+
+	UFUNCTION(BlueprintPure)
+	virtual FDWAbilityInfo GetAbilityInfo() const;
 
 	UFUNCTION(BlueprintPure)
 	FGameplayAbilitySpecHandle& GetAbilityHandle() { return AbilityHandle; }

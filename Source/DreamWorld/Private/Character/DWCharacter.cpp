@@ -12,9 +12,9 @@
 #include "AI/DWAIController.h"
 #include "Widget/Components/WidgetWorldTextComponent.h"
 #include "Widget/Components/WidgetCharacterHPComponent.h"
-#include "Widget/Worlds/WidgetCharacterHP.h"
-#include "Widget/Worlds/WidgetWorldText.h"
-#include "Inventory/Character/CharacterInventory.h"
+#include "Widget/Other/WidgetCharacterHP.h"
+#include "Widget/Other/WidgetWorldText.h"
+#include "Inventory/CharacterInventory.h"
 #include "World/Chunk.h"
 #include "Skill/Skill.h"
 #include "AIModule/Classes/Perception/AIPerceptionStimuliSourceComponent.h"
@@ -47,18 +47,20 @@ ADWCharacter::ADWCharacter()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(FName("StimuliSource"));
 	StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
 	StimuliSource->RegisterForSense(UAISense_Damage::StaticClass());
 
-	WidgetCharacterHP = CreateDefaultSubobject<UWidgetCharacterHPComponent>(TEXT("WidgetCharacterHP"));
+	WidgetCharacterHP = CreateDefaultSubobject<UWidgetCharacterHPComponent>(FName("WidgetCharacterHP"));
 	WidgetCharacterHP->SetupAttachment(RootComponent);
 	WidgetCharacterHP->SetRelativeLocation(FVector(0, 0, 70));
 	WidgetCharacterHP->SetVisibility(false);
 
-	AbilitySystem = CreateDefaultSubobject<UDWAbilitySystemComponent>(TEXT("AbilitySystem"));
+	AbilitySystem = CreateDefaultSubobject<UDWAbilitySystemComponent>(FName("AbilitySystem"));
 
-	AttributeSet = CreateDefaultSubobject<UDWCharacterAttributeSet>(TEXT("AttributeSet"));
+	AttributeSet = CreateDefaultSubobject<UDWCharacterAttributeSet>(FName("AttributeSet"));
+
+	Inventory = CreateDefaultSubobject<UCharacterInventory>(FName("Inventory"));
 
 	AnimInstance = nullptr;
 	BehaviorTree = nullptr;
@@ -110,6 +112,7 @@ ADWCharacter::ADWCharacter()
 	BaseEXP = 100;
 	EXPFactor = 2.f;
 	AttackDistance = 100.f;
+	InteractDistance = 500.f;
 	FollowDistance = 500.f;
 	PatrolDistance = 1000.f;
 	PatrolDuration = 10.f;
@@ -127,7 +130,6 @@ ADWCharacter::ADWCharacter()
 	MoveDirection = FVector(0);
 	OwnerChunk = nullptr;
 	OverlapVoxel = nullptr;
-	Inventory = nullptr;
 
 	// setup
 
@@ -246,6 +248,8 @@ void ADWCharacter::Tick(float DeltaTime)
 
 	if (bActive)
 	{
+		Inventory->Refresh(DeltaTime);
+		
 		if (InterruptRemainTime != -1)
 		{
 			InterruptRemainTime -= DeltaTime;
@@ -295,7 +299,7 @@ void ADWCharacter::Tick(float DeltaTime)
 			MoveDirection = GetActorForwardVector();
 		}
 
-		FVector Location = GetMesh()->GetSocketLocation(FName("Foot"));
+		const FVector Location = GetMesh()->GetSocketLocation(FName("Foot"));
 
 		if(AWorldManager* WorldManager = AWorldManager::Get())
 		{
@@ -322,15 +326,19 @@ void ADWCharacter::Tick(float DeltaTime)
 				{
 					if(OverlapVoxel != nullptr)
 					{
-						OverlapVoxel->OnTargetExit(this, FVoxelHitResult(OverlapVoxel, Location, MoveDirection));
+						FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
+						OverlapVoxel->OnTargetExit(this, VoxelHitResult);
 					}
-					Voxel->OnTargetEnter(this, FVoxelHitResult(Voxel, Location, MoveDirection));
+					FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
+					Voxel->OnTargetEnter(this, VoxelHitResult);
 				}
-				Voxel->OnTargetStay(this, FVoxelHitResult(Voxel, Location, MoveDirection));
+				FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
+				Voxel->OnTargetStay(this, VoxelHitResult);
 			}
 			else if(OverlapVoxel != nullptr)
 			{
-				OverlapVoxel->OnTargetExit(this, FVoxelHitResult(OverlapVoxel, Location, MoveDirection));
+				FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
+				OverlapVoxel->OnTargetExit(this, VoxelHitResult);
 			}
 		}
 
@@ -376,10 +384,40 @@ void ADWCharacter::Tick(float DeltaTime)
 	}
 }
 
+void ADWCharacter::Serialize(FArchive& Ar)
+{
+	Super::Serialize(Ar);
+
+	if(Ar.IsSaveGame())
+	{
+		float CurrentValue;
+		if(Ar.IsLoading())
+		{
+			Ar << CurrentValue;
+			SetHealth(CurrentValue);
+
+			Ar << CurrentValue;
+			SetMana(CurrentValue);
+
+			Ar << CurrentValue;
+			SetStamina(CurrentValue);
+		}
+		else if(Ar.IsSaveGame())
+		{
+			CurrentValue = GetHealth();
+			Ar << CurrentValue;
+
+			CurrentValue = GetMana();
+			Ar << CurrentValue;
+
+			CurrentValue = GetStamina();
+			Ar << CurrentValue;
+		}
+	}
+}
+
 void ADWCharacter::LoadData(FCharacterData InSaveData)
 {
-	if (!Inventory) Inventory = NewObject<UCharacterInventory>(this);
-
 	if (InSaveData.bSaved)
 	{
 		SetName(InSaveData.Name);
@@ -392,6 +430,8 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 
 		SetActorLocation(InSaveData.SpawnLocation);
 		SetActorRotation(InSaveData.SpawnRotation);
+		
+		UDWHelper::LoadObjectFromMemory(this, InSaveData.Datas);
 	}
 	else
 	{
@@ -405,7 +445,7 @@ void ADWCharacter::LoadData(FCharacterData InSaveData)
 			const auto ItemDatas = UDWHelper::LoadItemDatas();
 			if(ItemDatas.Num() > 0 && FMath::FRand() < 0.5f)
 			{
-				InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID));
+				InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID, 1));
 			}
 		}
 
@@ -431,6 +471,8 @@ FCharacterData ADWCharacter::ToData(bool bSaved)
 	SaveData.SpawnRotation = GetActorRotation();
 
 	SaveData.SpawnClass = GetClass();
+
+	UDWHelper::SaveObjectToMemory(this, SaveData.Datas);
 
 	return SaveData;
 }
@@ -1042,24 +1084,21 @@ bool ADWCharacter::SkillAttack(const FName& InSkillID)
 	{
 		if (HasSkillAbility(InSkillID))
 		{
-			auto AbilityData = GetSkillAbility(InSkillID);
+			const auto AbilityData = GetSkillAbility(InSkillID);
 			switch(AbilityData.GetItemData().SkillMode)
 			{
 				case ESkillMode::Initiative:
 				{
-					if(AbilityData.GetItemData().SkillMode == ESkillMode::Initiative)
+					if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
 					{
-						if(AbilityData.WeaponType == EWeaponType::None || AbilityData.WeaponType == GetWeapon()->GetWeaponData().WeaponType)
+						if(ActiveAbility(AbilityData.AbilityHandle))
 						{
-							if(ActiveAbility(AbilityData.AbilityHandle))
-							{
-								bAttacking = true;
-								LimitToAnim(true, true);
-								SetMotionRate(0, 0);
-								SkillAbilityIndex = InSkillID;
-								AttackType = EAttackType::SkillAttack;
-								return true;
-							}
+							bAttacking = true;
+							LimitToAnim(true, true);
+							SetMotionRate(0, 0);
+							SkillAbilityIndex = InSkillID;
+							AttackType = EAttackType::SkillAttack;
+							return true;
 						}
 					}
 					break;
@@ -1081,19 +1120,8 @@ bool ADWCharacter::SkillAttack(ESkillType InSkillType, int32 InAbilityIndex)
 	{
 		if (HasSkillAbility(InSkillType, InAbilityIndex))
 		{
-			auto AbilityData = GetSkillAbility(InSkillType, InAbilityIndex);
-			if(HasWeapon(AbilityData.WeaponType))
-			{
-				if (ActiveAbility(AbilityData.AbilityHandle))
-				{
-					bAttacking = true;
-					LimitToAnim(true, true);
-					SetMotionRate(0, 0);
-					SkillAbilityIndex = AbilityData.AbilityName;
-					AttackType = EAttackType::SkillAttack;
-					return true;
-				}
-			}
+			const auto AbilityData = GetSkillAbility(InSkillType, InAbilityIndex);
+			SkillAttack(AbilityData.AbilityName);
 		}
 	}
 	return false;
@@ -1134,6 +1162,7 @@ void ADWCharacter::AttackStart()
 		case EAttackType::FallingAttack:
 			SetDamaging(true);
 			break;
+		default: break;
 	}
 }
 
@@ -1155,6 +1184,7 @@ void ADWCharacter::AttackEnd()
 			UnAttack();
 			StopAnimMontage();
 			break;
+		default: break;
 	}
 }
 
@@ -1260,6 +1290,94 @@ void ADWCharacter::OnFallEnd()
 	{
 		AttackEnd();
 	}
+}
+
+bool ADWCharacter::OnUseItem(FItem& InItem)
+{
+	switch (InItem.GetData().Type)
+	{
+		case EItemType::Voxel:
+		{
+			FVoxelHitResult voxelHitResult;
+			if (RaycastVoxel(voxelHitResult))
+			{
+				return GenerateVoxel(voxelHitResult, InItem);
+			}
+			break;
+		}
+		case EItemType::Prop:
+		{
+			const FPropData PropData = UDWHelper::LoadPropData(InItem.ID);
+			switch (PropData.PropType)
+			{
+				case EPropType::Potion:
+				{
+					if(PropData.Name.ToString().StartsWith(TEXT("生命")))
+					{
+						return GetHealth() < GetMaxHealth();
+					}
+					else if(PropData.Name.ToString().StartsWith(TEXT("魔法")))
+					{
+						return GetMana() < GetMaxMana();
+					}
+					else if(PropData.Name.ToString().StartsWith(TEXT("体力")))
+					{
+						return GetStamina() < GetMaxStamina();
+					}
+					break;
+				}
+				case EPropType::Food:
+				{
+					return GetHealth() < GetMaxHealth() || GetStamina() < GetMaxStamina();
+				}
+				default: break;
+			}
+			break;
+		}
+		default: break;
+	}
+	return false;
+}
+
+bool ADWCharacter::GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem& InItem)
+{
+	if (InItem.GetData().Type != EItemType::Voxel) return false;
+
+	AChunk* TargetChunk = InVoxelHitResult.GetVoxel()->GetOwner();
+	const FIndex TargetIndex = TargetChunk->LocationToIndex(InVoxelHitResult.Point - AWorldManager::GetData().GetBlockSizedNormal(InVoxelHitResult.Normal)) + FIndex(InVoxelHitResult.Normal);
+	UVoxel* TargetVoxel = TargetChunk->GetVoxel(TargetIndex);
+
+	if(!UVoxel::IsValid(TargetVoxel) || TargetVoxel->GetVoxelData().Transparency == ETransparency::Transparent && TargetVoxel != InVoxelHitResult.GetVoxel())
+	{
+		UVoxel* NewVoxel = UVoxel::NewVoxel(this, InItem.ID);
+
+		//FRotator rotation = (Owner->VoxelIndexToLocation(index) + tmpVoxel->GetVoxelData().GetCeilRange() * 0.5f * AWorldManager::GetWorldInfo().BlockSize - UDWHelper::GetPlayerCharacter(this)->GetActorLocation()).ToOrientationRotator();
+		//rotation = FRotator(FRotator::ClampAxis(FMath::RoundToInt(rotation.Pitch / 90) * 90.f), FRotator::ClampAxis(FMath::RoundToInt(rotation.Yaw / 90) * 90.f), FRotator::ClampAxis(FMath::RoundToInt(rotation.Roll / 90) * 90.f));
+		//tmpVoxel->Rotation = rotation;
+
+		FHitResult HitResult;
+		if (!AWorldManager::Get()->VoxelTraceSingle(NewVoxel, TargetChunk->IndexToLocation(TargetIndex), HitResult))
+		{
+			if(UVoxel::IsValid(TargetVoxel))
+			{
+				return TargetChunk->ReplaceVoxel(TargetVoxel, NewVoxel);;
+			}
+			return TargetChunk->GenerateVoxel(TargetIndex, NewVoxel);
+		}
+	}
+	return false;
+}
+
+bool ADWCharacter::DestroyVoxel(const FVoxelHitResult& InVoxelHitResult)
+{
+	AChunk* TargetChunk = InVoxelHitResult.GetVoxel()->GetOwner();
+	UVoxel* TargetVoxel = InVoxelHitResult.GetVoxel();
+
+	if (TargetVoxel->GetVoxelData().VoxelType != EVoxelType::Bedrock)
+	{
+		return TargetChunk->DestroyVoxel(TargetVoxel);
+	}
+	return false;
 }
 
 void ADWCharacter::RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot)
@@ -1378,6 +1496,15 @@ FActiveGameplayEffectHandle ADWCharacter::ApplyEffect(const FGameplayEffectSpecH
 	return FActiveGameplayEffectHandle();
 }
 
+FActiveGameplayEffectHandle ADWCharacter::ApplyEffect(const FGameplayEffectSpec& GameplayEffect)
+{
+	if (AbilitySystem)
+	{
+		return AbilitySystem->ApplyGameplayEffectSpecToSelf(GameplayEffect);
+	}
+	return FActiveGameplayEffectHandle();
+}
+
 bool ADWCharacter::RemoveEffect(FActiveGameplayEffectHandle Handle, int32 StacksToRemove/*=-1*/)
 {
 	if (AbilitySystem)
@@ -1405,7 +1532,7 @@ bool ADWCharacter::GetAbilityInfo(TSubclassOf<UDWGameplayAbility> AbilityClass, 
 		UDWGameplayAbility* Ability = AbilityClass.GetDefaultObject();
 		if (Ability->GetCostGameplayEffect()->Modifiers.Num() > 0)
 		{
-			FGameplayModifierInfo ModifierInfo = Ability->GetCostGameplayEffect()->Modifiers[0];
+			const FGameplayModifierInfo ModifierInfo = Ability->GetCostGameplayEffect()->Modifiers[0];
 			ModifierInfo.ModifierMagnitude.GetStaticMagnitudeIfPossible(1, Cost);
 			if (ModifierInfo.Attribute == AttributeSet->GetHealthAttribute())
 			{
@@ -1464,11 +1591,11 @@ bool ADWCharacter::StopAction(ECharacterActionType InActionType /*= ECharacterAc
 	return true;
 }
 
-void ADWCharacter::ModifyEXP(float InDetlaValue)
+void ADWCharacter::ModifyEXP(float InDeltaValue)
 {
 	const int32 MaxEXP = GetMaxEXP();
-	EXP += InDetlaValue;
-	if (InDetlaValue > 0.f)
+	EXP += InDeltaValue;
+	if (InDeltaValue > 0.f)
 	{
 		if (EXP >= MaxEXP)
 		{
@@ -1486,27 +1613,27 @@ void ADWCharacter::ModifyEXP(float InDetlaValue)
 	HandleEXPChanged(EXP);
 }
 
-void ADWCharacter::ModifyHealth(float InDetlaValue)
+void ADWCharacter::ModifyHealth(float InDeltaValue)
 {
-	if(InDetlaValue < 0.f && GetHealth() > 0.f || InDetlaValue > 0.f && GetHealth() < GetMaxHealth())
+	if(InDeltaValue < 0.f && GetHealth() > 0.f || InDeltaValue > 0.f && GetHealth() < GetMaxHealth())
 	{
-		AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetHealthAttribute(), EGameplayModOp::Additive, InDetlaValue);
+		AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetHealthAttribute(), EGameplayModOp::Additive, InDeltaValue);
 	}
 }
 
-void ADWCharacter::ModifyMana(float InDetlaValue)
+void ADWCharacter::ModifyMana(float InDeltaValue)
 {
-	if(InDetlaValue < 0.f && GetMana() > 0.f || InDetlaValue > 0.f && GetMana() < GetMaxMana())
+	if(InDeltaValue < 0.f && GetMana() > 0.f || InDeltaValue > 0.f && GetMana() < GetMaxMana())
 	{
-		AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetManaAttribute(), EGameplayModOp::Additive, InDetlaValue);
+		AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetManaAttribute(), EGameplayModOp::Additive, InDeltaValue);
 	}
 }
 
-void ADWCharacter::ModifyStamina(float InDetlaValue)
+void ADWCharacter::ModifyStamina(float InDeltaValue)
 {
-	if(InDetlaValue < 0.f && GetStamina() > 0.f || InDetlaValue > 0.f && GetStamina() < GetMaxStamina())
+	if(InDeltaValue < 0.f && GetStamina() > 0.f || InDeltaValue > 0.f && GetStamina() < GetMaxStamina())
 	{
-		AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetStaminaAttribute(), EGameplayModOp::Additive, InDetlaValue);
+		AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetStaminaAttribute(), EGameplayModOp::Additive, InDeltaValue);
 	}
 }
 
@@ -2075,6 +2202,30 @@ bool ADWCharacter::RaycastStep(FHitResult& OutHitResult)
 	FVector rayStart = GetActorLocation() + FVector::DownVector * (GetHalfHeight() - GetCharacterMovement()->MaxStepHeight);
 	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetData().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
 	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, UDWHelper::GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
+}
+
+bool ADWCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
+{
+	FHitResult hitResult;
+	FVector rayStart = GetActorLocation();
+	FVector rayEnd = rayStart + GetActorForwardVector() * InteractDistance;
+	if (UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, UDWHelper::GetGameTrace(EGameTraceType::Voxel), false, TArray<AActor*>(), EDrawDebugTrace::None, hitResult, true))
+	{
+		if (hitResult.GetActor()->IsA(AChunk::StaticClass()))
+		{
+			AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
+			if (chunk != nullptr)
+			{
+				UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+				if (UVoxel::IsValid(voxel))
+				{
+					OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 void ADWCharacter::HandleDamage(const float LocalDamageDone, FHitResult HitResult, const struct FGameplayTagContainer& SourceTags, ADWCharacter* SourceCharacter, AActor* SourceActor)

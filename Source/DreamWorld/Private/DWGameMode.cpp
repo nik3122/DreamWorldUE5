@@ -5,6 +5,7 @@
 #include "Character/Player/DWPlayerCharacterController.h"
 #include "DWGameState.h"
 #include "DWGameInstance.h"
+#include "DWMainModule.h"
 #include "Kismet/GameplayStatics.h"
 #include "World/WorldManager.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -18,21 +19,11 @@ ADWGameMode::ADWGameMode()
 void ADWGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-void ADWGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
-{
-	Super::InitGame(MapName, Options, ErrorMessage);
 
 	if(UDWGameInstance* DWGameInstance = UDWHelper::GetGameInstance(this))
 	{
 		DWGameInstance->LoadGameData();
 	}
-}
-
-void ADWGameMode::StartPlay()
-{
-	Super::StartPlay();
 	
 	if(ADWGameState* DWGameState = UDWHelper::GetGameState(this))
 	{

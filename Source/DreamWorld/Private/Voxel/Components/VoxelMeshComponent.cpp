@@ -126,11 +126,11 @@ void UVoxelMeshComponent::CreateMesh(int InSectionIndex /*= 0*/, bool bHasCollid
 	}
 	else
 	{
-		ClearMesh();
+		ClearMesh(0);
 	}
 }
 
-void UVoxelMeshComponent::ClearMesh(int InSectionIndex /*= -1*/)
+void UVoxelMeshComponent::ClearMesh(int InSectionIndex /*= 0*/)
 {
 	if (GetNumSections() > 0)
 	{

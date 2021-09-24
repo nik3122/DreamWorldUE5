@@ -65,26 +65,26 @@ bool UVoxelPlant::CheckAdjacent(EDirection InDirection)
 	return true;
 }
 
-void UVoxelPlant::OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelPlant::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelPlant::OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelPlant::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
 }
 
-void UVoxelPlant::OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelPlant::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
 }
 
-void UVoxelPlant::OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult)
+void UVoxelPlant::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 }
-bool UVoxelPlant::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelPlant::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	switch (InMouseButton)
 	{
@@ -96,17 +96,17 @@ bool UVoxelPlant::OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitR
 	return false;
 }
 
-bool UVoxelPlant::OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelPlant::OnMouseUp(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return Super::OnMouseUp(InMouseButton, InHitResult);
 }
 
-bool UVoxelPlant::OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult)
+bool UVoxelPlant::OnMouseHold(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)
 {
 	return Super::OnMouseHold(InMouseButton, InHitResult);
 }
 
-void UVoxelPlant::OnMouseHover(FVoxelHitResult InHitResult)
+void UVoxelPlant::OnMouseHover(const FVoxelHitResult& InHitResult)
 {
 	Super::OnMouseHover(InHitResult);
 }

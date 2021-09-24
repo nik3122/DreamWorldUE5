@@ -66,8 +66,26 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// World
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
 	FWorldData WorldData;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	int32 ChunkSpawnRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	int32 ChunkSpawnDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	int32 ChunkSpawnSpeed;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	int32 ChunkDestroySpeed;
+					
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	int32 ChunkMapBuildSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	int32 ChunkGenerateSpeed;
 
 	bool bBasicGenerated;
 
@@ -156,6 +174,10 @@ public:
 public:
 	UFUNCTION(BlueprintPure)
 	int GetChunkNum(bool bNeedGenerated = false) const;
+
+	float GetWorldLength() const;
+
+	int32 GetChunkDistance() const;
 
 	EVoxelType GetNoiseVoxelType(FIndex InIndex) const;
 

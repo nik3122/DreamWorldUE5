@@ -20,17 +20,19 @@ public:
 	UInventorySkillSlot();
 
 public:
-	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::NoZne */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
+	virtual void InitSlot(UInventory* InOwner, FItem InItem, EItemType InLimitType /* = EItemType::None */, ESplitSlotType InSplitType /*= ESplitSlotType::Default*/) override;
 
 	virtual void PreSet(FItem& InItem) override;
 
 	virtual void EndSet() override;
 	
 	virtual bool ActiveItem() override;
-		
+	
 	virtual bool CancelItem() override;
 
 public:
+	virtual FDWAbilityInfo GetAbilityInfo() const override;
+	
 	UFUNCTION(BlueprintPure)
 	FDWCharacterSkillAbilityData GetSkillData() const;
 };

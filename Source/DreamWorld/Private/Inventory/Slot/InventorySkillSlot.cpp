@@ -5,6 +5,7 @@
 #include "Inventory/Slot/InventorySlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Widget/Inventory/Slot/WidgetInventorySkillSlot.h"
+#include "Abilities/Character/DWCharacterSkillAbility.h"
 
 UInventorySkillSlot::UInventorySkillSlot()
 {
@@ -36,16 +37,20 @@ void UInventorySkillSlot::EndSet()
 
 bool UInventorySkillSlot::ActiveItem()
 {
-	Super::ActiveItem();
 	if(ADWCharacter* Character = Cast<ADWCharacter>(Owner->GetOwnerActor()))
 	{
 		if (Character->SkillAttack(Item.ID))
 		{
-			if(UISlot && GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)
+			Super::ActiveItem();
+			if(GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)
 			{
-				Cast<UWidgetInventorySkillSlot>(UISlot)->StartCooldown();
+				StartCooldown();
 			}
 			return true;
+		}
+		else if(CooldownInfo.bCooldowning)
+		{
+			UDWHelper::Debug(TEXT("该技能处于冷却中！"));
 		}
 	}
 	return false;
@@ -56,13 +61,23 @@ bool UInventorySkillSlot::CancelItem()
 	if (GetSkillData().bCancelAble)
 	{
 		Super::CancelItem();
-		if(UISlot && GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)
+		if(GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)
 		{
-			Cast<UWidgetInventorySkillSlot>(UISlot)->StopCooldown();
+			StopCooldown();
 		}
 		return true;
 	}
 	return false;
+}
+
+FDWAbilityInfo UInventorySkillSlot::GetAbilityInfo() const
+{
+	FDWAbilityInfo AbilityInfo;
+	if(ADWCharacter* Character = Cast<ADWCharacter>(Owner->GetOwnerActor()))
+	{
+		Character->GetAbilityInfo(GetSkillData().AbilityClass, AbilityInfo);
+	}
+	return AbilityInfo;
 }
 
 FDWCharacterSkillAbilityData UInventorySkillSlot::GetSkillData() const

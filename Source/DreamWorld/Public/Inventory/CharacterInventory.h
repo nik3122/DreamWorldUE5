@@ -31,6 +31,8 @@ public:
 
 	virtual void ClearAll() override;
 
+	virtual TArray<UInventorySlot*> GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int32 InStartIndex = 0, int32 InEndIndex = -1) override;
+
 public:
 	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetOwnerCharacter() const;

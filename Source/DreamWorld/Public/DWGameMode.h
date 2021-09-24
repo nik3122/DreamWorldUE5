@@ -20,11 +20,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
-
-	virtual void StartPlay() override;
-
-public:
 	UFUNCTION(BlueprintCallable)
 	void StartGame(const FString& InPlayerName, const FString& InWorldName);
 

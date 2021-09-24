@@ -260,7 +260,7 @@ void UDWGameInstance::RemovePlayerData(const FString& InPlayerName)
 
 TMap<FString, FCharacterBasicData> UDWGameInstance::GetPlayerDatas() const
 {
-	if(GameDataSave)
+	if(GameDataSave && GameDataSave->IsValidLowLevel())
 	{
 		return GameDataSave->GetPlayerDatas();
 	}

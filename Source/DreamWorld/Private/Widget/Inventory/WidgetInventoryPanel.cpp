@@ -5,10 +5,11 @@
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
-#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/CharacterInventory.h"
 
 UWidgetInventoryPanel::UWidgetInventoryPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	WidgetType = EWidgetType::Permanent;
+	WidgetName = FName("InventoryPanel");
+	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::GameAndUI;
 }

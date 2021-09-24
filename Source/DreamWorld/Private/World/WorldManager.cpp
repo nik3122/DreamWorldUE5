@@ -16,12 +16,13 @@
 #include "Vitality/VitalityObject.h"
 #include "DWGameInstance.h"
 #include "DataSave/WorldDataSave.h"
-#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/CharacterInventory.h"
 #include "DWGameState.h"
 #include "DataSave/PlayerDataSave.h"
 #include "World/Components/WorldTimerComponent.h"
 #include "World/Components/WorldWeatherComponent.h"
 #include "ConstructorHelpers.h"
+#include "SpawnPoolModuleBPLibrary.h"
 
 FWorldData FWorldData::Empty = FWorldData();
 
@@ -59,6 +60,16 @@ AWorldManager::AWorldManager()
 	BoundsMesh->SetRelativeRotation(FRotator(0, 0, 0));
 	BoundsMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	WorldData = FWorldData();
+
+	ChunkSpawnRange = 5;
+	ChunkSpawnDistance = 2;
+
+	ChunkSpawnSpeed = 100;
+	ChunkDestroySpeed = 100;
+	ChunkMapBuildSpeed = 5;
+	ChunkGenerateSpeed = 1;
+
 	bBasicGenerated = false;
 	ChunkSpawnBatch = 0;
 	LastGenerateIndex = FIndex::ZeroIndex;
@@ -82,6 +93,9 @@ void AWorldManager::BeginPlay()
 	{
 		PlayerController->OnPlayerSpawned.AddDynamic(this, &AWorldManager::OnPlayerSpawned);
 	}
+
+	UVoxel::EmptyVoxel = UVoxel::NewVoxel(this, EVoxelType::Empty);
+	UVoxel::UnknownVoxel = UVoxel::NewVoxel(this, EVoxelType::Unknown);
 
 	//GeneratePreviews();
 }
@@ -131,8 +145,6 @@ void AWorldManager::LoadWorld(const FString& InWorldName)
 					WorldData.Seed = FMath::Rand();
 				}
 				RandomStream = FRandomStream(WorldData.Seed);
-				UDWHelper::Debug(FString::FromInt(WorldData.Seed), EDebugType::Console);
-				UDWHelper::Debug(FString::SanitizeFloat(RandomStream.FRand()), EDebugType::Console);
 			}
 		}
 	}
@@ -144,7 +156,7 @@ void AWorldManager::UnloadWorld()
 	{
 		if(iter.Value)
 		{
-			iter.Value->Destroy();
+			USpawnPoolModuleBPLibrary::DespawnActor(this, iter.Value);
 		}
 	}
 	ChunkMap.Empty();
@@ -181,7 +193,7 @@ void AWorldManager::GenerateTerrain()
 	{
 		FIndex chunkIndex = LocationToChunkIndex(PlayerCharacter->GetActorLocation(), true);
 
-		if (FIndex::Distance(chunkIndex, LastGenerateIndex, true) >= WorldData.ChunkSpawnDistance)
+		if (FIndex::Distance(chunkIndex, LastGenerateIndex, true) >= ChunkSpawnDistance)
 		{
 			GenerateChunks(chunkIndex);
 		}
@@ -193,7 +205,7 @@ void AWorldManager::GenerateTerrain()
 			{
 				FIndex index = iter->Key;
 				AChunk* chunk = iter->Value;
-				if (FIndex::Distance(chunkIndex, index, true) >= WorldData.GetChunkDistance())
+				if (FIndex::Distance(chunkIndex, index, true) >= GetChunkDistance())
 				{
 					AddToDestroyQueue(chunk);
 				}
@@ -206,7 +218,7 @@ void AWorldManager::GenerateTerrain()
 
 		if (ChunkDestroyQueue.Num() > 0)
 		{
-			int32 tmpNum = FMath::Min(ChunkDestroyQueue.Num(), WorldData.ChunkDestroySpeed);
+			int32 tmpNum = FMath::Min(ChunkDestroyQueue.Num(), ChunkDestroySpeed);
 			for (int32 i = 0; i < tmpNum; i++)
 			{
 				DestroyChunk(ChunkDestroyQueue[i]);
@@ -215,7 +227,7 @@ void AWorldManager::GenerateTerrain()
 		}
 		else if (ChunkSpawnQueue.Num() > 0)
 		{
-			int32 tmpNum = FMath::Min(ChunkSpawnQueue.Num(), WorldData.ChunkSpawnSpeed);
+			int32 tmpNum = FMath::Min(ChunkSpawnQueue.Num(), ChunkSpawnSpeed);
 			for (int32 i = 0; i < tmpNum; i++)
 			{
 				SpawnChunk(ChunkSpawnQueue[i]);
@@ -224,7 +236,7 @@ void AWorldManager::GenerateTerrain()
 		}
 		else if (ChunkMapBuildQueue.Num() > 0)
 		{
-			int32 tmpNum = FMath::Min(ChunkMapBuildQueue.Num(), WorldData.ChunkMapBuildSpeed);
+			int32 tmpNum = FMath::Min(ChunkMapBuildQueue.Num(), ChunkMapBuildSpeed);
 			for (int32 i = 0; i < tmpNum; i++)
 			{
 				BuildChunkMap(ChunkMapBuildQueue[i]);
@@ -233,7 +245,7 @@ void AWorldManager::GenerateTerrain()
 		}
 		else if (ChunkGenerateQueue.Num() > 0)
 		{
-			int32 tmpNum = FMath::Min(ChunkGenerateQueue.Num(), WorldData.ChunkGenerateSpeed);
+			int32 tmpNum = FMath::Min(ChunkGenerateQueue.Num(), ChunkGenerateSpeed);
 			for (int32 i = 0; i < tmpNum; i++)
 			{
 				GenerateChunk(ChunkGenerateQueue[i]);
@@ -251,7 +263,7 @@ void AWorldManager::GenerateTerrain()
 				bBasicGenerated = true;
 
 				OnBasicGenerated.Broadcast(hitResult.Location);
-				
+
 				if(ADWGameState* GameState = UDWHelper::GetGameState(this))
 				{
 					GameState->SetCurrentState(EGameState::Playing);
@@ -286,7 +298,7 @@ void AWorldManager::GeneratePreviews()
 			auto pickUpItem = GetWorld()->SpawnActor<APickUpVoxel>(spawnParams);
 			if (pickUpItem != nullptr)
 			{
-				pickUpItem->Initialize(FItem(voxelDatas[tmpIndex].ID), true);
+				pickUpItem->Initialize(FItem(voxelDatas[tmpIndex].ID, 1), true);
 				pickUpItem->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 				pickUpItem->SetActorLocation(FVector(x * WorldData.BlockSize * 0.5f, y * WorldData.BlockSize * 0.5f, 0));
 				pickUpItem->SetActorRotation(FRotator(-70, 0, -180));
@@ -303,9 +315,9 @@ void AWorldManager::GenerateChunks(FIndex InIndex)
 {
 	if (ChunkSpawnQueue.Num() > 0) return;
 
-	for (int32 x = -WorldData.ChunkSpawnRange + InIndex.X; x < WorldData.ChunkSpawnRange + InIndex.X; x++)
+	for (int32 x = InIndex.X - ChunkSpawnRange; x < InIndex.X + ChunkSpawnRange; x++)
 	{
-		for (int32 y = -WorldData.ChunkSpawnRange + InIndex.Y; y < WorldData.ChunkSpawnRange + InIndex.Y; y++)
+		for (int32 y = InIndex.Y - ChunkSpawnRange; y < InIndex.Y + ChunkSpawnRange; y++)
 		{
 			for (int32 z = 0; z < WorldData.ChunkHeightRange ; z++)
 			{
@@ -317,15 +329,14 @@ void AWorldManager::GenerateChunks(FIndex InIndex)
 	ChunkSpawnQueue.Sort([InIndex](const FIndex& A, const FIndex& B) {
 		float lengthA = FIndex::Distance(InIndex, A, true);
 		float lengthB = FIndex::Distance(InIndex, B, true);
-		if (lengthA == lengthB)
-			return A.Z < B.Z;
+		if (lengthA == lengthB) return A.Z < B.Z;
 		return lengthA < lengthB;
 	});
 
 	if(BoundsMesh != nullptr)
 	{
 		BoundsMesh->SetRelativeLocation(ChunkIndexToLocation(InIndex));
-		BoundsMesh->SetRelativeScale3D(FVector(WorldData.GetWorldLength() * WorldData.BlockSize * 0.01f, WorldData.GetWorldLength() * WorldData.BlockSize * 0.01f, 15.f));
+		BoundsMesh->SetRelativeScale3D(FVector(GetWorldLength() * WorldData.BlockSize * 0.01f, GetWorldLength() * WorldData.BlockSize * 0.01f, 15.f));
 	}
 
 	LastGenerateIndex = InIndex;
@@ -365,8 +376,6 @@ void AWorldManager::DestroyChunk(AChunk* InChunk)
 {
 	if (!InChunk || !ChunkMap.Contains(InChunk->GetIndex())) return;
 
-	InChunk->Destroy();
-
 	if (ChunkMapBuildQueue.Contains(InChunk))
 	{
 		ChunkMapBuildQueue.Remove(InChunk);
@@ -378,6 +387,8 @@ void AWorldManager::DestroyChunk(AChunk* InChunk)
 	}
 
 	ChunkMap.Remove(InChunk->GetIndex());
+
+	USpawnPoolModuleBPLibrary::DespawnActor(this, InChunk);
 }
 
 void AWorldManager::AddToSpawnQueue(FIndex InIndex)
@@ -416,11 +427,11 @@ AChunk* AWorldManager::SpawnChunk(FIndex InIndex, bool bAddToQueue)
 {
 	if (ChunkMap.Contains(InIndex)) return ChunkMap[InIndex];
 
-	FActorSpawnParameters spawnParams = FActorSpawnParameters();
-	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	auto chunk = GetWorld()->SpawnActor<AChunk>(InIndex.ToVector() * WorldData.GetChunkLength(), FRotator::ZeroRotator, spawnParams);
+	auto chunk = USpawnPoolModuleBPLibrary::SpawnActor<AChunk>(this);
 	if (chunk)
 	{
+		chunk->SetActorLocationAndRotation(InIndex.ToVector() * WorldData.GetChunkLength(), FRotator::ZeroRotator);
+		
 		ChunkMap.Add(InIndex, chunk);
 
 		chunk->Initialize(InIndex, ChunkSpawnBatch);
@@ -448,6 +459,32 @@ AChunk* AWorldManager::FindChunk(FIndex InIndex)
 	return nullptr;
 }
 
+int32 AWorldManager::GetChunkNum(bool bNeedGenerated /*= false*/) const
+{
+	int32 num = 0;
+	for (auto iter = ChunkMap.CreateConstIterator(); iter; ++iter)
+	{
+		if(AChunk* chunk = iter->Value)
+		{
+			if (!bNeedGenerated || chunk->IsGenerated())
+			{
+				num++;
+			}
+		}
+	}
+	return num;
+}
+
+float AWorldManager::GetWorldLength() const
+{
+	return WorldData.ChunkSize * ChunkSpawnRange * 2;
+}
+
+int32 AWorldManager::GetChunkDistance() const
+{
+	return ChunkSpawnRange + ChunkSpawnDistance;
+}
+
 EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex) const
 {
 	const FVector offsetIndex = FVector(InIndex.X + WorldData.Seed, InIndex.Y + WorldData.Seed, InIndex.Z);
@@ -460,8 +497,8 @@ EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex) const
 	const int stoneHeight = FMath::Clamp(GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainStoneVoxelScale), 0, WorldData.GetWorldHeight() - 1);
 	const int sandHeight = FMath::Clamp(GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainSandVoxelScale), 0, WorldData.GetWorldHeight() - 1);
 
-	const int waterHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainWaterVoxelScale), 0, WorldData.GetWorldHeight() - 1);
-	const int bedrockHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainBedrockVoxelScale), 0, WorldData.GetWorldHeight() - 1);
+	const int waterHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainWaterVoxelHeight), 0, WorldData.GetWorldHeight() - 1);
+	const int bedrockHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainBedrockVoxelHeight), 0, WorldData.GetWorldHeight() - 1);
 	
 	if (InIndex.Z < baseHeight)
 	{
@@ -511,22 +548,6 @@ FIndex AWorldManager::LocationToChunkIndex(FVector InLocation, bool bIgnoreZ /*=
 FVector AWorldManager::ChunkIndexToLocation(FIndex InIndex) const
 {
 	return InIndex.ToVector() * WorldData.GetChunkLength();
-}
-
-int32 AWorldManager::GetChunkNum(bool bNeedGenerated /*= false*/) const
-{
-	int32 num = 0;
-	for (auto iter = ChunkMap.CreateConstIterator(); iter; ++iter)
-	{
-		if(AChunk* chunk = iter->Value)
-		{
-			if (!bNeedGenerated || chunk->IsGenerated())
-			{
-				num++;
-			}
-		}
-	}
-	return num;
 }
 
 bool AWorldManager::ChunkTraceSingle(AChunk* InChunk, float InRadius, float InHalfHeight, FHitResult& OutHitResult)

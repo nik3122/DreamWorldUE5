@@ -5,6 +5,7 @@
 
 UWidgetMainMenu::UWidgetMainMenu(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	WidgetName = FName("MainMenu");
 	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }

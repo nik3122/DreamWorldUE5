@@ -34,20 +34,21 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 {
 	UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent();
 	ADWCharacter* TargetCharacter = Cast<ADWCharacter>(AbilityComp->GetAvatarActor());
-	float DeltaValue = NewValue - Attribute.GetGameplayAttributeData(this)->GetCurrentValue();
+	
+	const float CurrentValue = Attribute.GetGameplayAttributeData(this)->GetCurrentValue();
 	if (Attribute == GetManaAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleManaChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleManaChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetMaxManaAttribute())
 	{
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleMaxManaChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleMaxManaChanged(NewValue, NewValue - CurrentValue);
 		}
 		AdjustAttributeForMaxChange(Stamina, MaxStamina, NewValue, GetMaxStaminaAttribute());
 	}
@@ -56,14 +57,14 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxStamina());
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleStaminaChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleStaminaChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetMaxStaminaAttribute())
 	{
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleMaxStaminaChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleMaxStaminaChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetMoveSpeedAttribute())
@@ -71,7 +72,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleMoveSpeedChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleMoveSpeedChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetSwimSpeedAttribute())
@@ -79,7 +80,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleSwimSpeedChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleSwimSpeedChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetRideSpeedAttribute())
@@ -87,7 +88,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleRideSpeedChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleRideSpeedChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetFlySpeedAttribute())
@@ -95,7 +96,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleFlySpeedChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleFlySpeedChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetRotationSpeedAttribute())
@@ -103,7 +104,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleRotationSpeedChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleRotationSpeedChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetJumpForceAttribute())
@@ -111,7 +112,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleJumpForceChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleJumpForceChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetDodgeForceAttribute())
@@ -119,7 +120,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleDodgeForceChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleDodgeForceChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetAttackForceAttribute())
@@ -127,7 +128,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleAttackForceChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleAttackForceChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetRepulseForceAttribute())
@@ -135,7 +136,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleRepulseForceChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleRepulseForceChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetAttackSpeedAttribute())
@@ -143,7 +144,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleAttackSpeedChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleAttackSpeedChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetAttackCritRateAttribute())
@@ -151,7 +152,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleAttackCritRateChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleAttackCritRateChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetAttackStealRateAttribute())
@@ -159,7 +160,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleAttackStealRateChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleAttackStealRateChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetDefendRateAttribute())
@@ -167,7 +168,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleDefendRateChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleDefendRateChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetDefendScopeAttribute())
@@ -175,7 +176,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleDefendScopeChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleDefendScopeChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetPhysicsDefRateAttribute())
@@ -183,7 +184,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandlePhysicsDefRateChanged(NewValue, DeltaValue);
+			TargetCharacter->HandlePhysicsDefRateChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetMagicDefRateAttribute())
@@ -191,7 +192,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleMagicDefRateChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleMagicDefRateChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetToughnessRateAttribute())
@@ -199,7 +200,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, 1.f);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleToughnessRateChanged(NewValue, DeltaValue);
+			TargetCharacter->HandleToughnessRateChanged(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetStaminaRegenSpeedAttribute())
@@ -207,7 +208,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleRegenSpeedAttribute(NewValue, DeltaValue);
+			TargetCharacter->HandleRegenSpeedAttribute(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else if (Attribute == GetStaminaExpendSpeedAttribute())
@@ -215,7 +216,7 @@ void UDWCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 		NewValue = FMath::Clamp(NewValue, 0.f, NewValue);
 		if (TargetCharacter)
 		{
-			TargetCharacter->HandleExpendSpeedAttribute(NewValue, DeltaValue);
+			TargetCharacter->HandleExpendSpeedAttribute(NewValue, NewValue - CurrentValue);
 		}
 	}
 	else

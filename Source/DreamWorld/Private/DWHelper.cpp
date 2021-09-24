@@ -10,10 +10,24 @@
 #include "Engine/Engine.h"
 #include "DWGameInstance.h"
 #include "DWGameState.h"
+#include "DWMainModule.h"
+#include "MainModuleBPLibrary.h"
 #include "Engine/DataTable.h"
-#include "Widget/Worlds/WidgetWorldText.h"
-#include "Widget/Worlds/WidgetVitalityHP.h"
-#include "Widget/Worlds/WidgetCharacterHP.h"
+#include "Widget/WidgetLoadingPanel.h"
+#include "Widget/WidgetMainMenu.h"
+#include "Widget/WidgetPausingMenu.h"
+#include "Widget/WidgetPrimaryPanel.h"
+#include "Widget/WidgetSettingPanel.h"
+#include "Widget/WidgetRoleChoosingPanel.h"
+#include "Widget/WidgetRoleCreatingPanel.h"
+#include "Widget/WidgetWorldChoosingPanel.h"
+#include "Widget/WidgetWorldCreatingPanel.h"
+#include "Widget/Inventory/WidgetInventoryBar.h"
+#include "Widget/Inventory/WidgetInventoryBox.h"
+#include "Widget/Inventory/WidgetInventoryPanel.h"
+#include "Widget/Other/WidgetWorldText.h"
+#include "Widget/Other/WidgetVitalityHP.h"
+#include "Widget/Other/WidgetCharacterHP.h"
 #include "Widget/WidgetPrimaryPanel.h"
 
 ADWGameState* UDWHelper::CurrentGameState = nullptr;
@@ -51,15 +65,6 @@ UDWGameInstance* UDWHelper::GetGameInstance(const UObject* InWorldContext)
 	return CurrentGameInstance;
 }
 
-ADWPlayerCharacter* UDWHelper::GetPlayerCharacter(const UObject* InWorldContext)
-{
-	if (ADWPlayerCharacterController* PlayerController = GetPlayerController(InWorldContext))
-	{
-		return PlayerController->GetPossessedCharacter();
-	}
-	return nullptr;
-}
-
 ADWPlayerCharacterController* UDWHelper::GetPlayerController(const UObject* InWorldContext)
 {
 	if ((!CurrentPlayerController || !CurrentPlayerController->IsValidLowLevel()) && (InWorldContext && InWorldContext->IsValidLowLevel()))
@@ -69,11 +74,151 @@ ADWPlayerCharacterController* UDWHelper::GetPlayerController(const UObject* InWo
 	return CurrentPlayerController;
 }
 
+ADWPlayerCharacter* UDWHelper::GetPlayerCharacter(const UObject* InWorldContext)
+{
+	if (ADWPlayerCharacterController* PlayerController = GetPlayerController(InWorldContext))
+	{
+		return PlayerController->GetPossessedCharacter();
+	}
+	return nullptr;
+}
+
+ADWMainModule* UDWHelper::GetMainModule(const UObject* InWorldContext)
+{
+	return Cast<ADWMainModule>(UMainModuleBPLibrary::GetMainModule(InWorldContext));
+}
+
+AWorldManager* UDWHelper::GetWorldManager()
+{
+	return AWorldManager::Get();
+}
+
+TSubclassOf<UWidgetMainMenu> UDWHelper::WidgetMainMenuClass = nullptr;
+
+TSubclassOf<UWidgetSettingPanel> UDWHelper::WidgetSettingPanelClass = nullptr;
+
+TSubclassOf<UWidgetLoadingPanel> UDWHelper::WidgetLoadingPanelClass = nullptr;
+
+TSubclassOf<UWidgetPausingMenu> UDWHelper::WidgetPausingMenuClass = nullptr;
+
+TSubclassOf<UWidgetPrimaryPanel> UDWHelper::WidgetPrimaryPanelClass = nullptr;
+
+TSubclassOf<UWidgetRoleChoosingPanel> UDWHelper::WidgetRoleChoosingPanelClass = nullptr;
+
+TSubclassOf<UWidgetRoleCreatingPanel> UDWHelper::WidgetRoleCreatingPanelClass = nullptr;
+
+TSubclassOf<UWidgetWorldChoosingPanel> UDWHelper::WidgetWorldChoosingPanelClass = nullptr;
+
+TSubclassOf<UWidgetWorldCreatingPanel> UDWHelper::WidgetWorldCreatingPanelClass = nullptr;
+
+TSubclassOf<UWidgetInventoryBar> UDWHelper::WidgetInventoryBarClass = nullptr;
+
+TSubclassOf<UWidgetInventoryPanel> UDWHelper::WidgetInventoryPanelClass = nullptr;
+
 TSubclassOf<UWidgetCharacterHP> UDWHelper::WidgetCharacterHPClass = nullptr;
 
 TSubclassOf<UWidgetVitalityHP> UDWHelper::WidgetVitalityHPClass = nullptr;
 
 TSubclassOf<UWidgetWorldText> UDWHelper::WidgetWorldTextClass = nullptr;
+
+TSubclassOf<UWidgetMainMenu> UDWHelper::LoadWidgetMainMenuClass()
+{
+	if (!WidgetMainMenuClass)
+	{
+		WidgetMainMenuClass = LoadClass<UWidgetMainMenu>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_MainMenu.WB_MainMenu_C'"));
+	}
+	return WidgetMainMenuClass;
+}
+
+TSubclassOf<UWidgetSettingPanel> UDWHelper::LoadWidgetSettingPanelClass()
+{
+	if (!WidgetSettingPanelClass)
+	{
+		WidgetSettingPanelClass = LoadClass<UWidgetSettingPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_SettingPanel.WB_SettingPanel_C'"));
+	}
+	return WidgetSettingPanelClass;
+}
+
+TSubclassOf<UWidgetLoadingPanel> UDWHelper::LoadWidgetLoadingPanelClass()
+{
+	if (!WidgetLoadingPanelClass)
+	{
+		WidgetLoadingPanelClass = LoadClass<UWidgetLoadingPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_LoadingPanel.WB_LoadingPanel_C'"));
+	}
+	return WidgetLoadingPanelClass;
+}
+
+TSubclassOf<UWidgetPausingMenu> UDWHelper::LoadWidgetPausingMenuClass()
+{
+	if (!WidgetPausingMenuClass)
+	{
+		WidgetPausingMenuClass = LoadClass<UWidgetPausingMenu>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_PausingMenu.WB_PausingMenu_C'"));
+	}
+	return WidgetPausingMenuClass;
+}
+
+TSubclassOf<UWidgetPrimaryPanel> UDWHelper::LoadWidgetPrimaryPanelClass()
+{
+	if (!WidgetPrimaryPanelClass)
+	{
+		WidgetPrimaryPanelClass = LoadClass<UWidgetPrimaryPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_PrimaryPanel.WB_PrimaryPanel_C'"));
+	}
+	return WidgetPrimaryPanelClass;
+}
+
+TSubclassOf<UWidgetRoleChoosingPanel> UDWHelper::LoadWidgetRoleChoosingPanelClass()
+{
+	if (!WidgetRoleChoosingPanelClass)
+	{
+		WidgetRoleChoosingPanelClass = LoadClass<UWidgetRoleChoosingPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_RoleChoosingPanel.WB_RoleChoosingPanel_C'"));
+	}
+	return WidgetRoleChoosingPanelClass;
+}
+
+TSubclassOf<UWidgetRoleCreatingPanel> UDWHelper::LoadWidgetRoleCreatingPanelClass()
+{
+	if (!WidgetRoleCreatingPanelClass)
+	{
+		WidgetRoleCreatingPanelClass = LoadClass<UWidgetRoleCreatingPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_RoleCreatingPanel.WB_RoleCreatingPanel_C'"));
+	}
+	return WidgetRoleCreatingPanelClass;
+}
+
+TSubclassOf<UWidgetWorldChoosingPanel> UDWHelper::LoadWidgetWorldChoosingPanelClass()
+{
+	if (!WidgetWorldChoosingPanelClass)
+	{
+		WidgetWorldChoosingPanelClass = LoadClass<UWidgetWorldChoosingPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_WorldChoosingPanel.WB_WorldChoosingPanel_C'"));
+	}
+	return WidgetWorldChoosingPanelClass;
+}
+
+TSubclassOf<UWidgetWorldCreatingPanel> UDWHelper::LoadWidgetWorldCreatingPanelClass()
+{
+	if (!WidgetWorldCreatingPanelClass)
+	{
+		WidgetWorldCreatingPanelClass = LoadClass<UWidgetWorldCreatingPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/WB_WorldCreatingPanel.WB_WorldCreatingPanel_C'"));
+	}
+	return WidgetWorldCreatingPanelClass;
+}
+
+TSubclassOf<UWidgetInventoryBar> UDWHelper::LoadWidgetInventoryBarClass()
+{
+	if (!WidgetInventoryBarClass)
+	{
+		WidgetInventoryBarClass = LoadClass<UWidgetInventoryBar>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/Inventory/WB_InventoryBar.WB_InventoryBar_C'"));
+	}
+	return WidgetInventoryBarClass;
+}
+
+TSubclassOf<UWidgetInventoryPanel> UDWHelper::LoadWidgetInventoryPanelClass()
+{
+	if (!WidgetInventoryPanelClass)
+	{
+		WidgetInventoryPanelClass = LoadClass<UWidgetInventoryPanel>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/Inventory/WB_InventoryPanel.WB_InventoryPanel_C'"));
+	}
+	return WidgetInventoryPanelClass;
+}
 
 TSubclassOf<UWidgetCharacterHP> UDWHelper::LoadWidgetCharacterHPClass()
 {
@@ -558,4 +703,24 @@ FIndex UDWHelper::GetAdjacentIndex(FIndex InIndex, EDirection InDirection, FRota
 ETraceTypeQuery UDWHelper::GetGameTrace(EGameTraceType InGameTraceType)
 {
 	return UEngineTypes::ConvertToTraceType((ECollisionChannel)InGameTraceType);
+}
+
+void UDWHelper::SaveObjectToMemory(UObject* InObject, TArray<uint8>& OutObjectData)
+{
+	if(InObject)
+	{
+		FMemoryWriter MemoryWriter(OutObjectData, true);
+		FSaveDataArchive Ar(MemoryWriter);
+		InObject->Serialize(Ar);
+	}
+}
+
+void UDWHelper::LoadObjectFromMemory(UObject* InObject, TArray<uint8> InObjectData)
+{
+	if(InObject && InObjectData.Num() > 0)
+	{
+		FMemoryReader MemoryReader(InObjectData, true);
+		FSaveDataArchive Ar(MemoryReader);
+		InObject->Serialize(Ar);
+	}
 }

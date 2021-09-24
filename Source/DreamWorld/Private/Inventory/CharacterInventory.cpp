@@ -1,6 +1,9 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
-#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/CharacterInventory.h"
+
+#include "WidgetInventoryBar.h"
+#include "WidgetModuleBPLibrary.h"
 #include "Character/DWCharacter.h"
 
 UCharacterInventory::UCharacterInventory()
@@ -31,6 +34,15 @@ void UCharacterInventory::DiscardAll()
 void UCharacterInventory::ClearAll()
 {
 	Super::ClearAll();
+}
+
+TArray<UInventorySlot*> UCharacterInventory::GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int32 InStartIndex, int32 InEndIndex)
+{
+	if (InStartIndex == -1 && HasSplitSlotInfo(ESplitSlotType::Shortcut) && GetOwnerCharacter() && GetOwnerCharacter()->GetNature() == ECharacterNature::Player)
+	{
+		InStartIndex = GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex + UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlotIndex();
+	}
+	return Super::GetValidatedList(InActionType, InItem, InStartIndex, InEndIndex);
 }
 
 ADWCharacter* UCharacterInventory::GetOwnerCharacter() const

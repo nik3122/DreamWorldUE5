@@ -9,6 +9,7 @@
 
 UWidgetInventoryBar::UWidgetInventoryBar(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	WidgetName = FName("InventoryBar");
 	WidgetType = EWidgetType::Permanent;
 	InputMode = EInputMode::GameOnly;
 	SelectedSlotIndex = 0;
@@ -41,7 +42,7 @@ UInventorySlot* UWidgetInventoryBar::GetSelectedSlot() const
 	auto UISlots = GetSplitUISlots(ESplitSlotType::Shortcut);
 	if(UISlots.Num() > SelectedSlotIndex)
 	{
-		return UISlots[SelectedSlotIndex]->GetSlot();
+		return UISlots[SelectedSlotIndex]->GetOwnerSlot();
 	}
 	return nullptr;
 }

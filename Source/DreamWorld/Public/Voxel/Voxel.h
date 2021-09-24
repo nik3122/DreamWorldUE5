@@ -3,6 +3,8 @@
 #pragma once
 
 #include "DreamWorld.h"
+#include "ObjectPoolInterface.h"
+
 #include "Voxel.generated.h"
 
 class AChunk;
@@ -11,7 +13,7 @@ class AChunk;
  * ����
  */
 UCLASS()
-class DREAMWORLD_API UVoxel : public UObject
+class DREAMWORLD_API UVoxel : public UObject, public IObjectPoolInterface
 {
 	GENERATED_BODY()
 
@@ -20,23 +22,19 @@ public:
 	
 	//////////////////////////////////////////////////////////////////////////
 	// Statics
-private:
+public:
 	static UVoxel* EmptyVoxel;
 
 	static UVoxel* UnknownVoxel;
 
 public:
-	static UVoxel* Empty();
+	static UVoxel* NewVoxel(UObject* InWorldContext, EVoxelType InVoxelType);
 
-	static UVoxel* Unknown();
-
-	static UVoxel* NewVoxel(EVoxelType InVoxelType, UObject* InOuter);
-
-	static UVoxel* NewVoxel(const FName& InVoxelID, UObject* InOuter);
+	static UVoxel* NewVoxel(UObject* InWorldContext, const FName& InVoxelID);
 	
-	static UVoxel* LoadVoxel(FVoxelItem VoxelItem, AChunk* InOwner);
+	static UVoxel* LoadVoxel(AChunk* InOwner, FVoxelItem InVoxelItem);
 
-	static UVoxel* LoadVoxel(const FString& InVoxelData, AChunk* InOwner);
+	static UVoxel* LoadVoxel(AChunk* InOwner, const FString& InVoxelData);
 
 	static bool IsValid(UVoxel* InVoxel, bool bCheckOwner = true);
 
@@ -55,6 +53,10 @@ public:
 
 	virtual void OnReplace();
 
+	virtual void OnSpawn_Implementation() override;
+
+	virtual void OnDespawn_Implementation() override;
+
 	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals);
 
 	virtual bool CheckAdjacent(EDirection InDirection);
@@ -64,21 +66,21 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Events
 public:
-	virtual void OnTargetHit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual void OnTargetEnter(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual void OnTargetStay(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+	virtual void OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual void OnTargetExit(ADWCharacter* InTarget, FVoxelHitResult InHitResult);
+	virtual void OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual bool OnMouseDown(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
+	virtual bool OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult);
 
-	virtual bool OnMouseUp(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
+	virtual bool OnMouseUp(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult);
 
-	virtual bool OnMouseHold(EMouseButton InMouseButton, FVoxelHitResult InHitResult);
+	virtual bool OnMouseHold(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult);
 
-	virtual void OnMouseHover(FVoxelHitResult InHitResult);
+	virtual void OnMouseHover(const FVoxelHitResult& InHitResult);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Stats

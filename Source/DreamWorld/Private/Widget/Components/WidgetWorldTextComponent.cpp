@@ -5,7 +5,7 @@
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
-#include "Widget/Worlds/WidgetWorldText.h"
+#include "Widget/Other/WidgetWorldText.h"
 
 UWidgetWorldTextComponent::UWidgetWorldTextComponent()
 {

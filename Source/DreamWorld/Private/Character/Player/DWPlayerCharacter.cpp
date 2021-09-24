@@ -22,11 +22,11 @@
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "Widget/Inventory/Slot/WidgetInventorySlot.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
-#include "Inventory/Character/CharacterInventory.h"
+#include "Inventory/CharacterInventory.h"
 #include "Inventory/Slot/InventorySlot.h"
 #include "DWGameState.h"
+#include "ObjectPoolModuleBPLibrary.h"
 #include "WidgetModuleBPLibrary.h"
-#include "Inventory/Character/PlayerInventory.h"
 #include "Equip/EquipWeapon.h"
 #include "Equip/EquipShield.h"
 #include "Inventory/Slot/InventorySkillSlot.h"
@@ -44,57 +44,55 @@ ADWPlayerCharacter::ADWPlayerCharacter()
 
 	GetCapsuleComponent()->SetCapsuleHalfHeight(69);
 	GetCapsuleComponent()->SetCapsuleRadius(24);
-	GetCapsuleComponent()->SetCollisionProfileName(TEXT("DW_Character"));
+	GetCapsuleComponent()->SetCollisionProfileName(FName("DW_Character"));
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->AirControl = 0.3f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(FName("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 200; // The camera follows at this distance behind the character	
 	CameraBoom->SocketOffset = FVector(0, 30, 40);
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(FName("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->SetRelativeLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -70));
 
-	VoxelMesh = CreateDefaultSubobject<UVoxelMeshComponent>(TEXT("VoxelMesh"));
-	VoxelMesh->SetupAttachment(GetMesh(), TEXT("VoxelMesh"));
+	VoxelMesh = CreateDefaultSubobject<UVoxelMeshComponent>(FName("VoxelMesh"));
+	VoxelMesh->SetupAttachment(GetMesh(), FName("VoxelMesh"));
 	VoxelMesh->SetRelativeLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
 	VoxelMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	VoxelMesh->SetCastShadow(false);
 	VoxelMesh->SetVisibility(false);
 	VoxelMesh->Initialize(EVoxelMeshType::PickUp);
 
-	HammerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HammerMesh"));
-	HammerMesh->SetupAttachment(GetMesh(), TEXT("HammerMesh"));
+	HammerMesh = CreateDefaultSubobject<USkeletalMeshComponent>(FName("HammerMesh"));
+	HammerMesh->SetupAttachment(GetMesh(), FName("HammerMesh"));
 	HammerMesh->SetRelativeLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
 	HammerMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HammerMesh->SetCastShadow(false);
 	HammerMesh->SetVisibility(false);
 
-	PreviewCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
+	PreviewCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(FName("SceneCapture"));
 	PreviewCapture->ProjectionType = ECameraProjectionMode::Orthographic;
 	PreviewCapture->OrthoWidth = 100;
 	PreviewCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 	PreviewCapture->SetupAttachment(RootComponent);
 	PreviewCapture->SetRelativeLocationAndRotation(FVector(100, 0, 0), FRotator(0, 180, 0));
 	
-	MiniMapCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMapCapture"));
+	MiniMapCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(FName("MiniMapCapture"));
 	MiniMapCapture->ProjectionType = ECameraProjectionMode::Orthographic;
 	MiniMapCapture->OrthoWidth = 1000;
 	//MiniMapCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 	MiniMapCapture->SetupAttachment(RootComponent);
 	MiniMapCapture->SetRelativeLocationAndRotation(FVector(0, 0, 500), FRotator(0, 90, 0));
-
-	Inventory = nullptr;
 	
 	InventoryData = FInventoryData();
 	InventoryData.Items.SetNum(70);
@@ -105,17 +103,11 @@ ADWPlayerCharacter::ADWPlayerCharacter()
 	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(60, 6));
 	InventoryData.SplitInfos.Add(ESplitSlotType::Skill, FSplitSlotInfo(66, 4));
 
-	// camera
-	CameraTurnRate = 45;
-	CameraLookUpRate = 45;
-	CameraDistanceRange = FVector2D(100, 300);
-
 	// states
 	ControlMode = EControlMode::Fighting;
 	Nature = ECharacterNature::Player;
 
 	// stats
-	InteractDistance = 500;
 	PreviewVoxel = nullptr;
 
 	// inputs
@@ -135,19 +127,15 @@ ADWPlayerCharacter::ADWPlayerCharacter()
 
 void ADWPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
 
 	PlayerInputComponent->SetTickableWhenPaused(true);
 
-	PlayerInputComponent->BindAxis("Turn", this, &ADWPlayerCharacter::TurnCam);
-	PlayerInputComponent->BindAxis("LookUp", this, &ADWPlayerCharacter::LookUpCam);
-
 	PlayerInputComponent->BindAxis("MoveForward", this, &ADWPlayerCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ADWPlayerCharacter::MoveRight);
-	
-	PlayerInputComponent->BindAction("ZoomNear", IE_Pressed, this, &ADWPlayerCharacter::ZoomNear);
-	PlayerInputComponent->BindAction("ZoomFar", IE_Pressed, this, &ADWPlayerCharacter::ZoomFar);
 
 	PlayerInputComponent->BindAction("Revival", IE_Pressed, this, &ADWPlayerCharacter::Revive);
 
@@ -174,23 +162,6 @@ void ADWPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAction("ReleaseSkillAbility2", IE_Pressed, this, &ADWPlayerCharacter::ReleaseSkillAbility2);
 	PlayerInputComponent->BindAction("ReleaseSkillAbility3", IE_Pressed, this, &ADWPlayerCharacter::ReleaseSkillAbility3);
 	PlayerInputComponent->BindAction("ReleaseSkillAbility4", IE_Pressed, this, &ADWPlayerCharacter::ReleaseSkillAbility4);
-
-	PlayerInputComponent->BindAction("UseInventoryItem", IE_Pressed, this, &ADWPlayerCharacter::UseInventoryItem);
-	PlayerInputComponent->BindAction("DiscardInventoryItem", IE_Pressed, this, &ADWPlayerCharacter::DiscardInventoryItem);
-	PlayerInputComponent->BindAction("PrevInventorySlot", IE_Pressed, this, &ADWPlayerCharacter::PrevInventorySlot);
-	PlayerInputComponent->BindAction("NextInventorySlot", IE_Pressed, this, &ADWPlayerCharacter::NextInventorySlot);
-	PlayerInputComponent->BindAction("SelectInventorySlot1", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot1);
-	PlayerInputComponent->BindAction("SelectInventorySlot2", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot2);
-	PlayerInputComponent->BindAction("SelectInventorySlot3", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot3);
-	PlayerInputComponent->BindAction("SelectInventorySlot4", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot4);
-	PlayerInputComponent->BindAction("SelectInventorySlot5", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot5);
-	PlayerInputComponent->BindAction("SelectInventorySlot6", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot6);
-	PlayerInputComponent->BindAction("SelectInventorySlot7", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot7);
-	PlayerInputComponent->BindAction("SelectInventorySlot8", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot8);
-	PlayerInputComponent->BindAction("SelectInventorySlot9", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot9);
-	PlayerInputComponent->BindAction("SelectInventorySlot10", IE_Pressed, this, &ADWPlayerCharacter::SelectInventorySlot10);
-	PlayerInputComponent->BindAction("ToggleInventoryPanel", IE_Pressed, this, &ADWPlayerCharacter::ToggleInventoryPanel);
-	PlayerInputComponent->BindAction("Pause/ContinueGame", IE_Pressed, this, &ADWPlayerCharacter::PauseOrContinueGame);
 }
 
 // Called when the game starts or when spawned
@@ -270,8 +241,6 @@ void ADWPlayerCharacter::Tick(float DeltaTime)
 
 void ADWPlayerCharacter::LoadData(FCharacterData InSaveData)
 {
-	if (!Inventory) Inventory = NewObject<UPlayerInventory>(this);
-
 	Super::LoadData(InSaveData);
 
 	if (!InSaveData.bSaved)
@@ -289,7 +258,7 @@ void ADWPlayerCharacter::LoadRecordData(FPlayerRecordData InRecordData)
 {
 	SetActorLocationAndRotation(InRecordData.Location, InRecordData.Rotation);
 	GetPlayerController()->SetControlRotation(GetActorRotation());
-	GetCameraManager()->SetCameraDistance(InRecordData.CamDistance, true);
+	GetPlayerController()->GetCameraManager()->SetCameraDistance(InRecordData.CamDistance, true);
 }
 
 FPlayerRecordData ADWPlayerCharacter::ToRecordData(bool bSaved)
@@ -299,7 +268,7 @@ FPlayerRecordData ADWPlayerCharacter::ToRecordData(bool bSaved)
 	PlayerRecordData.Name = GetName();
 	PlayerRecordData.Location = GetActorLocation();
 	PlayerRecordData.Rotation = GetActorRotation();
-	PlayerRecordData.CamDistance = GetCameraManager()->GetCameraDistance();
+	PlayerRecordData.CamDistance = GetPlayerController()->GetCameraManager()->GetCameraDistance();
 	return PlayerRecordData;
 }
 
@@ -307,62 +276,6 @@ void ADWPlayerCharacter::UnAttack()
 {
 	Super::UnAttack();
 	AttackAbilityQueue = 0;
-}
-
-void ADWPlayerCharacter::TurnCam(float InRate)
-{
-	AddControllerYawInput(InRate * CameraTurnRate * GetWorld()->GetDeltaSeconds());
-}
-
-void ADWPlayerCharacter::LookUpCam(float InRate)
-{
-	AddControllerPitchInput(InRate * CameraLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-void ADWPlayerCharacter::MoveForward(float InValue)
-{
-	if (GetPlayerController() && !bBreakAllInput)
-	{
-		const FRotator Rotation = GetPlayerController()->GetControlRotation();
-		FVector Direction = FVector();
-		if (bFlying || bSwimming)
-		{
-			Direction = Rotation.Vector();
-		}
-		else
-		{
-			const FRotator YawRotation = FRotator(0, Rotation.Yaw, 0);
-			Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		}
-		AddMovementInput(Direction, InValue);
-	}
-}
-
-void ADWPlayerCharacter::MoveRight(float InValue)
-{
-	if (GetPlayerController() && !bBreakAllInput)
-	{
-		const FRotator Rotation = GetPlayerController()->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Direction, InValue);
-	}
-}
-
-void ADWPlayerCharacter::ZoomNear()
-{
-	if (GetCameraManager() != nullptr)
-	{
-		GetCameraManager()->ZoomCamera(-50);
-	}
-}
-
-void ADWPlayerCharacter::ZoomFar()
-{
-	if (GetCameraManager() != nullptr)
-	{
-		GetCameraManager()->ZoomCamera(50);
-	}
 }
 
 void ADWPlayerCharacter::Active(bool bResetData)
@@ -448,11 +361,14 @@ void ADWPlayerCharacter::AttackStart()
 	{
 		case EAttackType::NormalAttack:
 		case EAttackType::FallingAttack:
+		{
 			if (AttackAbilityQueue > 0)
 			{
 				AttackAbilityQueue--;
 			}
 			break;
+		}
+		default: break;
 	}
 }
 
@@ -481,7 +397,7 @@ void ADWPlayerCharacter::UpdateVoxelMesh()
 	auto tmpItem = UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedItem();
 	if (tmpItem.IsValid() && tmpItem.GetData().Type == EItemType::Voxel)
 	{
-		PreviewVoxel = UVoxel::NewVoxel(tmpItem.ID, this);
+		PreviewVoxel = UVoxel::NewVoxel(this, tmpItem.ID);
 		VoxelMesh->BuildVoxel(PreviewVoxel);
 		VoxelMesh->CreateMesh(0, false);
 	}
@@ -681,6 +597,61 @@ void ADWPlayerCharacter::HandleExpendSpeedAttribute(float NewValue, float DeltaV
 	Super::HandleExpendSpeedAttribute(NewValue, DeltaValue);
 }
 
+bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
+{
+	if (GetPlayerController() != nullptr)
+	{
+		FHitResult hitResult;
+		if (GetPlayerController()->RaycastFromAimPoint(hitResult, EGameTraceType::Voxel, InteractDistance))
+		{
+			if (hitResult.GetActor()->IsA(AChunk::StaticClass()))
+			{
+				AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
+				if (chunk != nullptr)
+				{
+					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+					if (UVoxel::IsValid(voxel))
+					{
+						OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+void ADWPlayerCharacter::MoveForward(float InValue)
+{
+	if (GetPlayerController() && !bBreakAllInput)
+	{
+		FVector Direction;
+		const FRotator Rotation = GetPlayerController()->GetControlRotation();
+		if (bFlying || bSwimming)
+		{
+			Direction = Rotation.Vector();
+		}
+		else
+		{
+			const FRotator YawRotation = FRotator(0, Rotation.Yaw, 0);
+			Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		}
+		AddMovementInput(Direction, InValue);
+	}
+}
+
+void ADWPlayerCharacter::MoveRight(float InValue)
+{
+	if (GetPlayerController() && !bBreakAllInput)
+	{
+		const FRotator Rotation = GetPlayerController()->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Direction, InValue);
+	}
+}
+
 void ADWPlayerCharacter::ToggleLockSightTarget()
 {
 	if (bBreakAllInput) return;
@@ -795,9 +766,30 @@ void ADWPlayerCharacter::OnSprintReleased()
 	bPressedSprint = false;
 }
 
+bool ADWPlayerCharacter::OnUseItem(FItem& InItem)
+{
+	switch (InItem.GetData().Type)
+	{
+		case EItemType::Voxel:
+		{
+			if(ControlMode == EControlMode::Creating)
+			{
+				return Super::OnUseItem(InItem);
+			}
+			break;
+		}
+		case EItemType::Prop:
+		{
+			return Super::OnUseItem(InItem);
+		}
+		default: break;
+	}
+	return false;
+}
+
 void ADWPlayerCharacter::OnAttackDestroyPressed()
 {
-	if (bBreakAllInput) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -833,7 +825,7 @@ void ADWPlayerCharacter::OnAttackDestroyPressed()
 
 void ADWPlayerCharacter::OnAttackDestroyRepeat()
 {
-	if (bBreakAllInput) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -880,7 +872,7 @@ void ADWPlayerCharacter::OnAttackDestroyReleased()
 
 void ADWPlayerCharacter::OnDefendGeneratePressed()
 {
-	if (bBreakAllInput) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -906,7 +898,7 @@ void ADWPlayerCharacter::OnDefendGeneratePressed()
 
 void ADWPlayerCharacter::OnDefendGenerateRepeat()
 {
-	if (bBreakAllInput) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -980,134 +972,7 @@ void ADWPlayerCharacter::ReleaseSkillAbility4()
 	}
 }
 
-void ADWPlayerCharacter::ToggleInventoryPanel()
-{
-	UWidgetModuleBPLibrary::ToggleUserWidget<UWidgetInventoryPanel>(this);
-}
-
-void ADWPlayerCharacter::UseInventoryItem()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlot()->UseItem(1);
-}
-
-void ADWPlayerCharacter::DiscardInventoryItem()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlot()->DiscardItem(1);
-}
-
-void ADWPlayerCharacter::PrevInventorySlot()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->PrevInventorySlot();
-}
-
-void ADWPlayerCharacter::NextInventorySlot()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->NextInventorySlot();
-}
-
-void ADWPlayerCharacter::SelectInventorySlot1()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(0);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot2()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(1);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot3()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(2);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot4()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(3);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot5()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(4);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot6()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(5);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot7()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(6);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot8()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(7);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot9()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(8);
-}
-
-void ADWPlayerCharacter::SelectInventorySlot10()
-{
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->SelectInventorySlot(9);
-}
-
-void ADWPlayerCharacter::PauseOrContinueGame()
-{
-	if (ADWGameState* GameState = UDWHelper::GetGameState(this))
-	{
-		if (ADWGameMode* GameMode = UDWHelper::GetGameMode(this))
-		{
-			if (GameState->GetCurrentState() != EGameState::Pausing)
-			{
-				GameMode->PauseGame();
-			}
-			else
-			{
-				GameMode->UnPauseGame();
-			}
-		}
-	}
-}
-
-bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
-{
-	if (GetPlayerController() != nullptr)
-	{
-		FHitResult hitResult;
-		if (GetPlayerController()->RaycastFromAimPoint(hitResult, EGameTraceType::Voxel, InteractDistance))
-		{
-			if (hitResult.GetActor()->IsA(AChunk::StaticClass()))
-			{
-				AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
-				if (chunk != nullptr)
-				{
-					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
-					if (UVoxel::IsValid(voxel))
-					{
-						OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);
-						return true;
-					}
-				}
-			}
-		}
-	}
-	return false;
-}
-
 ADWPlayerCharacterController* ADWPlayerCharacter::GetPlayerController() const
 {
 	return GetController<ADWPlayerCharacterController>();
-}
-
-ADWPlayerCharacterCameraManager* ADWPlayerCharacter::GetCameraManager() const
-{
-	if(GetPlayerController() != nullptr)
-	{
-		return Cast<ADWPlayerCharacterCameraManager>(GetPlayerController()->PlayerCameraManager);
-	}
-	return nullptr;
 }

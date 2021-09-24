@@ -5,6 +5,7 @@
 
 UWidgetRoleChoosingPanel::UWidgetRoleChoosingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	WidgetName = FName("RoleChoosingPanel");
 	WidgetType = EWidgetType::Temporary;
 	InputMode = EInputMode::UIOnly;
 }

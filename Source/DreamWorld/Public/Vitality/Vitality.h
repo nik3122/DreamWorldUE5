@@ -30,9 +30,9 @@ public:
 
 	virtual void RefreshData() = 0;
 	
-	virtual void ModifyHealth(float InDetlaValue) = 0;
+	virtual void ModifyHealth(float InDeltaValue) = 0;
 	
-	virtual void ModifyEXP(float InDetlaValue) = 0;
+	virtual void ModifyEXP(float InDeltaValue) = 0;
 
 	virtual bool IsDead() const = 0;
 	

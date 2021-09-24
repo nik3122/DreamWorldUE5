@@ -20,22 +20,18 @@ class DREAMWORLD_API UWidgetInventorySkillSlot : public UWidgetInventorySlot
 public:
 	UWidgetInventorySkillSlot(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	FDWAbilityInfo AbilityInfo;
-
 public:
 	virtual void InitSlot(UInventorySlot* InOwnerSlot) override;
-	
-	UFUNCTION(BlueprintCallable)
-	bool ActiveSkill();
-		
-	UFUNCTION(BlueprintCallable)
-	bool CancelSkill();
 
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void StartCooldown();
-	
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
-	void StopCooldown();
+	virtual void UseItem(int InCount) override;
+
+public:
+	virtual void Refresh() override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (BindWidget, OptionalWidget = false))
+	class UTextBlock* TxtCost;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (BindWidget, OptionalWidget = false))
+	class UTextBlock* TxtName;
 };

@@ -4,6 +4,7 @@
 
 #include "DWPlayerCharacter.h"
 #include "WidgetInventoryBar.h"
+#include "WidgetModuleBPLibrary.h"
 #include "Inventory/Inventory.h"
 #include "Inventory/Slot/InventorySlot.h"
 

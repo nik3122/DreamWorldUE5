@@ -4,9 +4,9 @@
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
-FItem FItem::Empty = FItem();
+FItem FItem::Empty = FItem(NAME_None, 0, 0);
 
-const FIndex FIndex::ZeroIndex = FIndex();
+const FIndex FIndex::ZeroIndex = FIndex(0, 0, 0);
 
 const FIndex FIndex::OneIndex = FIndex(1, 1, 1);
 

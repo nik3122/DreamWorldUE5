@@ -5,7 +5,7 @@
 #include "DWCharacterAttributeSet.generated.h"
 
 /**
- * ½ÇÉ«ÊôÐÔ¼¯
+ * è§’è‰²å±žæ€§é›†
  */
 UCLASS()
 class DREAMWORLD_API UDWCharacterAttributeSet : public UDWAttributeSet

@@ -1,13 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+	// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Vitality/VitalityObject.h"
+
+#include "VitalityInventory.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/DWCharacter.h"
 #include "WidgetComponent.h"
-#include "Widget/Worlds/WidgetWorldText.h"
-#include "Widget/Worlds/WidgetVitalityHP.h"
+#include "Widget/Other/WidgetWorldText.h"
+#include "Widget/Other/WidgetVitalityHP.h"
 #include "Widget/Components/WidgetVitalityHPComponent.h"
 #include "Widget/Components/WidgetWorldTextComponent.h"
 #include "World/Chunk.h"
@@ -22,12 +24,12 @@ AVitalityObject::AVitalityObject()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-	BoxComponent->SetCollisionProfileName(TEXT("DW_Vitality"));
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(FName("BoxComponent"));
+	BoxComponent->SetCollisionProfileName(FName("DW_Vitality"));
 	BoxComponent->SetBoxExtent(FVector(20, 20, 20));
 	SetRootComponent(BoxComponent);
 
-	WidgetVitalityHP = CreateDefaultSubobject<UWidgetVitalityHPComponent>(TEXT("WidgetVitalityHP"));
+	WidgetVitalityHP = CreateDefaultSubobject<UWidgetVitalityHPComponent>(FName("WidgetVitalityHP"));
 	WidgetVitalityHP->SetupAttachment(RootComponent);
 	WidgetVitalityHP->SetWidgetClass(UDWHelper::LoadWidgetVitalityHPClass());
 	WidgetVitalityHP->SetWidgetSpace(EWidgetSpace::Screen);
@@ -36,9 +38,11 @@ AVitalityObject::AVitalityObject()
 	WidgetVitalityHP->SetRelativeLocation(FVector(0, 0, 50));
 	WidgetVitalityHP->SetVisibility(false);
 	
-	AbilitySystem = CreateDefaultSubobject<UDWAbilitySystemComponent>(TEXT("AbilitySystem"));
+	AbilitySystem = CreateDefaultSubobject<UDWAbilitySystemComponent>(FName("AbilitySystem"));
 
-	AttributeSet = CreateDefaultSubobject<UDWAttributeSet>(TEXT("AttributeSet"));
+	AttributeSet = CreateDefaultSubobject<UDWAttributeSet>(FName("AttributeSet"));
+	
+	Inventory = CreateDefaultSubobject<UVitalityInventory>(FName("Inventory"));
 
 	// states
 	bDead = true;
@@ -56,7 +60,6 @@ AVitalityObject::AVitalityObject()
 	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 4));
 
 	OwnerChunk = nullptr;
-	Inventory = nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -78,12 +81,14 @@ void AVitalityObject::BeginPlay()
 void AVitalityObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if(bDead) return;
+
+	Inventory->Refresh(DeltaTime);
 }
 
 void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 {
-	if (!Inventory) Inventory = NewObject<UInventory>(this);
-
 	if (InSaveData.bSaved)
 	{
 		SetName(InSaveData.Name);
@@ -106,7 +111,7 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 		const auto ItemDatas = UDWHelper::LoadItemDatas();
 		if(ItemDatas.Num() > 0 && FMath::FRand() < 0.2f)
 		{
-			InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID));
+			InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID, 1));
 		}
 		Inventory->LoadData(InventoryData, this);
 	}
@@ -114,7 +119,7 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 
 FVitalityObjectData AVitalityObject::ToData(bool bSaved)
 {
-	auto SaveData = FVitalityObjectData();
+	FVitalityObjectData SaveData;
 
 	SaveData.bSaved = bSaved;
 
@@ -349,16 +354,16 @@ void AVitalityObject::CancelAllAbilities(UDWGameplayAbility* Ignore/*=nullptr*/)
 	}
 }
 
-void AVitalityObject::ModifyHealth(float InDetlaValue)
+void AVitalityObject::ModifyHealth(float InDeltaValue)
 {
-	AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetHealthAttribute(), EGameplayModOp::Additive, InDetlaValue);
+	AbilitySystem->ApplyModToAttributeUnsafe(AttributeSet->GetHealthAttribute(), EGameplayModOp::Additive, InDeltaValue);
 }
 
-void AVitalityObject::ModifyEXP(float InDetlaValue)
+void AVitalityObject::ModifyEXP(float InDeltaValue)
 {
 	const int32 MaxEXP = GetMaxEXP();
-	EXP += InDetlaValue;
-	if (InDetlaValue > 0.f)
+	EXP += InDeltaValue;
+	if (InDeltaValue > 0.f)
 	{
 		if (EXP >= MaxEXP)
 		{

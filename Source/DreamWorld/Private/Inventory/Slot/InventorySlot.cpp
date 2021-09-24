@@ -50,86 +50,74 @@ bool UInventorySlot::Contains(FItem InItem)
 
 void UInventorySlot::Refresh()
 {
-	if (Item.Count == 0)
+	if (!IsEmpty() && Item.Count <= 0)
 	{
-		SetItem(FItem::Empty);
+		SetItem(FItem::Empty, false);
 	}
 	if (UISlot) UISlot->Refresh();
 }
 
 void UInventorySlot::PreSet(FItem& InItem)
 {
-	if(InItem.Count <= 0)
-	{
-		InItem = FItem::Empty;
-	}
+	
 }
 
 void UInventorySlot::EndSet()
 {
-	if(!Item.IsValid())
+	if(Item.IsValid())
+	{
+		IVitality* vitality = Cast<IVitality>(Owner->GetOwnerActor());
+		if (vitality && Item.GetData().AbilityClass)
+		{
+			AbilityHandle = vitality->AcquireAbility(Item.GetData().AbilityClass, Item.GetData().Level);
+		}
+	}
+	else
 	{
 		AbilityHandle = FGameplayAbilitySpecHandle();
 	}
 }
 
-void UInventorySlot::SetItem(FItem& InItem, bool bReplace)
+void UInventorySlot::Replace(UInventorySlot* InSlot)
 {
-	if (InItem.IsValid())
-	{
-		if (!bReplace)
-		{
-			SetItem(InItem);
-			int tmpNum = InItem.Count - GetMaxVolume();
-			Item.Count = FMath::Clamp(Item.Count, 0, GetMaxVolume());
-			InItem.Count = tmpNum;
+	auto tmpItem = GetItem();
+	SetItem(InSlot->GetItem());
+	InSlot->SetItem(tmpItem);
 
-			IVitality* vitality = Cast<IVitality>(Owner->GetOwnerActor());
-			if (vitality && InItem.GetData().AbilityClass)
-			{
-				AbilityHandle = vitality->AcquireAbility(InItem.GetData().AbilityClass, InItem.GetData().Level);
-			}
-		}
-		else
-		{
-			FItem tmpItem = Item;
-			SetItem(InItem);
-			InItem = tmpItem;
-		}
-	}
-	else
-	{
-		SetItem(InItem);
-	}
-	Refresh();
+	// const auto abilityHandle = GetAbilityHandle();
+	// SetAbilityHandle(InSlot->GetAbilityHandle());
+	// InSlot->SetAbilityHandle(abilityHandle);
+
+	const auto cooldownInfo = GetCooldownInfo();
+	SetCooldownInfo(InSlot->GetCooldownInfo());
+	InSlot->SetCooldownInfo(cooldownInfo);
 }
 
-void UInventorySlot::SetItem(FItem& InItem)
+void UInventorySlot::SetItem(FItem& InItem, bool bRefresh)
 {
 	PreSet(InItem);
 	Item = InItem;
+	Item.Count = FMath::Clamp(Item.Count, 0, GetMaxVolume());
 	EndSet();
+	if(bRefresh)
+	{
+		Refresh();
+	}
 }
 
 void UInventorySlot::AddItem(FItem& InItem)
 {
 	if (Contains(InItem))
 	{
-		if (GetRemainVolume() > 0)
-		{
-			int tmpNum = InItem.Count - GetRemainVolume();
-			Item.Count = FMath::Clamp(Item.Count + InItem.Count, 0, GetMaxVolume());
-			InItem.Count = tmpNum;
-			Refresh();
-		}
-		else
-		{
-			SetItem(InItem, true);
-		}
+		int tmpNum = InItem.Count - GetRemainVolume();
+		Item.Count = FMath::Clamp(Item.Count + InItem.Count, 0, GetMaxVolume());
+		InItem.Count = tmpNum;
+		Refresh();
 	}
 	else
 	{
-		SetItem(InItem, false);
+		SetItem(InItem);
+		InItem.Count -= GetMaxVolume();
 	}
 }
 
@@ -188,11 +176,11 @@ void UInventorySlot::MoveItem(int InCount /*= -1*/)
 			{
 				if(GetSplitType() != ESplitSlotType::Shortcut)
 				{
-					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Shortcut);
 				}
 				else
 				{
-					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Default).StartIndex);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Default);
 				}
 				break;
 			}
@@ -200,20 +188,12 @@ void UInventorySlot::MoveItem(int InCount /*= -1*/)
 			{
 				if(GetSplitType() != ESplitSlotType::Equip)
 				{
-					// TArray<UInventoryEquipSlot*> EquipSlots = Owner->GetSplitSlots<UInventoryEquipSlot>(ESplitSlotType::Equip);
-					// if(EquipSlots.IsValidIndex((int32)UDWHelper::LoadEquipData(Item.ID).PartType))
-					// {
-					// 	UInventoryEquipSlot* EquipSlot = EquipSlots[(int32)UDWHelper::LoadEquipData(Item.ID).PartType];
-					// 	if(EquipSlot->CanPutIn(tmpItem))
-					// 	{
-					// 		EquipSlot->AddItem(tmpItem);
-					// 	}
-					// }
-					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Equip).StartIndex);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Equip);
 				}
 				else
 				{
-					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Default).StartIndex);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Default);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Shortcut);
 				}
 				break;
 			}
@@ -221,11 +201,12 @@ void UInventorySlot::MoveItem(int InCount /*= -1*/)
 			{
 				if(GetSplitType() != ESplitSlotType::Skill)
 				{
-					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Skill).StartIndex);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Skill);
 				}
 				else
 				{
-					Owner->AdditionItems(tmpItem, Owner->GetSplitSlotInfo(ESplitSlotType::Default).StartIndex);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Default);
+					Owner->AdditionItems(tmpItem, ESplitSlotType::Shortcut);
 				}
 				break;
 			}
@@ -233,18 +214,8 @@ void UInventorySlot::MoveItem(int InCount /*= -1*/)
 		}
 	}
 
-	if (InCount != -1)
-	{
-		Item.Count -= tmpItem.Count;
-		if(Item.Count > 0)
-		{
-			SubItem(Item);
-		}
-	}
-	else
-	{
-		ClearItem();
-	}
+	tmpItem.Count = Item.Count - tmpItem.Count;
+	SubItem(tmpItem);
 }
 
 void UInventorySlot::UseItem(int InCount /*= -1*/)
@@ -252,23 +223,49 @@ void UInventorySlot::UseItem(int InCount /*= -1*/)
 	if (IsEmpty()) return;
 
 	if (InCount == -1) InCount = Item.Count;
-	FItem tmpItem = FItem::Clone(Item, InCount);
+	
 	switch (Item.GetData().Type)
 	{
 		case EItemType::Voxel:
 		{
-			SubItem(tmpItem);
+			if(ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(GetOwner()->GetOwnerActor()))
+			{
+				for(int32 i = 0; i < InCount; i ++)
+				{
+					FItem tmpItem = FItem::Clone(Item, 1);
+					if(OwnerCharacter->OnUseItem(tmpItem))
+					{
+						SubItem(tmpItem);
+					}
+					else break;
+				}
+			}
 			break;
 		}
 		case EItemType::Prop:
 		{
-			SubItem(tmpItem);
-			ActiveItem();
+			if(ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(GetOwner()->GetOwnerActor()))
+			{
+				for(int32 i = 0; i < InCount; i ++)
+				{
+					FItem tmpItem = FItem::Clone(Item, 1);
+					if(OwnerCharacter->OnUseItem(tmpItem) && ActiveItem())
+					{
+						SubItem(tmpItem);
+					}
+					else break;
+				}
+			}
 			break;
 		}
 		case EItemType::Equip:
 		{
-			MoveItem();
+			MoveItem(InCount);
+			break;
+		}
+		case EItemType::Skill:
+		{
+			MoveItem(InCount);
 			break;
 		}
 		default: break;
@@ -291,23 +288,25 @@ void UInventorySlot::DiscardItem(int InCount /*= -1*/)
 
 bool UInventorySlot::ActiveItem()
 {
-	if (IsEmpty()) return false;
-
-	if(IVitality* Vitality = Cast<IVitality>(GetOwner()->GetOwnerActor()))
+	if(AbilityHandle.IsValid())
 	{
-		return Vitality->ActiveAbility(AbilityHandle);
+		if(IVitality* Vitality = Cast<IVitality>(GetOwner()->GetOwnerActor()))
+		{
+			return Vitality->ActiveAbility(AbilityHandle);
+		}
 	}
     return false;
 }
 
 bool UInventorySlot::CancelItem()
 {
-	if (IsEmpty()) return false;
-
-	if(IVitality* Vitality = Cast<IVitality>(GetOwner()->GetOwnerActor()))
+	if(AbilityHandle.IsValid())
 	{
-		Vitality->CancelAbility(AbilityHandle);
-		return true;
+		if(IVitality* Vitality = Cast<IVitality>(GetOwner()->GetOwnerActor()))
+		{
+			Vitality->CancelAbility(AbilityHandle);
+			return true;
+		}
 	}
 	return false;
 }
@@ -316,7 +315,36 @@ void UInventorySlot::ClearItem()
 {
 	if (IsEmpty()) return;
 
-	SetItem(FItem::Empty, false);
+	SetItem(FItem::Empty);
+}
+
+void UInventorySlot::StartCooldown()
+{
+	CooldownInfo.bCooldowning = true;
+	CooldownInfo.TotalTime = GetAbilityInfo().Cooldown;
+	CooldownInfo.RemainTime = CooldownInfo.TotalTime;
+}
+
+void UInventorySlot::StopCooldown()
+{
+	CooldownInfo.bCooldowning = false;
+	CooldownInfo.RemainTime = 0.f;
+}
+
+void UInventorySlot::RefreshCooldown(float DeltaSeconds)
+{
+	if(CooldownInfo.bCooldowning)
+	{
+		CooldownInfo.RemainTime -= DeltaSeconds;
+		if(CooldownInfo.RemainTime <= 0.f)
+		{
+			StopCooldown();
+		}
+	}
+	if(UISlot)
+	{
+		UISlot->RefreshCooldown();
+	}
 }
 
 bool UInventorySlot::IsEmpty() const
@@ -331,5 +359,15 @@ int UInventorySlot::GetRemainVolume() const
 
 int UInventorySlot::GetMaxVolume() const
 {
-	return Item.GetData().MaxCount;
+	return Item.IsValid() ? Item.GetData().MaxCount : 0;
+}
+
+FDWAbilityInfo UInventorySlot::GetAbilityInfo() const
+{
+	FDWAbilityInfo AbilityInfo;
+	if(ADWCharacter* Character = Cast<ADWCharacter>(Owner->GetOwnerActor()))
+	{
+		Character->GetAbilityInfo(Item.GetData().AbilityClass, AbilityInfo);
+	}
+	return AbilityInfo;
 }

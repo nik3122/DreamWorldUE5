@@ -12,7 +12,7 @@
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 /**
- * 属性集
+ * 灞炴�ч泦
  */
 UCLASS()
 class DREAMWORLD_API UDWAttributeSet : public UAttributeSet
@@ -45,6 +45,9 @@ public:
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData &Data) override;
 
 protected:
-	/** 当MaxAttribute发生改变时按比例设置Attribute */
+	/** 褰揗axAttribute鍙戠敓鏀瑰彉鏃舵寜姣斾緥璁剧疆Attribute */
 	void AdjustAttributeForMaxChange(FGameplayAttributeData& AffectedAttribute, const FGameplayAttributeData& MaxAttribute, float NewMaxValue, const FGameplayAttribute& AffectedAttributeProperty);
+
+public:
+	FGameplayAttributeData* GetAttributeData(const FGameplayAttribute& Attribute);
 };

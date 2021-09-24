@@ -20,6 +20,12 @@ UInventory::UInventory()
 
 void UInventory::Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSlotInfo> InSplitInfos)
 {
+	for (auto Iter : Slots)
+	{
+		Iter->ConditionalBeginDestroy();
+	}
+	Slots.Empty();
+	
 	OwnerActor = InOwner;
 	SplitInfos = InSplitInfos;
 	for (auto Iter : SplitInfos)
@@ -72,17 +78,23 @@ void UInventory::Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSlotInfo
 	}
 }
 
+void UInventory::Refresh(float DeltaSeconds)
+{
+	for(int32 i = 0; i < Slots.Num(); i++)
+	{
+		if(Slots.IsValidIndex(i) && Slots[i])
+		{
+			Slots[i]->RefreshCooldown(DeltaSeconds);
+		}
+	}
+}
+
 void UInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
 {
 	Initialize(InOwner, InInventoryData.SplitInfos);
 	for (int32 i = 0; i < Slots.Num(); i++)
 	{
 		Slots[i]->SetItem(InInventoryData.Items.IsValidIndex(i) ? InInventoryData.Items[i] : FItem::Empty);
-		IVitality* tmpVitality = Cast<IVitality>(OwnerActor);
-		if (tmpVitality && InInventoryData.Items[i].GetData().AbilityClass)
-		{
-			Slots[i]->SetAbilityHandle(tmpVitality->AcquireAbility(InInventoryData.Items[i].GetData().AbilityClass, InInventoryData.Items[i].GetData().Level));
-		}
 	}
 }
 
@@ -100,10 +112,10 @@ FInventoryData UInventory::ToData(bool bSaved)
 	return data;
 }
 
-void UInventory::AdditionItems(FItem& InItem, int InStartIndex)
+void UInventory::AdditionItems(FItem& InItem, int32 InStartIndex, int32 InEndIndex)
 {
 	FItem tmpItem = FItem::Clone(InItem);
-	auto tmpList = GetValidatedList(EInventoryActionType::Addition, tmpItem, InStartIndex);
+	auto tmpList = GetValidatedList(EInventoryActionType::Addition, tmpItem, InStartIndex, InEndIndex);
 	for (int i = 0; i < tmpList.Num(); i++)
 	{
 		tmpList[i]->AddItem(InItem);
@@ -111,15 +123,27 @@ void UInventory::AdditionItems(FItem& InItem, int InStartIndex)
 	}
 }
 
-void UInventory::RemoveItems(FItem& InItem, int InStartIndex)
+void UInventory::AdditionItems(FItem& InItem, ESplitSlotType InSplitSlotType)
+{
+	const FSplitSlotInfo SplitSlotInfo = GetSplitSlotInfo(InSplitSlotType);
+	AdditionItems(InItem, SplitSlotInfo.StartIndex, SplitSlotInfo.StartIndex + SplitSlotInfo.TotalCount);
+}
+
+void UInventory::RemoveItems(FItem& InItem, int32 InStartIndex, int32 InEndIndex)
 {
 	FItem tmpItem = FItem::Clone(InItem);
-	auto tmpList = GetValidatedList(EInventoryActionType::Remove, tmpItem, InStartIndex);
+	auto tmpList = GetValidatedList(EInventoryActionType::Remove, tmpItem, InStartIndex, InEndIndex);
 	for (int i = 0; i < tmpList.Num(); i++)
 	{
 		tmpList[i]->SubItem(InItem);
 		if (InItem.Count <= 0) break;
 	}
+}
+
+void UInventory::RemoveItems(FItem& InItem, ESplitSlotType InSplitSlotType)
+{
+	const FSplitSlotInfo SplitSlotInfo = GetSplitSlotInfo(InSplitSlotType);
+	RemoveItems(InItem, SplitSlotInfo.StartIndex, SplitSlotInfo.StartIndex + SplitSlotInfo.TotalCount);
 }
 
 void UInventory::ClearItems(FItem& InItem)
@@ -128,7 +152,7 @@ void UInventory::ClearItems(FItem& InItem)
 	auto tmpList = GetValidatedList(EInventoryActionType::Clear, tmpItem);
 	for (int i = 0; i < tmpList.Num(); i++)
 	{
-		tmpList[i]->SetItem(FItem::Empty);
+		tmpList[i]->ClearItem();
 	}
 }
 
@@ -148,11 +172,12 @@ void UInventory::ClearAll()
 	}
 }
 
-TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int InStartIndex)
+TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int32 InStartIndex, int32 InEndIndex)
 {
 	auto tmpList = TArray<UInventorySlot*>();
 	if (InItem.Count <= 0) return tmpList;
 	InStartIndex = FMath::Clamp(InStartIndex, 0, Slots.Num() - 1);
+	if(InEndIndex != -1) InEndIndex = FMath::Clamp(InEndIndex, InStartIndex, Slots.Num() - 1);
 	switch (InActionType)
 	{
 		case EInventoryActionType::Addition:
@@ -166,7 +191,7 @@ TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActi
 					if (InItem.Count <= 0) return tmpList;
 				}
 			}
-			for (int i = 0; i < Slots.Num(); i++)
+			for (int32 i = (InEndIndex == -1 ? 0 : InStartIndex); i < (InEndIndex == -1 ? Slots.Num() : InEndIndex); i++)
 			{
 				if (Slots[i]->Contains(InItem) && Slots[i]->CanPutIn(InItem))
 				{
@@ -178,7 +203,7 @@ TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActi
 					}
 				}
 			}
-			for (int i = 0; i < Slots.Num(); i++)
+			for (int32 i = (InEndIndex == -1 ? 0 : InStartIndex); i < (InEndIndex == -1 ? Slots.Num() : InEndIndex); i++)
 			{
 				if (Slots[i]->CanPutIn(InItem))
 				{
@@ -203,7 +228,7 @@ TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActi
 					if (InItem.Count <= 0) return tmpList;
 				}
 			}
-			for (int i = 0; i < Slots.Num(); i++)
+			for (int32 i = (InEndIndex == -1 ? 0 : InStartIndex); i < (InEndIndex == -1 ? Slots.Num() : InEndIndex); i++)
 			{
 				if (Slots[i]->Contains(InItem))
 				{
@@ -219,7 +244,7 @@ TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActi
 		}
 		case EInventoryActionType::Clear:
 		{
-			for (int i = 0; i < Slots.Num(); i++)
+			for (int32 i = (InEndIndex == -1 ? 0 : InStartIndex); i < (InEndIndex == -1 ? Slots.Num() : InEndIndex); i++)
 			{
 				if (Slots[i]->Contains(InItem))
 				{
@@ -233,9 +258,20 @@ TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActi
 	return tmpList;
 }
 
-FSplitSlotInfo UInventory::GetSplitSlotInfo(ESplitSlotType InSplitSlotType)
+TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActionType, FItem& InItem, ESplitSlotType InSplitSlotType)
 {
-	if(SplitInfos.Contains(InSplitSlotType))
+	const FSplitSlotInfo SplitSlotInfo = GetSplitSlotInfo(InSplitSlotType);
+	return GetValidatedList(InActionType, InItem, SplitSlotInfo.StartIndex, SplitSlotInfo.StartIndex + SplitSlotInfo.TotalCount);
+}
+
+bool UInventory::HasSplitSlotInfo(ESplitSlotType InSplitSlotType) const
+{
+	return SplitInfos.Contains(InSplitSlotType);
+}
+
+FSplitSlotInfo UInventory::GetSplitSlotInfo(ESplitSlotType InSplitSlotType) const
+{
+	if(HasSplitSlotInfo(InSplitSlotType))
 	{
 		return SplitInfos[InSplitSlotType];
 	}

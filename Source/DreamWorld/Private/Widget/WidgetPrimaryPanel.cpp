@@ -7,6 +7,7 @@
 
 UWidgetPrimaryPanel::UWidgetPrimaryPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	WidgetName = FName("PrimaryPanel");
 	WidgetType = EWidgetType::Permanent;
 	InputMode = EInputMode::GameOnly;
 }

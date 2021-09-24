@@ -120,10 +120,10 @@ public:
 	virtual void CancelAllAbilities(UDWGameplayAbility* Ignore=nullptr) override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyHealth(float InDetlaValue) override;
+	virtual void ModifyHealth(float InDeltaValue) override;
 				
 	UFUNCTION(BlueprintCallable)
-	virtual void ModifyEXP(float InDetlaValue) override;
+	virtual void ModifyEXP(float InDeltaValue) override;
 
 public:
 	UFUNCTION(BlueprintCallable)

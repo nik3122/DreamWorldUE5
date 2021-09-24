@@ -4,7 +4,7 @@
 #include "Widget/Components/WidgetCharacterHPComponent.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Character/DWCharacter.h"
-#include "Widget/Worlds/WidgetCharacterHP.h"
+#include "Widget/Other/WidgetCharacterHP.h"
 
 UWidgetCharacterHPComponent::UWidgetCharacterHPComponent()
 {

@@ -22,13 +22,13 @@ class DREAMWORLD_API UDWHelper : public UBlueprintFunctionLibrary
 	//////////////////////////////////////////////////////////////////////////
 	// References
 private:
-	static ADWGameMode* CurrentGameMode;
+	static class ADWGameMode* CurrentGameMode;
 
-	static ADWGameState* CurrentGameState;
+	static class ADWGameState* CurrentGameState;
 
-	static UDWGameInstance* CurrentGameInstance;
+	static class UDWGameInstance* CurrentGameInstance;
 
-	static ADWPlayerCharacterController* CurrentPlayerController;
+	static class ADWPlayerCharacterController* CurrentPlayerController;
 
 public:
 	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
@@ -45,6 +45,12 @@ public:
 	
 	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
 	static class ADWPlayerCharacterController* GetPlayerController(const UObject* InWorldContext);
+
+	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
+	static class ADWMainModule* GetMainModule(const UObject* InWorldContext);
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static class AWorldManager* GetWorldManager();
 
 	//////////////////////////////////////////////////////////////////////////
 	// Datas
@@ -155,21 +161,76 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Classes
 private:
-	static TSubclassOf<UWidgetVitalityHP> WidgetVitalityHPClass;
+	static TSubclassOf<class UWidgetMainMenu> WidgetMainMenuClass;
 
-	static TSubclassOf<UWidgetCharacterHP> WidgetCharacterHPClass;
+	static TSubclassOf<class UWidgetSettingPanel> WidgetSettingPanelClass;
+	
+	static TSubclassOf<class UWidgetLoadingPanel> WidgetLoadingPanelClass;
 
-	static TSubclassOf<UWidgetWorldText> WidgetWorldTextClass;
+	static TSubclassOf<class UWidgetPausingMenu> WidgetPausingMenuClass;
+
+	static TSubclassOf<class UWidgetPrimaryPanel> WidgetPrimaryPanelClass;
+
+	static TSubclassOf<class UWidgetRoleChoosingPanel> WidgetRoleChoosingPanelClass;
+
+	static TSubclassOf<class UWidgetRoleCreatingPanel> WidgetRoleCreatingPanelClass;
+
+	static TSubclassOf<class UWidgetWorldChoosingPanel> WidgetWorldChoosingPanelClass;
+
+	static TSubclassOf<class UWidgetWorldCreatingPanel> WidgetWorldCreatingPanelClass;
+
+	static TSubclassOf<class UWidgetInventoryBar> WidgetInventoryBarClass;
+
+	static TSubclassOf<class UWidgetInventoryPanel> WidgetInventoryPanelClass;
+
+	static TSubclassOf<class UWidgetCharacterHP> WidgetCharacterHPClass;
+
+	static TSubclassOf<class UWidgetVitalityHP> WidgetVitalityHPClass;
+
+	static TSubclassOf<class UWidgetWorldText> WidgetWorldTextClass;
 
 public:
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
-	static TSubclassOf<UWidgetCharacterHP> LoadWidgetCharacterHPClass();
-	
-	UFUNCTION(BlueprintPure, Category = "DWHelper")
-	static TSubclassOf<UWidgetVitalityHP> LoadWidgetVitalityHPClass();
+	static TSubclassOf<class UWidgetMainMenu> LoadWidgetMainMenuClass();
 
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
-	static TSubclassOf<UWidgetWorldText> LoadWidgetWorldTextClass();
+	static TSubclassOf<class UWidgetSettingPanel> LoadWidgetSettingPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetLoadingPanel> LoadWidgetLoadingPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetPausingMenu> LoadWidgetPausingMenuClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetPrimaryPanel> LoadWidgetPrimaryPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetRoleChoosingPanel> LoadWidgetRoleChoosingPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetRoleCreatingPanel> LoadWidgetRoleCreatingPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetWorldChoosingPanel> LoadWidgetWorldChoosingPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetWorldCreatingPanel> LoadWidgetWorldCreatingPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetInventoryBar> LoadWidgetInventoryBarClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetInventoryPanel> LoadWidgetInventoryPanelClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetCharacterHP> LoadWidgetCharacterHPClass();
+	
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetVitalityHP> LoadWidgetVitalityHPClass();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TSubclassOf<class UWidgetWorldText> LoadWidgetWorldTextClass();
 
 	//////////////////////////////////////////////////////////////////////////
 	// Debug
@@ -203,4 +264,13 @@ public:
 public:
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
 	static ETraceTypeQuery GetGameTrace(EGameTraceType InGameTraceType);
+
+	//////////////////////////////////////////////////////////////////////////
+	// DataSave
+public:
+	UFUNCTION(BlueprintCallable, Category = "DWHelper")
+	static void SaveObjectToMemory(UObject* InObject, TArray<uint8>& OutObjectData);
+
+	UFUNCTION(BlueprintCallable, Category = "DWHelper")
+	static void LoadObjectFromMemory(UObject* InObject, TArray<uint8> InObjectData);
 };

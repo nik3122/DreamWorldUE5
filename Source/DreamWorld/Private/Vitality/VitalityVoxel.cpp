@@ -13,8 +13,8 @@ AVitalityVoxel::AVitalityVoxel()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	VoxelMesh = CreateDefaultSubobject<UVoxelMeshComponent>(TEXT("VoxelMesh"));
-	VoxelMesh->SetupAttachment(RootComponent, TEXT("VoxelMesh"));
+	VoxelMesh = CreateDefaultSubobject<UVoxelMeshComponent>(FName("VoxelMesh"));
+	VoxelMesh->SetupAttachment(RootComponent, FName("VoxelMesh"));
 	VoxelMesh->SetRelativeLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
 	VoxelMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -33,7 +33,7 @@ void AVitalityVoxel::BeginPlay()
 	if (GetVoxelData().IsValid())
 	{
 		VoxelMesh->Initialize(EVoxelMeshType::VitalityVoxel);
-		VoxelMesh->BuildVoxel(UVoxel::NewVoxel(VoxelID, this));
+		VoxelMesh->BuildVoxel(UVoxel::NewVoxel(this, VoxelID));
 		VoxelMesh->CreateMesh(0, false);
 	}
 	else

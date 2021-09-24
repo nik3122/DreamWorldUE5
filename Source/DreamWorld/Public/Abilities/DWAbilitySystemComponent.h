@@ -7,7 +7,7 @@
 class UDWGameplayAbility;
 
 /**
- * AbilitySystem×é¼ş
+ * AbilitySystemç»„ä»¶
  */
 UCLASS()
 class DREAMWORLD_API UDWAbilitySystemComponent : public UAbilitySystemComponent
@@ -17,13 +17,13 @@ class DREAMWORLD_API UDWAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	UDWAbilitySystemComponent();
 
-	/** ¸ù¾İ±êÇ©»ñÈ¡µ±Ç°¼¤»îµÄAbilityÁĞ±í */
+	/** æ ¹æ®æ ‡ç­¾è·å–å½“å‰æ¿€æ´»çš„Abilityåˆ—è¡¨ */
 	void GetActiveAbilitiesWithTags(const FGameplayTagContainer & AbilityTags, TArray<UDWGameplayAbility*>& ActiveAbilities);
 
-	/** »ñÈ¡AbilityµÄÄ¬ÈÏµÈ¼¶£¬ÓÉ½ÇÉ«ÅÉÉú */
+	/** è·å–Abilityçš„é»˜è®¤ç­‰çº§ï¼Œç”±è§’è‰²æ´¾ç”Ÿ */
 	int32 GetDefaultAbilityLevel() const;
 
 public:
-	/** Í¨¹ıActor»ñÈ¡AbilitySystemComponent */
+	/** é€šè¿‡Actorè·å–AbilitySystemComponent */
 	static UDWAbilitySystemComponent* GetAbilitySystemComponentFormActor(const AActor* Actor, bool LookForComponent = false);
 };

@@ -53,11 +53,11 @@ public:
 
 	void CreateMesh(int InSectionIndex = 0, bool bHasCollider = true);
 
-	void ClearMesh(int InSectionIndex = -1);
-	
-private:
+	void ClearMesh(int InSectionIndex = 0);
+
 	void ClearData();
 
+private:
 	void BuildFace(UVoxel* InVoxel, EFacing InFacing);
 
 	void BuildFace(UVoxel* InVoxel, FVector InVertices[4], int InFaceIndex, FVector InNormal);

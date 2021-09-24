@@ -10,7 +10,7 @@ class UInventorySlot;
 /**
  * ��Ʒ��
  */
-UCLASS(BlueprintType)
+UCLASS(DefaultToInstanced, Blueprintable)
 class DREAMWORLD_API UInventory : public UObject
 {
 	GENERATED_BODY()
@@ -20,11 +20,11 @@ public:
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<UInventorySlot*> Slots;
-				
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
 	TMap<ESplitSlotType, FSplitSlotInfo> SplitInfos;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
+	TArray<UInventorySlot*> Slots;
+				
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
 	AActor* OwnerActor;
 
@@ -32,20 +32,23 @@ protected:
 	UInventory* ConnectInventory;
 
 public:
-	UFUNCTION(BlueprintCallable)
 	virtual void Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSlotInfo> InSplitInfos);
+	
+	virtual void Refresh(float DeltaSeconds);
 
-	UFUNCTION(BlueprintCallable)
 	virtual void LoadData(FInventoryData InInventoryData, AActor* InOwner);
 
-	UFUNCTION(BlueprintCallable)
 	virtual FInventoryData ToData(bool bSaved = true);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void AdditionItems(FItem& InItem, int InStartIndex = 0);
+	virtual void AdditionItems(FItem& InItem, int32 InStartIndex = 0, int32 InEndIndex = -1);
+
+	virtual void AdditionItems(FItem& InItem, ESplitSlotType InSplitSlotType);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void RemoveItems(FItem& InItem, int InStartIndex = 0);
+	virtual void RemoveItems(FItem& InItem, int32 InStartIndex = 0, int32 InEndIndex = -1);
+
+	virtual void RemoveItems(FItem& InItem, ESplitSlotType InSplitSlotType);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ClearItems(FItem& InItem);
@@ -57,7 +60,9 @@ public:
 	virtual void ClearAll();
 
 	UFUNCTION(BlueprintCallable)
-	virtual TArray<UInventorySlot*> GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int InStartIndex = 0);
+	virtual TArray<UInventorySlot*> GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int32 InStartIndex = 0, int32 InEndIndex = -1);
+
+	virtual TArray<UInventorySlot*> GetValidatedList(EInventoryActionType InActionType, FItem& InItem, ESplitSlotType InSplitSlotType);
 
 public:
 	UFUNCTION(BlueprintPure)
@@ -74,9 +79,12 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	TArray<UInventorySlot*> GetSlots() const { return Slots; }
-		
+				
 	UFUNCTION(BlueprintPure)
-	FSplitSlotInfo GetSplitSlotInfo(ESplitSlotType InSplitSlotType);
+	bool HasSplitSlotInfo(ESplitSlotType InSplitSlotType) const;
+
+	UFUNCTION(BlueprintPure)
+	FSplitSlotInfo GetSplitSlotInfo(ESplitSlotType InSplitSlotType) const;
 	
 	UFUNCTION(BlueprintPure)
 	TMap<ESplitSlotType, FSplitSlotInfo> GetSplitSlotInfos() const { return SplitInfos; }
