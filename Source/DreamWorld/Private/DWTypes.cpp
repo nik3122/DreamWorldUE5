@@ -1,4 +1,7 @@
 #include "DWTypes.h"
+
+#include "Chunk.h"
+#include "ObjectPoolModuleBPLibrary.h"
 #include "World/WorldManager.h"
 #include "Voxel/Voxel.h"
 #include "Character/Player/DWPlayerCharacter.h"
@@ -22,10 +25,20 @@ FSkillData FDWCharacterSkillAbilityData::GetItemData() const
 	return UDWHelper::LoadSkillData(AbilityName);
 }
 
-FVoxelItem::FVoxelItem(UVoxel* InVoxel)
+FString FVoxelItem::GetData() const
 {
-	VoxelData = InVoxel->ToData();
-	VoxelAuxiliary = InVoxel->GetAuxiliary();
+	FString tmpData;
+	if(UVoxel* tmpVoxel = GetVoxel())
+	{
+		tmpData = tmpVoxel->ToData();
+		UVoxel::DespawnVoxel(Owner, tmpVoxel);
+	}
+	return tmpData;
+}
+
+UVoxel* FVoxelItem::GetVoxel() const
+{
+	return UVoxel::LoadVoxel(Owner, *this);
 }
 
 void FTeamData::AddMember(ADWCharacter* InMember)

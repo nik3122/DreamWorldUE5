@@ -1201,30 +1201,41 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct DREAMWORLD_API FVoxelItem
+struct DREAMWORLD_API FVoxelItem : public FItem
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Transient)
-	FString VoxelData;
+	UPROPERTY(BlueprintReadWrite)
+	FIndex Index;
 
-	UPROPERTY(Transient)
-	AVoxelAuxiliary* VoxelAuxiliary;
+	UPROPERTY(BlueprintReadWrite)
+	FRotator Rotation;
+	
+	UPROPERTY(BlueprintReadWrite)
+	FVector Scale;
 
+	UPROPERTY()
+	AChunk* Owner;
+
+	UPROPERTY()
+	AVoxelAuxiliary* Auxiliary;
+
+public:
 	FVoxelItem()
 	{
-		VoxelData = TEXT("");
-		VoxelAuxiliary = nullptr;
+		ID = NAME_None;
+		Index = FIndex::ZeroIndex;
+		Rotation = FRotator::ZeroRotator;
+		Scale = FVector::ZeroVector;
+		Owner = nullptr;
+		Auxiliary = nullptr;
 	}
 
-	FVoxelItem(FString InVoxelData, AVoxelAuxiliary* InVoxelAuxiliary)
-	{
-		VoxelData = InVoxelData;
-		VoxelAuxiliary = InVoxelAuxiliary;
-	}
+public:
+	FString GetData() const;
 
-	FVoxelItem(UVoxel* InVoxel);
+	UVoxel* GetVoxel() const;
 };
 
 USTRUCT(BlueprintType)

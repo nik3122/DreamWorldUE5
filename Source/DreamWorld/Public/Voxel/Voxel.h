@@ -28,13 +28,15 @@ public:
 	static UVoxel* UnknownVoxel;
 
 public:
-	static UVoxel* NewVoxel(UObject* InWorldContext, EVoxelType InVoxelType);
+	static UVoxel* SpawnVoxel(UObject* InWorldContext, EVoxelType InVoxelType);
 
-	static UVoxel* NewVoxel(UObject* InWorldContext, const FName& InVoxelID);
-	
-	static UVoxel* LoadVoxel(AChunk* InOwner, FVoxelItem InVoxelItem);
+	static UVoxel* SpawnVoxel(UObject* InWorldContext, const FName& InVoxelID);
+
+	static UVoxel* LoadVoxel(AChunk* InOwner, const FVoxelItem& InVoxelItem);
 
 	static UVoxel* LoadVoxel(AChunk* InOwner, const FString& InVoxelData);
+	
+	static void DespawnVoxel(UObject* InWorldContext, UVoxel* InVoxel);
 
 	static bool IsValid(UVoxel* InVoxel, bool bCheckOwner = true);
 
@@ -46,6 +48,10 @@ public:
 	virtual void LoadData(const FString& InValue);
 
 	virtual FString ToData();
+
+	virtual void LoadItem(const FVoxelItem& InVoxelItem);
+
+	virtual FVoxelItem ToItem();
 
 	virtual void OnGenerate();
 
@@ -86,7 +92,7 @@ public:
 	// Stats
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	FName VoxelID;
+	FName ID;
 
 	UPROPERTY(BlueprintReadWrite)
 	FIndex Index;
@@ -108,10 +114,10 @@ public:
 	FVoxelData GetVoxelData() const;
 
 	UFUNCTION(BlueprintPure)
-	FName GetVoxelID() const { return VoxelID; }
+	FName GetID() const { return ID; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetVoxelID(FName val) { VoxelID = val; }
+	void SetID(FName val) { ID = val; }
 
 	UFUNCTION(BlueprintPure)
 	FIndex GetIndex() const { return Index; }

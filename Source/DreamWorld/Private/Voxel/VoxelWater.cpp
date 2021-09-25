@@ -78,6 +78,7 @@ void UVoxelWater::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& In
 	{
 		InTarget->UnSwim();
 	}
+	UVoxel::DespawnVoxel(Owner, Voxel);
 }
 
 void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
@@ -89,6 +90,7 @@ void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& In
 	{
 		InTarget->UnSwim();
 	}
+	UVoxel::DespawnVoxel(Owner, Voxel);
 }
 
 bool UVoxelWater::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)

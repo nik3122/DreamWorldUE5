@@ -16,4 +16,7 @@ class ADWMainModule : public AMainModule
 
 public:
 	ADWMainModule();
+
+public:
+	virtual void InitializeModules_Implementation() override;
 };

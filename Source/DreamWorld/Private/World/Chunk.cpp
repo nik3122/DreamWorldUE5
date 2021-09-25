@@ -37,7 +37,8 @@ AChunk::AChunk()
 	Batch = 0;
 	Index = FVector();
 	bGenerated = false;
-	VoxelMap = TMap<FIndex, UVoxel*>();
+	VoxelMap = TMap<FIndex, FVoxelItem>();
+	AuxiliaryMap = TMap<FIndex, AVoxelAuxiliary*>();
 	Neighbors = TArray<AChunk*>();
 	for (int32 i = 0; i < 6; i++)
 	{
@@ -129,15 +130,13 @@ void AChunk::OnDespawn_Implementation()
 		chunkData.Index = Index;
 		chunkData.bSaved = true;
 
-		for (auto iter = VoxelMap.CreateConstIterator(); iter; ++iter)
+		for (auto iter : VoxelMap)
 		{
-			UVoxel* voxel = iter->Value;
-			chunkData.VoxelDatas.Add(voxel->ToData());
-			if (voxel->GetAuxiliary())
-			{
-				voxel->GetAuxiliary()->Destroy();
-			}
-			UObjectPoolModuleBPLibrary::DespawnObject(this, voxel);
+			chunkData.VoxelDatas.Add(iter.Value.GetData());
+		}
+		for (auto iter : AuxiliaryMap)
+		{
+			iter.Value->Destroy();
 		}
 		for (int32 i = 0; i < PickUps.Num(); i++)
 		{
@@ -171,6 +170,7 @@ void AChunk::OnDespawn_Implementation()
 	bGenerated = false;
 	
 	VoxelMap.Empty();
+	AuxiliaryMap.Empty();
 	PickUps.Empty();
 	Characters.Empty();
 	VitalityObjects.Empty();
@@ -353,7 +353,7 @@ UVoxel* AChunk::GetVoxel(int InX, int InY, int InZ)
 			return UVoxel::UnknownVoxel;
 	}
 	else if (VoxelMap.Contains(FIndex(InX, InY, InZ))) {
-		return VoxelMap[FIndex(InX, InY, InZ)];
+		return VoxelMap[FIndex(InX, InY, InZ)].GetVoxel();
 	}
 	return UVoxel::EmptyVoxel;
 }
@@ -371,6 +371,7 @@ bool AChunk::CheckVoxel(FIndex InIndex, FVector InRange/* = FVector::OneVector*/
 					UVoxel* voxel = GetVoxel(InIndex + FIndex(x, y, z));
 					if (UVoxel::IsValid(voxel) && (!bIgnoreTransparent || voxel->GetVoxelData().Transparency != ETransparency::Transparent))
 					{
+						UVoxel::DespawnVoxel(Owner, voxel);
 						return true;
 					}
 				}
@@ -382,6 +383,7 @@ bool AChunk::CheckVoxel(FIndex InIndex, FVector InRange/* = FVector::OneVector*/
 		UVoxel* voxel = GetVoxel(InIndex);
 		if (UVoxel::IsValid(voxel) && (!bIgnoreTransparent || voxel->GetVoxelData().Transparency != ETransparency::Transparent))
 		{
+			UVoxel::DespawnVoxel(Owner, voxel);
 			return true;
 		}
 	}
@@ -401,9 +403,10 @@ bool AChunk::SetVoxelSample(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh 
 	{
 		if (!CheckVoxel(InIndex))
 		{
+			InVoxel->Initialize(InIndex, this);
 			if (!VoxelMap.Contains(InIndex))
 			{
-				VoxelMap.Add(InIndex, InVoxel);
+				VoxelMap.Add(InIndex, InVoxel->ToItem());
 			}
 			else
 			{
@@ -412,9 +415,9 @@ bool AChunk::SetVoxelSample(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh 
 				{
 					voxel->OnDestroy();
 				}
-				VoxelMap[InIndex] = InVoxel;
+				VoxelMap[InIndex] = InVoxel->ToItem();
+				UVoxel::DespawnVoxel(Owner, voxel);
 			}
-			InVoxel->Initialize(InIndex, this);
 			tmpBool = true;
 		}
 	}
@@ -513,6 +516,7 @@ bool AChunk::SetVoxelComplex(int InX, int InY, int InZ, UVoxel* InVoxel, bool bG
 							}
 						}
 					}
+					UVoxel::DespawnVoxel(this, voxel);
 					return true;
 				}
 			}
@@ -554,7 +558,9 @@ void AChunk::BuildMap()
 							// plant
 							if (tmpNum < 0.2f)
 							{
-								SetVoxelComplex(FIndex(x, y, z + 1), UVoxel::NewVoxel(this, FMath::FRandRange(0, 1) > 0.2f ? EVoxelType::Tall_Grass : (EVoxelType)FMath::RandRange((int)EVoxelType::Flower_Allium, (int32)EVoxelType::Flower_Tulip_White)));
+								UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, FMath::FRandRange(0, 1) > 0.2f ? EVoxelType::Tall_Grass : (EVoxelType)FMath::RandRange((int)EVoxelType::Flower_Allium, (int32)EVoxelType::Flower_Tulip_White));
+								SetVoxelComplex(FIndex(x, y, z + 1), tmpVoxel);
+								UVoxel::DespawnVoxel(this, tmpVoxel);
 							}
 							// tree
 							else if (tmpNum < 0.21f)
@@ -566,7 +572,9 @@ void AChunk::BuildMap()
 									const int leavesWidth = FMath::FRandRange(0, 1) < 0.5f ? 3 : 5;
 									for (int trunkHeight = 0; trunkHeight < treeHeight; trunkHeight++)
 									{
-										SetVoxelComplex(FIndex(x, y, z + trunkHeight + 1), UVoxel::NewVoxel(this, EVoxelType::Oak));
+										UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Oak);
+										SetVoxelComplex(FIndex(x, y, z + trunkHeight + 1), tmpVoxel);
+										UVoxel::DespawnVoxel(this, tmpVoxel);
 									}
 									for (int offsetZ = treeHeight - leavesHeight; offsetZ < treeHeight + 1; offsetZ++)
 									{
@@ -577,8 +585,11 @@ void AChunk::BuildMap()
 												UVoxel* voxel = GetVoxel(x + offsetX, y + offsetY, z + offsetZ + 1);
 												if (!UVoxel::IsValid(voxel) || voxel->GetVoxelData().Transparency == ETransparency::Transparent)
 												{
-													SetVoxelComplex(FIndex(x + offsetX, y + offsetY, z + offsetZ + 1), UVoxel::NewVoxel(this, EVoxelType::Oak_Leaves));
+													UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Oak_Leaves);
+													SetVoxelComplex(FIndex(x + offsetX, y + offsetY, z + offsetZ + 1), tmpVoxel);
+													UVoxel::DespawnVoxel(this, tmpVoxel);
 												}
+												UVoxel::DespawnVoxel(this, voxel);
 											}
 										}
 									}
@@ -588,7 +599,9 @@ void AChunk::BuildMap()
 						}
 						default: break;
 					}
-					SetVoxelSample(voxelIndex, UVoxel::NewVoxel(this, voxelType));
+					UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, voxelType);
+					SetVoxelSample(voxelIndex, tmpVoxel);
+					UVoxel::DespawnVoxel(this, tmpVoxel);
 				}
 			}
 		}
@@ -601,6 +614,7 @@ void AChunk::LoadMap(FChunkData InChunkData)
 	{
 		UVoxel* voxel = UVoxel::LoadVoxel(this, InChunkData.VoxelDatas[i]);
 		SetVoxelComplex(voxel->GetIndex(), voxel);
+		UVoxel::DespawnVoxel(this, voxel);
 	}
 }
 
@@ -624,10 +638,10 @@ bool AChunk::GenerateMap()
 {
 	if (VoxelMap.Num() > 0)
 	{
-		for (auto iter = VoxelMap.CreateConstIterator(); iter; ++iter)
+		for (auto& iter : VoxelMap)
 		{
-			FIndex index = iter->Key;
-			UVoxel* voxel = iter->Value;
+			FIndex index = iter.Key;
+			UVoxel* voxel = iter.Value.GetVoxel();
 			if (UVoxel::IsValid(voxel) && voxel->GetIndex() == index)
 			{
 				switch (voxel->GetVoxelData().Transparency)
@@ -658,6 +672,7 @@ bool AChunk::GenerateMap()
 					}
 				}
 			}
+			UVoxel::DespawnVoxel(this, voxel);
 		}
 		return true;
 	}
@@ -676,13 +691,14 @@ void AChunk::OnGenerated()
 		}
 	}
 
-	for (auto iter = VoxelMap.CreateIterator(); iter; ++iter)
+	for (auto& iter : VoxelMap)
 	{
-		UVoxel* voxel = iter->Value;
+		UVoxel* voxel = iter.Value.GetVoxel();
 		if(UVoxel::IsValid(voxel))
 		{
 			voxel->OnGenerate();
 		}
+		UVoxel::DespawnVoxel(this, voxel);
 	}
 
 	if (UWorldDataSave* WorldDataSave = AWorldManager::GetDataSave())
@@ -850,6 +866,38 @@ FIndex AChunk::LocalIndexToWorld(FIndex InIndex) const
 FIndex AChunk::WorldIndexToLocal(FIndex InIndex) const
 {
 	return InIndex - Index * AWorldManager::GetData().ChunkSize;
+}
+
+AVoxelAuxiliary* AChunk::SpawnAuxiliary(UVoxel* InVoxel)
+{
+	if(!InVoxel || !InVoxel->IsValidLowLevel()) return nullptr;
+
+	if (!AuxiliaryMap.Contains(InVoxel->GetIndex()) && InVoxel->GetVoxelData().AuxiliaryClass)
+	{
+		if (AVoxelAuxiliary* Auxiliary = GetWorld()->SpawnActor<AVoxelAuxiliary>(InVoxel->GetVoxelData().AuxiliaryClass))
+		{
+			const FVector Location = IndexToLocation(InVoxel->GetIndex(), true) + InVoxel->GetVoxelData().GetCeilRange() * AWorldManager::GetData().BlockSize * 0.5f;
+			Auxiliary->Initialize(InVoxel, Location);
+			Auxiliary->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+			SetVoxelSample(InVoxel->GetIndex(), InVoxel);
+			InVoxel->SetAuxiliary(Auxiliary);
+			return Auxiliary;
+		}
+	}
+	return nullptr;
+}
+
+void AChunk::DestroyAuxiliary(AVoxelAuxiliary* InAuxiliary)
+{
+	if(!InAuxiliary || !InAuxiliary->IsValidLowLevel()) return;
+
+	UVoxel* Voxel = InAuxiliary->OwnerVoxel;
+	if (AuxiliaryMap.Contains(Voxel->GetIndex()))
+	{
+		AuxiliaryMap.Remove(Voxel->GetIndex());
+		InAuxiliary->Destroy();
+		Voxel->SetAuxiliary(nullptr);
+	}
 }
 
 APickUp* AChunk::SpawnPickUp(FItem InItem, FVector InLocation)

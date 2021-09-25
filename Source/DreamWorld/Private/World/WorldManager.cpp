@@ -94,9 +94,6 @@ void AWorldManager::BeginPlay()
 		PlayerController->OnPlayerSpawned.AddDynamic(this, &AWorldManager::OnPlayerSpawned);
 	}
 
-	UVoxel::EmptyVoxel = UVoxel::NewVoxel(this, EVoxelType::Empty);
-	UVoxel::UnknownVoxel = UVoxel::NewVoxel(this, EVoxelType::Unknown);
-
 	//GeneratePreviews();
 }
 

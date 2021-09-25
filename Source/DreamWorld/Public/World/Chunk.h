@@ -71,8 +71,11 @@ protected:
 	TArray<AChunk*> Neighbors;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Stats")
-	TMap<FIndex, UVoxel*> VoxelMap;
-			
+	TMap<FIndex, FVoxelItem> VoxelMap;
+		
+	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	TMap<FIndex, AVoxelAuxiliary*> AuxiliaryMap;
+		
 	UPROPERTY(BlueprintReadOnly, Category = "Stats")
 	TArray<ADWCharacter*> Characters;
 
@@ -160,6 +163,13 @@ public:
 	FIndex LocalIndexToWorld(FIndex InIndex) const;
 
 	FIndex WorldIndexToLocal(FIndex InIndex) const;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Auxiliary
+public:
+	AVoxelAuxiliary* SpawnAuxiliary(UVoxel* InVoxel);
+
+	void DestroyAuxiliary(AVoxelAuxiliary* InAuxiliary);
 
 	//////////////////////////////////////////////////////////////////////////
 	// PickUp

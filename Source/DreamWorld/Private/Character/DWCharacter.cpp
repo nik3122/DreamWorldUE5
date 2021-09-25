@@ -317,30 +317,30 @@ void ADWCharacter::Tick(float DeltaTime)
 			}
 		}
 
-		if(OwnerChunk != nullptr)
-		{
-			UVoxel* Voxel = OwnerChunk->GetVoxel(OwnerChunk->LocationToIndex(Location));
-			if(Voxel != nullptr)
-			{
-				if(OverlapVoxel != Voxel)
-				{
-					if(OverlapVoxel != nullptr)
-					{
-						FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
-						OverlapVoxel->OnTargetExit(this, VoxelHitResult);
-					}
-					FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
-					Voxel->OnTargetEnter(this, VoxelHitResult);
-				}
-				FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
-				Voxel->OnTargetStay(this, VoxelHitResult);
-			}
-			else if(OverlapVoxel != nullptr)
-			{
-				FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
-				OverlapVoxel->OnTargetExit(this, VoxelHitResult);
-			}
-		}
+		// if(OwnerChunk != nullptr)
+		// {
+		// 	UVoxel* Voxel = OwnerChunk->GetVoxel(OwnerChunk->LocationToIndex(Location));
+		// 	if(UVoxel::IsValid(Voxel))
+		// 	{
+		// 		if(OverlapVoxel != Voxel)
+		// 		{
+		// 			if(OverlapVoxel != nullptr)
+		// 			{
+		// 				FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
+		// 				OverlapVoxel->OnTargetExit(this, VoxelHitResult);
+		// 			}
+		// 			FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
+		// 			Voxel->OnTargetEnter(this, VoxelHitResult);
+		// 		}
+		// 		FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
+		// 		Voxel->OnTargetStay(this, VoxelHitResult);
+		// 	}
+		// 	else if(OverlapVoxel != nullptr)
+		// 	{
+		// 		FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
+		// 		OverlapVoxel->OnTargetExit(this, VoxelHitResult);
+		// 	}
+		// }
 
 		if (bSprinting && MoveVelocity.Size() > 0.2f)
 		{
@@ -1343,13 +1343,15 @@ bool ADWCharacter::GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem&
 {
 	if (InItem.GetData().Type != EItemType::Voxel) return false;
 
+	bool RetValue = false;
+
 	AChunk* TargetChunk = InVoxelHitResult.GetVoxel()->GetOwner();
 	const FIndex TargetIndex = TargetChunk->LocationToIndex(InVoxelHitResult.Point - AWorldManager::GetData().GetBlockSizedNormal(InVoxelHitResult.Normal)) + FIndex(InVoxelHitResult.Normal);
 	UVoxel* TargetVoxel = TargetChunk->GetVoxel(TargetIndex);
 
 	if(!UVoxel::IsValid(TargetVoxel) || TargetVoxel->GetVoxelData().Transparency == ETransparency::Transparent && TargetVoxel != InVoxelHitResult.GetVoxel())
 	{
-		UVoxel* NewVoxel = UVoxel::NewVoxel(this, InItem.ID);
+		UVoxel* NewVoxel = UVoxel::SpawnVoxel(this, InItem.ID);
 
 		//FRotator rotation = (Owner->VoxelIndexToLocation(index) + tmpVoxel->GetVoxelData().GetCeilRange() * 0.5f * AWorldManager::GetWorldInfo().BlockSize - UDWHelper::GetPlayerCharacter(this)->GetActorLocation()).ToOrientationRotator();
 		//rotation = FRotator(FRotator::ClampAxis(FMath::RoundToInt(rotation.Pitch / 90) * 90.f), FRotator::ClampAxis(FMath::RoundToInt(rotation.Yaw / 90) * 90.f), FRotator::ClampAxis(FMath::RoundToInt(rotation.Roll / 90) * 90.f));
@@ -1360,12 +1362,19 @@ bool ADWCharacter::GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem&
 		{
 			if(UVoxel::IsValid(TargetVoxel))
 			{
-				return TargetChunk->ReplaceVoxel(TargetVoxel, NewVoxel);;
+				RetValue = TargetChunk->ReplaceVoxel(TargetVoxel, NewVoxel);;
 			}
-			return TargetChunk->GenerateVoxel(TargetIndex, NewVoxel);
+			else
+			{
+				RetValue = TargetChunk->GenerateVoxel(TargetIndex, NewVoxel);
+			}
 		}
+		UVoxel::DespawnVoxel(this, NewVoxel);
 	}
-	return false;
+
+	UVoxel::DespawnVoxel(this, TargetVoxel);
+
+	return RetValue;
 }
 
 bool ADWCharacter::DestroyVoxel(const FVoxelHitResult& InVoxelHitResult)

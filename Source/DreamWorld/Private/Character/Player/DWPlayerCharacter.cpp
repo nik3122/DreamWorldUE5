@@ -397,7 +397,7 @@ void ADWPlayerCharacter::UpdateVoxelMesh()
 	auto tmpItem = UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedItem();
 	if (tmpItem.IsValid() && tmpItem.GetData().Type == EItemType::Voxel)
 	{
-		PreviewVoxel = UVoxel::NewVoxel(this, tmpItem.ID);
+		PreviewVoxel = UVoxel::SpawnVoxel(this, tmpItem.ID);
 		VoxelMesh->BuildVoxel(PreviewVoxel);
 		VoxelMesh->CreateMesh(0, false);
 	}
@@ -406,7 +406,7 @@ void ADWPlayerCharacter::UpdateVoxelMesh()
 		VoxelMesh->ClearMesh();
 		if (PreviewVoxel)
 		{
-			PreviewVoxel->OnDestroy();
+			UVoxel::DespawnVoxel(this, PreviewVoxel);
 			PreviewVoxel = nullptr;
 		}
 	}

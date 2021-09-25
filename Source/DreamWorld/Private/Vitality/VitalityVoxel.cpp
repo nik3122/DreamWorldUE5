@@ -32,9 +32,11 @@ void AVitalityVoxel::BeginPlay()
 
 	if (GetVoxelData().IsValid())
 	{
+		UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, VoxelID);
 		VoxelMesh->Initialize(EVoxelMeshType::VitalityVoxel);
-		VoxelMesh->BuildVoxel(UVoxel::NewVoxel(this, VoxelID));
+		VoxelMesh->BuildVoxel(tmpVoxel);
 		VoxelMesh->CreateMesh(0, false);
+		UVoxel::DespawnVoxel(this, tmpVoxel);
 	}
 	else
 	{
