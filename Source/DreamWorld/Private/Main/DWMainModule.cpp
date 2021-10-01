@@ -2,7 +2,14 @@
 
 #include "DWMainModule.h"
 
+#include "Chunk.h"
+#include "ObjectPoolModuleBPLibrary.h"
+#include "SpawnPoolModuleBPLibrary.h"
 #include "Voxel.h"
+#include "VoxelDoor.h"
+#include "VoxelPlant.h"
+#include "VoxelTorch.h"
+#include "VoxelWater.h"
 
 ADWMainModule::ADWMainModule()
 {
@@ -16,4 +23,6 @@ void ADWMainModule::InitializeModules_Implementation()
 	
 	UVoxel::EmptyVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Empty);
 	UVoxel::UnknownVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Unknown);
+	
+	USpawnPoolModuleBPLibrary::DespawnActor(this, USpawnPoolModuleBPLibrary::SpawnActor<AChunk>(this));
 }

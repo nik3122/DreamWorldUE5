@@ -2,6 +2,8 @@
 
 #include "Chunk.h"
 #include "ObjectPoolModuleBPLibrary.h"
+#include "VoxelPlant.h"
+#include "VoxelWater.h"
 #include "World/WorldManager.h"
 #include "Voxel/Voxel.h"
 #include "Character/Player/DWPlayerCharacter.h"
@@ -15,6 +17,12 @@ const FIndex FIndex::OneIndex = FIndex(1, 1, 1);
 
 FTeamData FTeamData::Empty = FTeamData();
 
+const FWorldData FWorldData::Empty = FWorldData();
+
+FVoxelItem FVoxelItem::UnknownVoxel = FVoxelItem(FName("Unknown"));
+
+FVoxelItem FVoxelItem::EmptyVoxel = FVoxelItem(FName("Empty"));
+
 FItemData FItem::GetData() const
 {
 	return UDWHelper::LoadItemData(ID);
@@ -25,7 +33,17 @@ FSkillData FDWCharacterSkillAbilityData::GetItemData() const
 	return UDWHelper::LoadSkillData(AbilityName);
 }
 
-FString FVoxelItem::GetData() const
+UVoxel* FVoxelItem::GetVoxel() const
+{
+	return UVoxel::LoadVoxel(Owner, *this);
+}
+
+FVoxelData FVoxelItem::GetVoxelData() const
+{
+	return UDWHelper::LoadVoxelData(ID);
+}
+
+FString FVoxelItem::GetStringData() const
 {
 	FString tmpData;
 	if(UVoxel* tmpVoxel = GetVoxel())
@@ -34,11 +52,6 @@ FString FVoxelItem::GetData() const
 		UVoxel::DespawnVoxel(Owner, tmpVoxel);
 	}
 	return tmpData;
-}
-
-UVoxel* FVoxelItem::GetVoxel() const
-{
-	return UVoxel::LoadVoxel(Owner, *this);
 }
 
 void FTeamData::AddMember(ADWCharacter* InMember)
@@ -105,14 +118,51 @@ FVoxelHitResult::FVoxelHitResult(UVoxel* InVoxel, FVector InPoint, FVector InNor
 	Normal = InNormal;
 }
 
-FVector FVoxelData::GetCeilRange(UVoxel* InVoxel)
+AChunk* FVoxelHitResult::GetOwner() const
+{
+	if (Voxel.Get())
+	{
+		return Voxel.Get()->GetOwner();
+	}
+	return nullptr;
+}
+
+FVector FVoxelData::GetCeilRange(UVoxel* InVoxel) const
 {
 	return GetCeilRange(InVoxel->GetRotation(), InVoxel->GetScale());
 }
 
-FVector FVoxelData::GetFinalRange(UVoxel* InVoxel)
+FVector FVoxelData::GetFinalRange(UVoxel* InVoxel) const
 {
 	return GetFinalRange(InVoxel->GetRotation(), InVoxel->GetScale());
+}
+
+bool FVoxelData::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals, FRotator InRotation, FVector InScale) const
+{
+	if(VoxelClass == UVoxelPlant::StaticClass())
+	{
+		const FVector range = GetFinalRange(InRotation, InScale);
+
+		OutMeshVertices = TArray<FVector>();
+		OutMeshVertices.Add(FVector(-0.5f, -0.5f, -0.5f) * range);
+		OutMeshVertices.Add(FVector(-0.5f, -0.5f, 0.5f) * range);
+		OutMeshVertices.Add(FVector(0.5f, 0.5f, 0.5f) * range);
+		OutMeshVertices.Add(FVector(0.5f, 0.5f, -0.5f) * range);
+		OutMeshVertices.Add(FVector(0.5f, -0.5f, -0.5f) * range);
+		OutMeshVertices.Add(FVector(0.5f, -0.5f, 0.5f) * range);
+		OutMeshVertices.Add(FVector(-0.5f, 0.5f, 0.5f) * range);
+		OutMeshVertices.Add(FVector(-0.5f, 0.5f, -0.5f) * range);
+
+		OutMeshNormals = TArray<FVector>();
+		OutMeshNormals.Add(FVector(1, -1, 0).GetSafeNormal());
+		OutMeshNormals.Add(FVector(-1, -1, 0).GetSafeNormal());
+	}
+	else
+	{
+		OutMeshVertices = MeshVertices;
+		OutMeshNormals = MeshNormals;
+	}
+	return OutMeshVertices.Num() > 0;
 }
 
 bool FDWGameplayEffectContainerSpec::HasValidTargets() const

@@ -30,31 +30,6 @@ FString UVoxelWater::ToData()
 	return Super::ToData();
 }
 
-void UVoxelWater::OnGenerate()
-{
-	Super::OnGenerate();
-}
-
-void UVoxelWater::OnDestroy()
-{
-	Super::OnDestroy();
-}
-
-void UVoxelWater::OnReplace()
-{
-	Super::OnReplace();
-}
-
-bool UVoxelWater::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
-{
-	return Super::GetMeshDatas(OutMeshVertices, OutMeshNormals);
-}
-
-bool UVoxelWater::CheckAdjacent(EDirection InDirection)
-{
-	return Super::CheckAdjacent(InDirection);
-}
-
 void UVoxelWater::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);

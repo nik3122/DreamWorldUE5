@@ -9,9 +9,6 @@
 // Sets default values
 AVoxelTorchAuxiliary::AVoxelTorchAuxiliary()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
-
 	LightComponent = CreateDefaultSubobject<UPointLightComponent>(TEXT("LightComponent"));
 	LightComponent->SetupAttachment(RootComponent);
 	LightComponent->SetLightColor(FLinearColor(1, 0.75f, 0, 1));
@@ -27,18 +24,9 @@ void AVoxelTorchAuxiliary::BeginPlay()
 
 }
 
-// Called every frame
-void AVoxelTorchAuxiliary::Tick(float DeltaTime)
+void AVoxelTorchAuxiliary::Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex)
 {
-	Super::Tick(DeltaTime);
+	Super::Initialize(InOwnerChunk, InVoxelIndex);
 
-}
-
-void AVoxelTorchAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
-{
-	Super::Initialize(InOwner, InLocation);
-
-	if(!InOwner || !InOwner->IsValidLowLevel()) return;
-
-	LightComponent->SetRelativeLocation(FVector::UpVector * InOwner->GetVoxelData().GetFinalRange().Z * 0.5f * AWorldManager::GetData().BlockSize);
+	LightComponent->SetRelativeLocation(FVector::UpVector * GetVoxelItem().GetVoxelData().GetFinalRange().Z * 0.5f * AWorldManager::GetWorldData().BlockSize);
 }

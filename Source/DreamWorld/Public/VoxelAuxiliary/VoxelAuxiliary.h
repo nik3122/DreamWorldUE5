@@ -20,17 +20,22 @@ public:
 	// Sets default values for this actor's properties
 	AVoxelAuxiliary();
 
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UVoxel* OwnerVoxel;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex);
 
-	virtual void Initialize(UVoxel* InOwner, FVector InLocation);
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FIndex VoxelIndex;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AChunk* OwnerChunk;
+
+public:
+	FIndex GetVoxelIndex() const { return VoxelIndex; }
+
+	FVoxelItem& GetVoxelItem();
 };

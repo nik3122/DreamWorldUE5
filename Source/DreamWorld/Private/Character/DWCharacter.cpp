@@ -301,7 +301,7 @@ void ADWCharacter::Tick(float DeltaTime)
 
 		const FVector Location = GetMesh()->GetSocketLocation(FName("Foot"));
 
-		if(AWorldManager* WorldManager = AWorldManager::Get())
+		if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 		{
 			if(AChunk* Chunk = WorldManager->FindChunk(Location))
 			{
@@ -316,31 +316,6 @@ void ADWCharacter::Tick(float DeltaTime)
 				OwnerChunk->DetachCharacter(this);
 			}
 		}
-
-		// if(OwnerChunk != nullptr)
-		// {
-		// 	UVoxel* Voxel = OwnerChunk->GetVoxel(OwnerChunk->LocationToIndex(Location));
-		// 	if(UVoxel::IsValid(Voxel))
-		// 	{
-		// 		if(OverlapVoxel != Voxel)
-		// 		{
-		// 			if(OverlapVoxel != nullptr)
-		// 			{
-		// 				FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
-		// 				OverlapVoxel->OnTargetExit(this, VoxelHitResult);
-		// 			}
-		// 			FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
-		// 			Voxel->OnTargetEnter(this, VoxelHitResult);
-		// 		}
-		// 		FVoxelHitResult VoxelHitResult = FVoxelHitResult(Voxel, Location, MoveDirection);
-		// 		Voxel->OnTargetStay(this, VoxelHitResult);
-		// 	}
-		// 	else if(OverlapVoxel != nullptr)
-		// 	{
-		// 		FVoxelHitResult VoxelHitResult = FVoxelHitResult(OverlapVoxel, Location, MoveDirection);
-		// 		OverlapVoxel->OnTargetExit(this, VoxelHitResult);
-		// 	}
-		// }
 
 		if (bSprinting && MoveVelocity.Size() > 0.2f)
 		{
@@ -394,13 +369,22 @@ void ADWCharacter::Serialize(FArchive& Ar)
 		if(Ar.IsLoading())
 		{
 			Ar << CurrentValue;
-			SetHealth(CurrentValue);
+			if(CurrentValue > 0)
+			{
+				SetHealth(CurrentValue);
+				
+				Ar << CurrentValue;
+				SetMana(CurrentValue);
 
-			Ar << CurrentValue;
-			SetMana(CurrentValue);
-
-			Ar << CurrentValue;
-			SetStamina(CurrentValue);
+				Ar << CurrentValue;
+				SetStamina(CurrentValue);
+			}
+			else
+			{
+				Revive();
+				Ar << CurrentValue;
+				Ar << CurrentValue;
+			}
 		}
 		else if(Ar.IsSaveGame())
 		{
@@ -560,19 +544,19 @@ bool ADWCharacter::HasActionAbility(ECharacterActionType InActionType)
 
 bool ADWCharacter::CreateTeam(const FName& InTeamName /*= MANE_None*/, FString InTeamDetail /*= TEXT("")*/)
 {
-	return AWorldManager::Get()->CreateTeam(this, InTeamName, InTeamDetail);
+	return AWorldManager::GetCurrent()->CreateTeam(this, InTeamName, InTeamDetail);
 }
 
 bool ADWCharacter::DissolveTeam()
 {
-	return AWorldManager::Get()->DissolveTeam(*TeamID, this);
+	return AWorldManager::GetCurrent()->DissolveTeam(*TeamID, this);
 }
 
 bool ADWCharacter::JoinTeam(const FName& InTeamID)
 {
-	if (AWorldManager::Get()->IsExistTeam(InTeamID))
+	if (AWorldManager::GetCurrent()->IsExistTeam(InTeamID))
 	{
-		AWorldManager::Get()->GetTeamData(InTeamID)->AddMember(this);
+		AWorldManager::GetCurrent()->GetTeamData(InTeamID)->AddMember(this);
 		return true;
 	}
 	return false;
@@ -1301,7 +1285,9 @@ bool ADWCharacter::OnUseItem(FItem& InItem)
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				return GenerateVoxel(voxelHitResult, InItem);
+				const bool tmpBool = GenerateVoxel(voxelHitResult, InItem);
+				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				return tmpBool;
 			}
 			break;
 		}
@@ -1345,8 +1331,8 @@ bool ADWCharacter::GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem&
 
 	bool RetValue = false;
 
-	AChunk* TargetChunk = InVoxelHitResult.GetVoxel()->GetOwner();
-	const FIndex TargetIndex = TargetChunk->LocationToIndex(InVoxelHitResult.Point - AWorldManager::GetData().GetBlockSizedNormal(InVoxelHitResult.Normal)) + FIndex(InVoxelHitResult.Normal);
+	AChunk* TargetChunk = InVoxelHitResult.GetOwner();
+	const FIndex TargetIndex = TargetChunk->LocationToIndex(InVoxelHitResult.Point - AWorldManager::GetWorldData().GetBlockSizedNormal(InVoxelHitResult.Normal)) + FIndex(InVoxelHitResult.Normal);
 	UVoxel* TargetVoxel = TargetChunk->GetVoxel(TargetIndex);
 
 	if(!UVoxel::IsValid(TargetVoxel) || TargetVoxel->GetVoxelData().Transparency == ETransparency::Transparent && TargetVoxel != InVoxelHitResult.GetVoxel())
@@ -1358,7 +1344,7 @@ bool ADWCharacter::GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem&
 		//tmpVoxel->Rotation = rotation;
 
 		FHitResult HitResult;
-		if (!AWorldManager::Get()->VoxelTraceSingle(NewVoxel, TargetChunk->IndexToLocation(TargetIndex), HitResult))
+		if (!AWorldManager::GetCurrent()->VoxelTraceSingle(NewVoxel, TargetChunk->IndexToLocation(TargetIndex), HitResult))
 		{
 			if(UVoxel::IsValid(TargetVoxel))
 			{
@@ -1369,22 +1355,30 @@ bool ADWCharacter::GenerateVoxel(const FVoxelHitResult& InVoxelHitResult, FItem&
 				RetValue = TargetChunk->GenerateVoxel(TargetIndex, NewVoxel);
 			}
 		}
-		UVoxel::DespawnVoxel(this, NewVoxel);
 	}
-
 	UVoxel::DespawnVoxel(this, TargetVoxel);
 
+	if(RetValue)
+	{
+		DoAction(ECharacterActionType::Generate);
+	}
 	return RetValue;
 }
 
 bool ADWCharacter::DestroyVoxel(const FVoxelHitResult& InVoxelHitResult)
 {
-	AChunk* TargetChunk = InVoxelHitResult.GetVoxel()->GetOwner();
+	AChunk* TargetChunk = InVoxelHitResult.GetOwner();
 	UVoxel* TargetVoxel = InVoxelHitResult.GetVoxel();
+	bool RetValue = false;
 
 	if (TargetVoxel->GetVoxelData().VoxelType != EVoxelType::Bedrock)
 	{
-		return TargetChunk->DestroyVoxel(TargetVoxel);
+		RetValue = TargetChunk->DestroyVoxel(TargetVoxel);
+	}
+
+	if(RetValue)
+	{
+		DoAction(ECharacterActionType::Destroy);
 	}
 	return false;
 }
@@ -1758,7 +1752,7 @@ UWidgetCharacterHP* ADWCharacter::GetWidgetCharacterHPWidget()
 
 FTeamData* ADWCharacter::GetTeamData() const
 {
-	return AWorldManager::Get()->GetTeamData(*TeamID);
+	return AWorldManager::GetCurrent()->GetTeamData(*TeamID);
 }
 
 void ADWCharacter::SetName(const FString& InName)
@@ -2209,7 +2203,7 @@ FDWCharacterActionAbilityData ADWCharacter::GetActionAbility(ECharacterActionTyp
 bool ADWCharacter::RaycastStep(FHitResult& OutHitResult)
 {
 	FVector rayStart = GetActorLocation() + FVector::DownVector * (GetHalfHeight() - GetCharacterMovement()->MaxStepHeight);
-	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetData().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
+	FVector rayEnd = rayStart + MoveDirection * (GetRadius() + AWorldManager::GetWorldData().BlockSize * FMath::Clamp(MoveVelocity.Size() * 0.005f, 0.5f, 1.3f));
 	return UKismetSystemLibrary::LineTraceSingle(this, rayStart, rayEnd, UDWHelper::GetGameTrace(EGameTraceType::Step), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 }
 
@@ -2225,7 +2219,7 @@ bool ADWCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
 			AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
 			if (chunk != nullptr)
 			{
-				UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+				UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetWorldData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
 				if (UVoxel::IsValid(voxel))
 				{
 					OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);

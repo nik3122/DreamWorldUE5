@@ -30,6 +30,7 @@ UVoxel::UVoxel()
 	Index = FIndex::ZeroIndex;
 	Rotation = FRotator::ZeroRotator;
 	Scale = FVector::OneVector;
+	Params = TMap<FName, FParameter>();
 	Owner = nullptr;
 	Auxiliary = nullptr;
 }
@@ -70,7 +71,7 @@ UVoxel* UVoxel::LoadVoxel(AChunk* InOwner, const FString& InVoxelData)
 
 void UVoxel::DespawnVoxel(UObject* InWorldContext, UVoxel* InVoxel)
 {
-	if(UVoxel::IsValid(InVoxel))
+	if(UVoxel::IsValid(InVoxel, false))
 	{
 		UObjectPoolModuleBPLibrary::DespawnObject(InWorldContext, InVoxel);
 	}
@@ -106,11 +107,6 @@ void UVoxel::LoadData(const FString& InValue)
 	Scale = FVector(FCString::Atof(*scaleData[0]), FCString::Atof(*scaleData[1]), FCString::Atof(*scaleData[2]));
 }
 
-FString UVoxel::ToData()
-{
-	return FString::Printf(TEXT("%s;%s;%s;%s"), *ID.ToString(), *Index.ToString(), *FString::Printf(TEXT("%f,%f,%f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll), *FString::Printf(TEXT("%f,%f,%f"), Scale.X, Scale.Y, Scale.Z));
-}
-
 void UVoxel::LoadItem(const FVoxelItem& InVoxelItem)
 {
 	ID = InVoxelItem.ID;
@@ -119,6 +115,11 @@ void UVoxel::LoadItem(const FVoxelItem& InVoxelItem)
 	Scale = InVoxelItem.Scale;
 	Owner = InVoxelItem.Owner;
 	Auxiliary = InVoxelItem.Auxiliary;
+}
+
+FString UVoxel::ToData()
+{
+	return FString::Printf(TEXT("%s;%s;%s;%s"), *ID.ToString(), *Index.ToString(), *FString::Printf(TEXT("%f,%f,%f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll), *FString::Printf(TEXT("%f,%f,%f"), Scale.X, Scale.Y, Scale.Z));
 }
 
 FVoxelItem UVoxel::ToItem()
@@ -133,65 +134,6 @@ FVoxelItem UVoxel::ToItem()
 	return voxelItem;
 }
 
-void UVoxel::OnGenerate()
-{
-	if (Owner && Owner->IsValidLowLevel())
-	{
-		Owner->SpawnAuxiliary(this);
-	}
-}
-
-void UVoxel::OnDestroy()
-{
-	if (Owner && Owner->IsValidLowLevel())
-	{
-		FVector range = GetVoxelData().GetCeilRange(this);
-		for (int x = 0; x < range.X; x++)
-		{
-			for (int y = 0; y < range.Y; y++)
-			{
-				FIndex index = Index + FIndex(x, y, range.Z);
-				UVoxel* voxel = Owner->GetVoxel(index);
-				if (UVoxel::IsValid(voxel))
-				{
-					FVoxelData voxelData = voxel->GetVoxelData();
-					if(voxelData.Transparency == ETransparency::Transparent && voxelData.VoxelType != EVoxelType::Water)
-					{
-						Owner->DestroyVoxel(index);
-					}
-				}
-				UVoxel::DespawnVoxel(Owner, voxel);
-			}
-		}
-		if (CheckNeighbors(EVoxelType::Water, true))
-		{
-			for (int x = 0; x < range.X; x++)
-			{
-				for (int y = 0; y < range.Y; y++)
-				{
-					for (int z = 0; z < range.Z; z++)
-					{
-						UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Water);
-						Owner->SetVoxelComplex(Index + FIndex(x, y, z), tmpVoxel, true);
-						UVoxel::DespawnVoxel(Owner, tmpVoxel);
-					}
-				}
-			}
-		}
-		if(GetVoxelData().GenerateSound) UGameplayStatics::PlaySoundAtLocation(this, GetVoxelData().GenerateSound, Owner->IndexToLocation(Index));
-		Owner->SpawnPickUp(FItem(ID, 1), Owner->IndexToLocation(Index) + range * AWorldManager::GetData().BlockSize * 0.5f);
-
-		Owner->DestroyAuxiliary(Auxiliary);
-	}
-
-	ConditionalBeginDestroy();
-}
-
-void UVoxel::OnReplace()
-{
-	OnDestroy();
-}
-
 void UVoxel::OnSpawn_Implementation()
 {
 }
@@ -202,132 +144,9 @@ void UVoxel::OnDespawn_Implementation()
 	Index = FIndex::ZeroIndex;
 	Rotation = FRotator::ZeroRotator;
 	Scale = FVector::OneVector;
+	Params.Empty();
 	Owner = nullptr;
 	Auxiliary = nullptr;
-}
-
-bool UVoxel::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
-{
-	if (GetVoxelData().MeshVertices.Num() > 0)
-	{
-		OutMeshVertices = GetVoxelData().MeshVertices;
-		OutMeshNormals = GetVoxelData().MeshNormals;
-		return true;
-	}
-	return false;
-}
-
-bool UVoxel::CheckAdjacent(EDirection InDirection)
-{
-	if (Owner == nullptr || !Owner->IsValidLowLevel()) return true;
-
-	if(InDirection == EDirection::Down && Owner->LocalIndexToWorld(Index).Z == 0) return false;
-
-	UVoxel* adjacentVoxel = Owner->GetVoxel(UDWHelper::GetAdjacentIndex(Index, InDirection, Rotation));
-
-	if (UVoxel::IsValid(adjacentVoxel))
-	{
-		FVoxelData voxelData = GetVoxelData();
-		FVoxelData adjacentData = adjacentVoxel->GetVoxelData();
-		UVoxel::DespawnVoxel(Owner, adjacentVoxel);
-		switch (voxelData.Transparency)
-		{
-			case ETransparency::Solid:
-			{
-				switch (adjacentData.Transparency)
-				{
-					case ETransparency::Solid:
-					{
-						return false;
-					}
-					default: break;
-				}
-				break;
-			}
-			case ETransparency::SemiTransparent:
-			{
-				switch (adjacentData.Transparency)
-				{
-					case ETransparency::SemiTransparent:
-					{
-						if (voxelData.VoxelType == adjacentData.VoxelType)
-						{
-							switch (voxelData.VoxelType)
-							{
-								case EVoxelType::Oak_Leaves:
-								case EVoxelType::Birch_Leaves:
-								case EVoxelType::Ice:
-								case EVoxelType::Glass:
-								{
-									return false;
-								}
-								default: break;
-							}
-						}
-						break;
-					}
-					default: break;
-				}
-				break;
-			}
-			case ETransparency::Transparent:
-			{
-				switch (adjacentData.Transparency)
-				{
-					case ETransparency::Solid:
-					case ETransparency::SemiTransparent:
-					{
-						return false;
-					}
-					case ETransparency::Transparent:
-					{
-						if (voxelData.VoxelType == adjacentData.VoxelType)
-						{
-							switch (voxelData.VoxelType)
-							{
-								case EVoxelType::Water:
-								{
-									return false;
-								}
-								default: break;
-							}
-						}
-						break;
-					}
-				}
-				break;
-			}
-		}
-	}
-	else if(adjacentVoxel == UnknownVoxel)
-	{
-		return false;
-	}
-	return true;
-}
-
-bool UVoxel::CheckNeighbors(EVoxelType InVoxelType, bool bIgnoreBottom /*= false*/, int InDistance /*= 1*/)
-{
-	FVector range = GetVoxelData().GetCeilRange(this);
-	for (int x = -InDistance; x < range.X + InDistance; x++)
-	{
-		for (int y = -InDistance; y < range.Y + InDistance; y++)
-		{
-			for (int z = bIgnoreBottom ? 0 : -InDistance; z < range.Z + InDistance; z++)
-			{
-				UVoxel* voxel = Owner->GetVoxel(Index + FIndex(x, y, z));
-				if (UVoxel::IsValid(voxel))
-				{
-					if (voxel->GetVoxelData().VoxelType == InVoxelType)
-					{
-						UVoxel::DespawnVoxel(Owner, voxel);
-						return true;
-					}
-				}
-			}
-		}
-	}
-	return false;
 }
 
 void UVoxel::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
@@ -342,14 +161,12 @@ void UVoxel::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitR
 
 void UVoxel::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
-	//if(InTarget == UDWHelper::GetPlayerCharacter(this))
-	//UDWHelper::Debug(GetVoxelData().Name.ToString());
+	
 }
 
 void UVoxel::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
-	InTarget->SetOverlapVoxel(nullptr);
-	UVoxel::DespawnVoxel(InTarget, this);
+	
 }
 
 bool UVoxel::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)

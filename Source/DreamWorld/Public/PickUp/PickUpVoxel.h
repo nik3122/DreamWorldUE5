@@ -31,5 +31,5 @@ public:
 	virtual void Initialize(FItem InItem, bool bPreview = false) override;
 
 	UFUNCTION(BlueprintPure)
-	FVoxelData GetVoxelData();
+	FVoxelData GetVoxelData() const;
 };

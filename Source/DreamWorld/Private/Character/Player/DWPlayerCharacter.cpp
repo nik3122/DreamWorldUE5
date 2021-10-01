@@ -228,11 +228,12 @@ void ADWPlayerCharacter::Tick(float DeltaTime)
 			}
 			case EControlMode::Creating:
 			{
-				FVoxelHitResult voxelHitResult;
-				if (RaycastVoxel(voxelHitResult))
-				{
-					voxelHitResult.Voxel->OnMouseHover(voxelHitResult);
-				}
+				// FVoxelHitResult voxelHitResult;
+				// if (RaycastVoxel(voxelHitResult))
+				// {
+				// 	voxelHitResult.GetVoxel()->OnMouseHover(voxelHitResult);
+				// 	UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				// }
 				break;
 			}
 		}
@@ -398,7 +399,7 @@ void ADWPlayerCharacter::UpdateVoxelMesh()
 	if (tmpItem.IsValid() && tmpItem.GetData().Type == EItemType::Voxel)
 	{
 		PreviewVoxel = UVoxel::SpawnVoxel(this, tmpItem.ID);
-		VoxelMesh->BuildVoxel(PreviewVoxel);
+		VoxelMesh->BuildVoxel(PreviewVoxel->ToItem());
 		VoxelMesh->CreateMesh(0, false);
 	}
 	else
@@ -609,7 +610,7 @@ bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
 				AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
 				if (chunk != nullptr)
 				{
-					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetWorldData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
 					if (UVoxel::IsValid(voxel))
 					{
 						OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);
@@ -813,10 +814,8 @@ void ADWPlayerCharacter::OnAttackDestroyPressed()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				if (voxelHitResult.GetVoxel()->OnMouseDown(EMouseButton::Left, voxelHitResult))
-				{
-					DoAction(ECharacterActionType::Destroy);
-				}
+				voxelHitResult.GetVoxel()->OnMouseDown(EMouseButton::Left, voxelHitResult);
+				// UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
 			}
 			break;
 		}
@@ -839,7 +838,8 @@ void ADWPlayerCharacter::OnAttackDestroyRepeat()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.Voxel->OnMouseHold(EMouseButton::Left, voxelHitResult);
+				voxelHitResult.GetVoxel()->OnMouseHold(EMouseButton::Left, voxelHitResult);
+				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
 			}
 			break;
 		}
@@ -860,10 +860,8 @@ void ADWPlayerCharacter::OnAttackDestroyReleased()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				if (voxelHitResult.Voxel->OnMouseUp(EMouseButton::Left, voxelHitResult))
-				{
-					DoAction(ECharacterActionType::Generate);
-				}
+				voxelHitResult.GetVoxel()->OnMouseUp(EMouseButton::Left, voxelHitResult);
+				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
 			}
 			break;
 		}
@@ -890,6 +888,7 @@ void ADWPlayerCharacter::OnDefendGeneratePressed()
 			if (RaycastVoxel(voxelHitResult))
 			{
 				voxelHitResult.GetVoxel()->OnMouseDown(EMouseButton::Right, voxelHitResult);
+				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
 			}
 			break;
 		}
@@ -912,7 +911,8 @@ void ADWPlayerCharacter::OnDefendGenerateRepeat()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.Voxel->OnMouseHold(EMouseButton::Right, voxelHitResult);
+				voxelHitResult.GetVoxel()->OnMouseHold(EMouseButton::Right, voxelHitResult);
+				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
 			}
 			break;
 		}
@@ -933,7 +933,8 @@ void ADWPlayerCharacter::OnDefendGenerateReleased()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.Voxel->OnMouseUp(EMouseButton::Right, voxelHitResult);
+				voxelHitResult.GetVoxel()->OnMouseUp(EMouseButton::Right, voxelHitResult);
+				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
 			}
 			break;
 		}

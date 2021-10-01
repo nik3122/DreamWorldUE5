@@ -17,9 +17,9 @@ UWorldDataSave::UWorldDataSave()
 
 void UWorldDataSave::RefreshWorldData()
 {
-	if(AWorldManager* WorldManager = AWorldManager::Get())
+	if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 	{
-		WorldData = WorldManager->GetData();
+		WorldData = WorldManager->GetWorldData();
 		WorldData.bSaved = true;
 	}
 }

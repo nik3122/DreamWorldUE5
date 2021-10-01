@@ -28,16 +28,6 @@ public:
 
 	virtual FString ToData() override;
 
-	virtual void OnGenerate() override;
-
-	virtual void OnDestroy() override;
-
-	virtual void OnReplace() override;
-
-	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals) override;
-
-	virtual bool CheckAdjacent(EDirection InDirection) override;
-
 	//////////////////////////////////////////////////////////////////////////
 	// Events
 public:

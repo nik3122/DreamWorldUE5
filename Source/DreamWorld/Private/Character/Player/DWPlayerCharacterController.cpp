@@ -43,7 +43,7 @@ void ADWPlayerCharacterController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(AWorldManager* WorldManager = AWorldManager::Get())
+	if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 	{
 		WorldManager->OnBasicGenerated.AddDynamic(this, &ADWPlayerCharacterController::OnBasicGenerated);
 	}
@@ -144,7 +144,7 @@ void ADWPlayerCharacterController::LoadPlayer(const FString& InPlayerName)
 
 				Possess(PlayerCharacter);
 
-				if(AWorldManager* WorldManager = AWorldManager::Get())
+				if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 				{
 					if(UWorldDataSave* WorldDataSave = WorldManager->GetDataSave())
 					{
@@ -209,7 +209,7 @@ void ADWPlayerCharacterController::UnLoadPlayer()
 		DataSave = nullptr;
 		if(PossessedCharacter)
 		{
-			if(AWorldManager* WorldManager = AWorldManager::Get())
+			if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 			{
 				if(UWorldDataSave* WorldDataSave = WorldManager->GetDataSave())
 				{

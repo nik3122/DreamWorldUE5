@@ -3,6 +3,7 @@
 
 
 #include "VoxelAuxiliary/VoxelDoorAuxiliary.h"
+
 #include "Voxel/Voxel.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Components/BoxComponent.h"
@@ -11,8 +12,6 @@
 // Sets default values
 AVoxelDoorAuxiliary::AVoxelDoorAuxiliary()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
 
 }
 
@@ -25,22 +24,29 @@ void AVoxelDoorAuxiliary::BeginPlay()
 
 void AVoxelDoorAuxiliary::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Cast<UVoxelDoor>(OwnerVoxel)->OpenTheDoor();
+	if(UVoxel* Voxel = GetVoxelItem().GetVoxel())
+	{
+		if(UVoxelDoor* VoxelDoor = Cast<UVoxelDoor>(Voxel))
+		{
+			VoxelDoor->OpenTheDoor();
+		}
+		UVoxel::DespawnVoxel(this, Voxel);
+	}
 }
 
 void AVoxelDoorAuxiliary::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	Cast<UVoxelDoor>(OwnerVoxel)->CloseTheDoor();
+	if(UVoxel* Voxel = GetVoxelItem().GetVoxel())
+	{
+		if(UVoxelDoor* VoxelDoor = Cast<UVoxelDoor>(Voxel))
+		{
+			VoxelDoor->CloseTheDoor();
+		}
+		UVoxel::DespawnVoxel(this, Voxel);
+	}
 }
 
-// Called every frame
-void AVoxelDoorAuxiliary::Tick(float DeltaTime)
+void AVoxelDoorAuxiliary::Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex)
 {
-	Super::Tick(DeltaTime);
-
-}
-
-void AVoxelDoorAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
-{
-	Super::Initialize(InOwner, InLocation);
+	Super::Initialize(InOwnerChunk, InVoxelIndex);
 }

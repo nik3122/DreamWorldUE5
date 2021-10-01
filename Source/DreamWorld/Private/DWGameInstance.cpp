@@ -55,7 +55,7 @@ void UDWGameInstance::SaveGameData(bool bRefresh)
 
 UGameDataSave* UDWGameInstance::LoadGameData()
 {
-	if (!GameDataSave)
+	// if (!GameDataSave)
 	{
 		if (UGameplayStatics::DoesSaveGameExist(TEXT("GameData"), UserIndex))
 		{
@@ -260,7 +260,7 @@ void UDWGameInstance::RemovePlayerData(const FString& InPlayerName)
 
 TMap<FString, FCharacterBasicData> UDWGameInstance::GetPlayerDatas() const
 {
-	if(GameDataSave && GameDataSave->IsValidLowLevel())
+	if(GameDataSave)
 	{
 		return GameDataSave->GetPlayerDatas();
 	}

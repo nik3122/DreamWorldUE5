@@ -34,7 +34,7 @@ void ADWGameMode::BeginPlay()
 
 void ADWGameMode::StartGame(const FString& InPlayerName, const FString& InWorldName)
 {
-	if(AWorldManager* WorldManager = AWorldManager::Get())
+	if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 	{
 		WorldManager->LoadWorld(InWorldName);
 	}
@@ -76,7 +76,7 @@ void ADWGameMode::BackMainMenu()
 	{
 		PlayerController->UnLoadPlayer();
 	}
-	if(AWorldManager* WorldManager = AWorldManager::Get())
+	if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 	{
 		WorldManager->UnloadWorld();
 	}
@@ -96,7 +96,7 @@ void ADWGameMode::QuitGame()
 	{
 		PlayerController->UnLoadPlayer();
 	}
-	if(AWorldManager* WorldManager = AWorldManager::Get())
+	if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
 	{
 		WorldManager->UnloadWorld();
 	}

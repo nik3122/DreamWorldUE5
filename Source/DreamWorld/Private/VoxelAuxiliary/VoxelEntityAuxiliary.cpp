@@ -9,9 +9,6 @@
 // Sets default values
 AVoxelEntityAuxiliary::AVoxelEntityAuxiliary()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
-
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComponent->SetCollisionProfileName(TEXT("DW_EntityAuxiliary"));
 	BoxComponent->SetBoxExtent(FVector(20, 20, 20));
@@ -31,18 +28,9 @@ void AVoxelEntityAuxiliary::OnCollision(UPrimitiveComponent* HitComponent, AActo
 
 }
 
-// Called every frame
-void AVoxelEntityAuxiliary::Tick(float DeltaTime)
+void AVoxelEntityAuxiliary::Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex)
 {
-	Super::Tick(DeltaTime);
+	Super::Initialize(InOwnerChunk, InVoxelIndex);
 
-}
-
-void AVoxelEntityAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
-{
-	Super::Initialize(InOwner, InLocation);
-
-	if(!InOwner || !InOwner->IsValidLowLevel()) return;
-
-	BoxComponent->SetBoxExtent(InOwner->GetVoxelData().GetFinalRange() * 0.5f);
+	BoxComponent->SetBoxExtent(GetVoxelItem().GetVoxelData().GetFinalRange() * 0.5f);
 }

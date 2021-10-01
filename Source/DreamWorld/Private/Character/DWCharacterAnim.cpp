@@ -28,7 +28,7 @@ void UDWCharacterAnim::NativeInitializeAnimation()
 
 bool UDWCharacterAnim::HandleNotify(const FAnimNotifyEvent& AnimNotifyEvent)
 {
-	FName notifyName = AnimNotifyEvent.GetNotifyEventName();
+	const FName notifyName = AnimNotifyEvent.GetNotifyEventName();
 	if (notifyName.IsEqual(FName("AnimNotify_Free to animate")))
 	{
 		OwnerCharacter->FreeToAnim();
@@ -53,7 +53,7 @@ bool UDWCharacterAnim::HandleNotify(const FAnimNotifyEvent& AnimNotifyEvent)
 	{
 		OwnerCharacter->StopAction();
 	}
-	return true;
+	return false;
 }
 
 void UDWCharacterAnim::NativeUpdateAnimation(float DeltaSeconds)

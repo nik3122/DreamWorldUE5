@@ -13,7 +13,7 @@ AVoxelAuxiliary::AVoxelAuxiliary()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
-	OwnerVoxel = nullptr;
+	VoxelIndex = FIndex::ZeroIndex;
 }
 
 // Called when the game starts or when spawned
@@ -23,18 +23,16 @@ void AVoxelAuxiliary::BeginPlay()
 
 }
 
-// Called every frame
-void AVoxelAuxiliary::Tick(float DeltaTime)
+void AVoxelAuxiliary::Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex)
 {
-	Super::Tick(DeltaTime);
-
+	VoxelIndex = InVoxelIndex;
 }
 
-void AVoxelAuxiliary::Initialize(UVoxel* InOwner, FVector InLocation)
+FVoxelItem& AVoxelAuxiliary::GetVoxelItem()
 {
-	if(!InOwner || !InOwner->IsValidLowLevel()) return;
-
-	OwnerVoxel = InOwner;
-	SetActorRelativeLocation(InLocation);
-	SetActorRelativeRotation(InOwner->GetRotation());
+	if(OwnerChunk)
+	{
+		return OwnerChunk->GetVoxelItem(VoxelIndex);
+	}
+	return FVoxelItem::EmptyVoxel;
 }

@@ -4,6 +4,8 @@
 
 #include "DreamWorld.h"
 #include "GameFramework/Actor.h"
+#include "ChunkMapBuildTask.h"
+#include "ChunkMapGenerateTask.h"
 #include "WorldManager.generated.h"
 
 class AChunk;
@@ -19,7 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBasicGenerated, FVector, InPlayer
 /**
  * 世界管理器
  */
-UCLASS()
+UCLASS(hidecategories = (Tick, Replication, Rendering, Collision, Actor, Input, LOD, Cooking, Hidden, WorldPartition, Hlod))
 class DREAMWORLD_API AWorldManager : public AActor
 {
 	GENERATED_BODY()
@@ -42,7 +44,27 @@ protected:
 	static AWorldManager* Current;
 
 public:
-	static AWorldManager* Get() { return Current; }
+	static AWorldManager* GetCurrent() { return Current; }
+
+protected:
+	static FWorldData WorldData;
+
+	static UWorldDataSave* DataSave;
+
+public:
+	static FWorldData& GetWorldData() { return WorldData; }
+
+	static UWorldDataSave* GetDataSave() { return DataSave; }
+
+	static EVoxelType GetNoiseVoxelType(FIndex InIndex);
+
+	static FVoxelData GetNoiseVoxelData(FIndex InIndex);
+
+	static int GetNoiseTerrainHeight(FVector InOffset, FVector InScale);
+		
+	static FIndex LocationToChunkIndex(FVector InLocation, bool bIgnoreZ = false);
+
+	static FVector ChunkIndexToLocation(FIndex InIndex);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Components
@@ -66,32 +88,34 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// World
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
-	FWorldData WorldData;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, Category = "World")
 	int32 ChunkSpawnRange;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, Category = "World")
 	int32 ChunkSpawnDistance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, Category = "World")
 	int32 ChunkSpawnSpeed;
 		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, Category = "World")
 	int32 ChunkDestroySpeed;
 					
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, Category = "World")
 	int32 ChunkMapBuildSpeed;
+					
+	UPROPERTY(EditAnywhere, Category = "World")
+	int32 ChunkMapGenerateSpeed;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(EditAnywhere, Category = "World")
 	int32 ChunkGenerateSpeed;
 
+	UPROPERTY(EditAnywhere, Category = "World")
+	float BasicPercentage;
+
+	UPROPERTY(VisibleAnywhere, Category = "World")
 	bool bBasicGenerated;
 
 	FRandomStream RandomStream;
-
-	static UWorldDataSave* DataSave;
 
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -103,13 +127,6 @@ public:
 	void UnloadWorld();
 
 public:
-	static FWorldData& GetData()
-	{
-		return Current ? Current->WorldData : FWorldData::Empty;
-	}
-
-	static UWorldDataSave* GetDataSave() { return DataSave; }
-
 	UFUNCTION(BlueprintPure)
 	bool IsBasicGenerated() const { return bBasicGenerated; }
 	
@@ -122,7 +139,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Chunk
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Chunk")
 	TMap<FIndex, AChunk*> ChunkMap;
 	
 private:
@@ -136,21 +153,30 @@ private:
 
 	TArray<AChunk*> ChunkMapBuildQueue;
 
+	TArray<AChunk*> ChunkMapGenerateQueue;
+
 	TArray<AChunk*> ChunkGenerateQueue;
 
 	TArray<AChunk*> ChunkDestroyQueue;
+	
+	TArray<FAsyncTask<ChunkMapBuildTask>*> ChunkMapBuildTasks;
+	
+	TArray<FAsyncTask<ChunkMapGenerateTask>*> ChunkMapGenerateTasks;
 
 protected:
-	void GenerateTerrain();
-
 	UFUNCTION()
 	void OnPlayerSpawned(ADWPlayerCharacter* InPlayerCharacter);
 
 	void GeneratePreviews();
 
+	void GenerateTerrain();
+
 	void GenerateChunks(FIndex InIndex);
 
+public:
 	void BuildChunkMap(AChunk* InChunk);
+
+	void GenerateChunkMap(AChunk* InChunk);
 
 	void GenerateChunk(AChunk* InChunk);
 
@@ -158,7 +184,9 @@ protected:
 
 	void AddToSpawnQueue(FIndex InIndex);
 
-	void AddToBuildMapQueue(AChunk* InChunk);
+	void AddToMapBuildQueue(AChunk* InChunk);
+
+	void AddToMapGenerateQueue(AChunk* InChunk);
 
 	void AddToGenerateQueue(AChunk* InChunk);
 
@@ -172,22 +200,11 @@ public:
 	AChunk* FindChunk(FIndex InIndex);
 
 public:
-	UFUNCTION(BlueprintPure)
 	int GetChunkNum(bool bNeedGenerated = false) const;
 
 	float GetWorldLength() const;
 
 	int32 GetChunkDistance() const;
-
-	EVoxelType GetNoiseVoxelType(FIndex InIndex) const;
-
-	FVoxelData GetNoiseVoxelData(FIndex InIndex);
-
-	int GetNoiseTerrainHeight(FVector InOffset, FVector InScale) const;
-		
-	FIndex LocationToChunkIndex(FVector InLocation, bool bIgnoreZ = false) const;
-
-	FVector ChunkIndexToLocation(FIndex InIndex) const;
 
 	bool ChunkTraceSingle(AChunk* InChunk, float InRadius, float InHalfHeight, FHitResult& OutHitResult);
 

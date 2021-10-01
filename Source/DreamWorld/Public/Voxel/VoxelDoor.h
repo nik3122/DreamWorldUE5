@@ -16,10 +16,6 @@ class DREAMWORLD_API UVoxelDoor : public UVoxel
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY()
-	bool bClosed;
-
 public:
 	UVoxelDoor();
 	
@@ -32,27 +28,21 @@ public:
 
 	virtual FString ToData() override;
 
-	virtual void OnGenerate() override;
-
-	virtual void OnDestroy() override;
-
-	virtual void OnReplace() override;
-
-	virtual void OnDespawn_Implementation() override;
-
-	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals) override;
-
-	virtual bool CheckAdjacent(EDirection InDirection) override;
-
 	virtual void OpenOrClose();
 
 	virtual void OpenTheDoor();
 
 	virtual void CloseTheDoor();
 
+	virtual bool IsOpened() const;
+
+	virtual void SetOpened(bool InValue);
+
 	//////////////////////////////////////////////////////////////////////////
 	// Events
 public:
+	virtual void OnSpawn_Implementation() override;
+	
 	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
 	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;

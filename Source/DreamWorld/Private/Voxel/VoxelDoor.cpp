@@ -8,7 +8,7 @@
 
 UVoxelDoor::UVoxelDoor()
 {
-	bClosed = true;
+	
 }
 
 void UVoxelDoor::Initialize(FIndex InIndex, AChunk* InOwner)
@@ -23,54 +23,23 @@ void UVoxelDoor::LoadData(const FString& InValue)
 	TArray<FString> data;
 	InValue.ParseIntoArray(data, TEXT(";"));
 	
-	bClosed = (bool)FCString::Atoi(*data[3]);
+	SetOpened(FCString::Atoi(*data[3]));
 }
 
 FString UVoxelDoor::ToData()
 {
-	return Super::ToData() + FString::Printf(TEXT(";%d"), (int32)bClosed);
-}
-
-void UVoxelDoor::OnGenerate()
-{
-	Super::OnGenerate();
-}
-
-void UVoxelDoor::OnDestroy()
-{
-	Super::OnDestroy();
-}
-
-void UVoxelDoor::OnReplace()
-{
-	Super::OnReplace();
-}
-
-void UVoxelDoor::OnDespawn_Implementation()
-{
-	Super::OnDespawn_Implementation();
-	bClosed = true;
-}
-
-bool UVoxelDoor::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
-{
-	return Super::GetMeshDatas(OutMeshVertices, OutMeshNormals);
-}
-
-bool UVoxelDoor::CheckAdjacent(EDirection InDirection)
-{
-	return true;
+	return Super::ToData() + FString::Printf(TEXT(";%d"), (int32)IsOpened());
 }
 
 void UVoxelDoor::OpenOrClose()
 {
-	if(bClosed) OpenTheDoor();
+	if(IsOpened()) OpenTheDoor();
 	else CloseTheDoor();
 }
 
 void UVoxelDoor::OpenTheDoor()
 {
-	bClosed = false;
+	SetOpened(false);
 	Rotation += FRotator(0, -90, 0);
 	Scale = FVector(1, 1, 1);
 	Owner->Generate();
@@ -83,7 +52,7 @@ void UVoxelDoor::OpenTheDoor()
 
 void UVoxelDoor::CloseTheDoor()
 {
-	bClosed = true;
+	SetOpened(true);
 	Rotation += FRotator(0, 90, 0);
 	Scale = FVector(1, 1, 1);
 	Owner->Generate();
@@ -92,6 +61,21 @@ void UVoxelDoor::CloseTheDoor()
 		UGameplayStatics::PlaySoundAtLocation(this, GetVoxelData().OperationSounds[1], Owner->IndexToLocation(Index));
 	}
 	Owner->SetVoxelSample(Index, this);
+}
+
+bool UVoxelDoor::IsOpened() const
+{
+	return Params[FName("bOpened")].GetBooleanValue();
+}
+
+void UVoxelDoor::SetOpened(bool InValue)
+{
+	Params[FName("bOpened")].SetBooleanValue(InValue);
+}
+
+void UVoxelDoor::OnSpawn_Implementation()
+{
+	Params.Add(FName("bOpened"), FParameter::MakeBoolean(false));
 }
 
 void UVoxelDoor::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
@@ -125,13 +109,14 @@ bool UVoxelDoor::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& 
 		case EMouseButton::Right:
 		{
 			FHitResult hitResult;
-			if (!AWorldManager::Get()->VoxelTraceSingle(this, Owner->IndexToLocation(Index), hitResult))
+			if (!AWorldManager::GetCurrent()->VoxelTraceSingle(this, Owner->IndexToLocation(Index), hitResult))
 			{
 				OpenOrClose();
 				return true;
 			}
 			break;
 		}
+		default: break;
 	}
 	return false;
 }

@@ -63,35 +63,39 @@ public:
 	UVoxelMeshComponent* GetSemiMesh();
 
 	UVoxelMeshComponent* GetTransMesh();
-		
+	
+public:
+	void DestroySolidMesh();
+
+	void DestroySemiMesh();
+
+	void DestroyTransMesh();
+
 	//////////////////////////////////////////////////////////////////////////
 	// Stats
 protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	TArray<AChunk*> Neighbors;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	TMap<FIndex, FVoxelItem> VoxelMap;
 		
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
-	TMap<FIndex, AVoxelAuxiliary*> AuxiliaryMap;
-		
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	TArray<ADWCharacter*> Characters;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	TArray<AVitalityObject*> VitalityObjects;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	TArray<APickUp*> PickUps;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	FIndex Index;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	int32 Batch;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(VisibleAnywhere, Category = "Stats")
 	bool bGenerated;
 
 public:
@@ -101,12 +105,16 @@ public:
 	
 	bool IsGenerated() const { return bGenerated; }
 
+	TArray<AChunk*> GetNeighbors() const { return Neighbors; }
+
 	//////////////////////////////////////////////////////////////////////////
 	// Chunk
 public:
 	void Initialize(FIndex InIndex, int32 InBatch);
 
 	void Generate();
+
+	void GenerateMap();
 
 	void BuildMap();
 
@@ -115,15 +123,13 @@ public:
 protected:
 	void LoadActors(FChunkData InChunkData);
 
-	bool GenerateMap();
-
 	void OnGenerated();
 		
-	void UpdateNeighbors(FIndex InIndex);
+	void GenerateNeighbors(FIndex InIndex);
 
-	void UpdateNeighbors(int InX, int InY, int InZ);
+	void GenerateNeighbors(int InX, int InY, int InZ);
 
-	void GetNeighbors();
+	void UpdateNeighbors();
 
 	void BreakNeighbors();
 
@@ -132,17 +138,25 @@ public:
 
 	UVoxel* GetVoxel(int InX, int InY, int InZ);
 
+	FVoxelItem& GetVoxelItem(FIndex InIndex);
+
+	FVoxelItem& GetVoxelItem(int InX, int InY, int InZ);
+
 	bool CheckVoxel(FIndex InIndex, FVector InRange = FVector::OneVector, bool bIgnoreTransparent = true);
 
 	bool CheckVoxel(int InX, int InY, int InZ, FVector InRange = FVector::OneVector, bool bIgnoreTransparent = true);
 
-	bool SetVoxelSample(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh = false);
+	bool CheckAdjacent(FIndex InIndex, EDirection InDirection);
 
-	bool SetVoxelSample(int InX, int InY, int InZ, UVoxel* InVoxel, bool bGenerateMesh = false);
+	bool CheckNeighbors(FIndex InIndex, EVoxelType InVoxelType, bool bIgnoreBottom = false, int InDistance = 1);
 
-	bool SetVoxelComplex(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh = false);
+	bool SetVoxelSample(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
 
-	bool SetVoxelComplex(int InX, int InY, int InZ, UVoxel* InVoxel, bool bGenerateMesh = false);
+	bool SetVoxelSample(int InX, int InY, int InZ, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
+
+	bool SetVoxelComplex(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
+
+	bool SetVoxelComplex(int InX, int InY, int InZ, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
 
 	bool GenerateVoxel(FIndex InIndex, UVoxel* InVoxel);
 
@@ -167,7 +181,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Auxiliary
 public:
-	AVoxelAuxiliary* SpawnAuxiliary(UVoxel* InVoxel);
+	AVoxelAuxiliary* SpawnAuxiliary(FVoxelItem& InVoxelItem);
 
 	void DestroyAuxiliary(AVoxelAuxiliary* InAuxiliary);
 
@@ -206,3 +220,4 @@ public:
 
 	void DestroyVitalityObject(AVitalityObject* InVitalityObject);
 };
+

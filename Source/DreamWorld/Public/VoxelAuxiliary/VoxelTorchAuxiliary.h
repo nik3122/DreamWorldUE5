@@ -30,8 +30,5 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	virtual void Initialize(UVoxel* InOwner, FVector InLocation) override;
+	virtual void Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex) override;
 };

@@ -25,31 +25,6 @@ FString UVoxelTorch::ToData()
 	return Super::ToData();
 }
 
-void UVoxelTorch::OnGenerate()
-{
-	Super::OnGenerate();
-}
-
-void UVoxelTorch::OnDestroy()
-{
-	Super::OnDestroy();
-}
-
-void UVoxelTorch::OnReplace()
-{
-	Super::OnReplace();
-}
-
-bool UVoxelTorch::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
-{
-	return Super::GetMeshDatas(OutMeshVertices, OutMeshNormals);
-}
-
-bool UVoxelTorch::CheckAdjacent(EDirection InDirection)
-{
-	return true;
-}
-
 void UVoxelTorch::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);
@@ -78,6 +53,7 @@ bool UVoxelTorch::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult&
 		{
 			return Super::OnMouseDown(InMouseButton, InHitResult);
 		}
+		default: break;
 	}
 	return false;
 }

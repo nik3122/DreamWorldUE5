@@ -27,16 +27,14 @@ void AVitalityVoxel::BeginPlay()
 	Super::BeginPlay();
 
 	FVector range = GetVoxelData().GetFinalRange();
-	BoxComponent->SetBoxExtent(range * AWorldManager::GetData().BlockSize);
+	BoxComponent->SetBoxExtent(range * AWorldManager::GetWorldData().BlockSize);
 	//AddActorLocalOffset(FVector::UpVector * range.Z * VoxelMesh->BlockScale * 0.5f);
 
 	if (GetVoxelData().IsValid())
 	{
-		UVoxel* tmpVoxel = UVoxel::SpawnVoxel(this, VoxelID);
 		VoxelMesh->Initialize(EVoxelMeshType::VitalityVoxel);
-		VoxelMesh->BuildVoxel(tmpVoxel);
+		VoxelMesh->BuildVoxel(FVoxelItem(VoxelID));
 		VoxelMesh->CreateMesh(0, false);
-		UVoxel::DespawnVoxel(this, tmpVoxel);
 	}
 	else
 	{

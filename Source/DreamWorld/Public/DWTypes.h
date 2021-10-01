@@ -5,6 +5,8 @@
 #include "GameplayAbilitySpec.h"
 #include "GameplayEffectTypes.h"
 #include "ObjectAndNameAsStringProxyArchive.h"
+#include "ParameterModuleTypes.h"
+
 #include "DWTypes.generated.h"
 
 class AWorldManager;
@@ -936,20 +938,20 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ETransparency Transparency;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bCustomMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector Range;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector Offset;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCustomMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bCustomMesh == true"))
 	TArray<FVector> MeshVertices;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bCustomMesh == true"))
 	TArray<FVector> MeshNormals;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -981,16 +983,16 @@ public:
 		OperationSounds = TArray<USoundBase*>();
 	}
 
-	FORCEINLINE bool IsComplex()
+	FORCEINLINE bool IsComplex() const
 	{
 		return GetCeilRange() != FVector::OneVector;
 	}
 
-	FVector GetCeilRange(UVoxel* InVoxel);
+	FVector GetCeilRange(UVoxel* InVoxel) const;
 
-	FVector GetFinalRange(UVoxel* InVoxel);
+	FVector GetFinalRange(UVoxel* InVoxel) const;
 
-	FORCEINLINE FVector GetCeilRange(FRotator InRotation = FRotator::ZeroRotator, FVector InScale = FVector::OneVector)
+	FORCEINLINE FVector GetCeilRange(FRotator InRotation = FRotator::ZeroRotator, FVector InScale = FVector::OneVector) const
 	{
 		FVector range = GetFinalRange(InRotation, InScale);
 		range.X = FMath::CeilToFloat(range.X);
@@ -999,7 +1001,7 @@ public:
 		return range;
 	}
 
-	FORCEINLINE FVector GetFinalRange(FRotator InRotation = FRotator::ZeroRotator, FVector InScale = FVector::OneVector)
+	FORCEINLINE FVector GetFinalRange(FRotator InRotation = FRotator::ZeroRotator, FVector InScale = FVector::OneVector) const
 	{
 		FVector range = InRotation.RotateVector(Range * InScale);
 		range.X = FMath::Abs(range.X);
@@ -1008,12 +1010,12 @@ public:
 		return range;
 	}
 
-	FORCEINLINE FVector2D GetUVCorner(EFacing InFacing, FVector2D InUVSize)
+	FORCEINLINE FVector2D GetUVCorner(EFacing InFacing, FVector2D InUVSize) const
 	{
 		return GetUVCorner((int)InFacing, InUVSize);
 	}
 
-	FORCEINLINE FVector2D GetUVCorner(int InFaceIndex, FVector2D InUVSize)
+	FORCEINLINE FVector2D GetUVCorner(int InFaceIndex, FVector2D InUVSize) const
 	{
 		FMeshUVData uvData = FMeshUVData();
 		if (MeshUVDatas.Num() > InFaceIndex)
@@ -1021,18 +1023,20 @@ public:
 		return FVector2D(uvData.UVCorner.X	 * InUVSize.X, (1 / InUVSize.Y - uvData.UVCorner.Y - uvData.UVSpan.Y) * InUVSize.Y);
 	}
 
-	FORCEINLINE FVector2D GetUVSpan(EFacing InFacing, FVector2D InUVSize)
+	FORCEINLINE FVector2D GetUVSpan(EFacing InFacing, FVector2D InUVSize) const
 	{
 		return GetUVSpan((int)InFacing, InUVSize);
 	}
 
-	FORCEINLINE FVector2D GetUVSpan(int InFaceIndex, FVector2D InUVSize)
+	FORCEINLINE FVector2D GetUVSpan(int InFaceIndex, FVector2D InUVSize) const
 	{
 		FMeshUVData uvData = FMeshUVData();
 		if (MeshUVDatas.Num() > InFaceIndex)
 			uvData = MeshUVDatas[InFaceIndex];
 		return FVector2D(uvData.UVSpan.X * InUVSize.X, uvData.UVSpan.Y * InUVSize.Y);
 	}
+
+	bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals, FRotator InRotation = FRotator::ZeroRotator, FVector InScale = FVector::OneVector) const;
 };
 
 USTRUCT(BlueprintType)
@@ -1214,12 +1218,19 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	FVector Scale;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, FParameter> Params;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	AChunk* Owner;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	AVoxelAuxiliary* Auxiliary;
+
+	static FVoxelItem UnknownVoxel;
+
+	static FVoxelItem EmptyVoxel;
 
 public:
 	FVoxelItem()
@@ -1228,14 +1239,29 @@ public:
 		Index = FIndex::ZeroIndex;
 		Rotation = FRotator::ZeroRotator;
 		Scale = FVector::ZeroVector;
+		Params = TMap<FName, FParameter>();
+		Owner = nullptr;
+		Auxiliary = nullptr;
+	}
+	
+	FVoxelItem(const FName InID, FIndex InIndex = FIndex::ZeroIndex, FRotator InRotation = FRotator::ZeroRotator, FVector InScale = FVector::ZeroVector)
+	{
+		ID = InID;
+		Index = InIndex;
+		Rotation = InRotation;
+		Scale = InScale;
+		Params = TMap<FName, FParameter>();
 		Owner = nullptr;
 		Auxiliary = nullptr;
 	}
 
 public:
-	FString GetData() const;
-
+	
 	UVoxel* GetVoxel() const;
+
+	FVoxelData GetVoxelData() const;
+
+	FString GetStringData() const;
 };
 
 USTRUCT(BlueprintType)
@@ -1243,23 +1269,28 @@ struct DREAMWORLD_API FVoxelHitResult
 {
 	GENERATED_BODY()
 
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FVector Point;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FVector Normal;
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TWeakObjectPtr<UVoxel> Voxel;
 
+public:
 	FVoxelHitResult();
 	
-	explicit FVoxelHitResult(UVoxel* InVoxel, FVector InPoint, FVector InNormal);
+	FVoxelHitResult(UVoxel* InVoxel, FVector InPoint, FVector InNormal);
 
 	FORCEINLINE UVoxel* GetVoxel() const
 	{
 		return Voxel.Get();
 	}
+
+	AChunk* GetOwner() const;
 };
 
 USTRUCT(BlueprintType)
@@ -1368,7 +1399,7 @@ public:
 	}
 
 public:
-	static FWorldData Empty;
+	static const FWorldData Empty;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 BlockSize;
@@ -1649,7 +1680,7 @@ public:
 	FIndex Index;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TArray<FString> VoxelDatas;
+	TArray<FVoxelItem> VoxelItems;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TArray<FPickUpData> PickUpDatas;
@@ -1663,7 +1694,7 @@ public:
 	FORCEINLINE FChunkData()
 	{
 		Index = FIndex::ZeroIndex;
-		VoxelDatas = TArray<FString>();
+		VoxelItems = TArray<FVoxelItem>();
 		PickUpDatas = TArray<FPickUpData>();
 		CharacterDatas = TArray<FCharacterData>();
 		VitalityObjectDatas = TArray<FVitalityObjectData>();

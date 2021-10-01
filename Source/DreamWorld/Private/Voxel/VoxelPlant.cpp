@@ -24,47 +24,6 @@ FString UVoxelPlant::ToData()
 	return Super::ToData();
 }
 
-void UVoxelPlant::OnGenerate()
-{
-	Super::OnGenerate();
-}
-
-void UVoxelPlant::OnDestroy()
-{
-	Super::OnDestroy();
-}
-
-void UVoxelPlant::OnReplace()
-{
-	Super::OnReplace();
-}
-
-bool UVoxelPlant::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals)
-{
-	FVector range = GetVoxelData().GetFinalRange(Rotation, Scale);
-
-	OutMeshVertices = TArray<FVector>();
-	OutMeshVertices.Add(FVector(-0.5f, -0.5f, -0.5f) * range);
-	OutMeshVertices.Add(FVector(-0.5f, -0.5f, 0.5f) * range);
-	OutMeshVertices.Add(FVector(0.5f, 0.5f, 0.5f) * range);
-	OutMeshVertices.Add(FVector(0.5f, 0.5f, -0.5f) * range);
-	OutMeshVertices.Add(FVector(0.5f, -0.5f, -0.5f) * range);
-	OutMeshVertices.Add(FVector(0.5f, -0.5f, 0.5f) * range);
-	OutMeshVertices.Add(FVector(-0.5f, 0.5f, 0.5f) * range);
-	OutMeshVertices.Add(FVector(-0.5f, 0.5f, -0.5f) * range);
-
-	OutMeshNormals = TArray<FVector>();
-	OutMeshNormals.Add(FVector(1, -1, 0).GetSafeNormal());
-	OutMeshNormals.Add(FVector(-1, -1, 0).GetSafeNormal());
-
-	return true;
-}
-
-bool UVoxelPlant::CheckAdjacent(EDirection InDirection)
-{
-	return true;
-}
-
 void UVoxelPlant::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetHit(InTarget, InHitResult);
@@ -92,6 +51,7 @@ bool UVoxelPlant::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult&
 		{
 			return Super::OnMouseDown(InMouseButton, InHitResult);
 		}
+		default: break;
 	}
 	return false;
 }

@@ -49,7 +49,7 @@ private:
 public:
 	void Initialize(EVoxelMeshType InMeshType, ETransparency InTransparency = ETransparency::Solid);
 	
-	void BuildVoxel(UVoxel* InVoxel);
+	void BuildVoxel(const FVoxelItem& InVoxelItem);
 
 	void CreateMesh(int InSectionIndex = 0, bool bHasCollider = true);
 
@@ -57,8 +57,13 @@ public:
 
 	void ClearData();
 
-private:
-	void BuildFace(UVoxel* InVoxel, EFacing InFacing);
+public:
+	bool IsEmpty() const;
 
-	void BuildFace(UVoxel* InVoxel, FVector InVertices[4], int InFaceIndex, FVector InNormal);
+	AChunk* GetOwnerChunk() const;
+
+private:
+	void BuildFace(const FVoxelItem& InVoxelItem, EFacing InFacing);
+
+	void BuildFace(const FVoxelItem& InVoxelItem, FVector InVertices[4], int InFaceIndex, FVector InNormal);
 };

@@ -90,7 +90,7 @@ ADWMainModule* UDWHelper::GetMainModule(const UObject* InWorldContext)
 
 AWorldManager* UDWHelper::GetWorldManager()
 {
-	return AWorldManager::Get();
+	return AWorldManager::GetCurrent();
 }
 
 TSubclassOf<UWidgetMainMenu> UDWHelper::WidgetMainMenuClass = nullptr;

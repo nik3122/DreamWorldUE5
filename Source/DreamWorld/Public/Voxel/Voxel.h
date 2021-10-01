@@ -47,31 +47,19 @@ public:
 
 	virtual void LoadData(const FString& InValue);
 
-	virtual FString ToData();
-
 	virtual void LoadItem(const FVoxelItem& InVoxelItem);
 
+	virtual FString ToData();
+
 	virtual FVoxelItem ToItem();
-
-	virtual void OnGenerate();
-
-	virtual void OnDestroy();
-
-	virtual void OnReplace();
-
-	virtual void OnSpawn_Implementation() override;
-
-	virtual void OnDespawn_Implementation() override;
-
-	virtual bool GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals);
-
-	virtual bool CheckAdjacent(EDirection InDirection);
-
-	virtual bool CheckNeighbors(EVoxelType InVoxelType, bool bIgnoreBottom = false, int InDistance = 1);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Events
 public:
+	virtual void OnSpawn_Implementation() override;
+
+	virtual void OnDespawn_Implementation() override;
+
 	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
 
 	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
@@ -102,6 +90,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadWrite)
 	FVector Scale;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, FParameter> Params;
 
 	UPROPERTY(BlueprintReadWrite)
 	AChunk* Owner;

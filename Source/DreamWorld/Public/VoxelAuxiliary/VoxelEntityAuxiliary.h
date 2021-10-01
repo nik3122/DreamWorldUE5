@@ -33,8 +33,5 @@ protected:
 	virtual void OnCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	virtual void Initialize(UVoxel* InOwner, FVector InLocation) override;
+	virtual void Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex) override;
 };

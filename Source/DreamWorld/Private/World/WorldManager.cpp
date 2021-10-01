@@ -2,6 +2,7 @@
 
 
 #include "World/WorldManager.h"
+
 #include "World/Chunk.h"
 #include "Voxel/Voxel.h"
 #include "Engine/World.h"
@@ -24,11 +25,9 @@
 #include "ConstructorHelpers.h"
 #include "SpawnPoolModuleBPLibrary.h"
 
-FWorldData FWorldData::Empty = FWorldData();
-
 AWorldManager* AWorldManager::Current = nullptr;
-
 UWorldDataSave* AWorldManager::DataSave = nullptr;
+FWorldData AWorldManager::WorldData = FWorldData::Empty;
 
 // Sets default values
 AWorldManager::AWorldManager()
@@ -62,13 +61,16 @@ AWorldManager::AWorldManager()
 
 	WorldData = FWorldData();
 
-	ChunkSpawnRange = 5;
-	ChunkSpawnDistance = 2;
+	ChunkSpawnRange = 7;
+	ChunkSpawnDistance = 3;
 
-	ChunkSpawnSpeed = 100;
-	ChunkDestroySpeed = 100;
-	ChunkMapBuildSpeed = 5;
+	ChunkSpawnSpeed = 1000;
+	ChunkDestroySpeed = 10;
+	ChunkMapBuildSpeed = 10;
+	ChunkMapGenerateSpeed = 10;
 	ChunkGenerateSpeed = 1;
+	
+	BasicPercentage = 0.f;
 
 	bBasicGenerated = false;
 	ChunkSpawnBatch = 0;
@@ -126,6 +128,71 @@ void AWorldManager::Tick(float DeltaTime)
 	}
 }
 
+EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex)
+{
+	const FVector offsetIndex = FVector(InIndex.X + WorldData.Seed, InIndex.Y + WorldData.Seed, InIndex.Z);
+	
+	const int plainHeight = GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainPlainScale);
+	const int mountainHeight = GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainMountainScale);
+	
+	const int baseHeight = FMath::Clamp(FMath::Max(plainHeight, mountainHeight) + int32(WorldData.GetWorldHeight() * WorldData.TerrainBaseHeight), 0, WorldData.GetWorldHeight() - 1);
+
+	const int stoneHeight = FMath::Clamp(GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainStoneVoxelScale), 0, WorldData.GetWorldHeight() - 1);
+	const int sandHeight = FMath::Clamp(GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainSandVoxelScale), 0, WorldData.GetWorldHeight() - 1);
+
+	const int waterHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainWaterVoxelHeight), 0, WorldData.GetWorldHeight() - 1);
+	const int bedrockHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainBedrockVoxelHeight), 0, WorldData.GetWorldHeight() - 1);
+	
+	if (InIndex.Z < baseHeight)
+	{
+		if (InIndex.Z <= bedrockHeight)
+		{
+			return EVoxelType::Bedrock; //Bedrock
+		}
+		else if (InIndex.Z <= stoneHeight)
+		{
+			return EVoxelType::Stone; //Stone
+		}
+		return EVoxelType::Dirt; //Dirt
+	}
+	else if(InIndex.Z <= sandHeight)
+	{
+		return EVoxelType::Sand; //Sand
+	}
+	else if (InIndex.Z <= waterHeight)
+	{
+		return EVoxelType::Water; //Water
+	}
+	else if (InIndex.Z == baseHeight)
+	{
+		return EVoxelType::Grass; //Grass
+	}
+	return EVoxelType::Empty; //Empty
+}
+
+FVoxelData AWorldManager::GetNoiseVoxelData(FIndex InIndex)
+{
+	return UDWHelper::LoadVoxelData(*FString::Printf(TEXT("Voxel_%d"), (int32)GetNoiseVoxelType(InIndex)));
+}
+
+int AWorldManager::GetNoiseTerrainHeight(FVector InOffset, FVector InScale)
+{
+	return (FMath::PerlinNoise2D(FVector2D(InOffset.X * InScale.X, InOffset.Y * InScale.Y)) + 1) * WorldData.GetWorldHeight() * InScale.Z;
+}
+
+FIndex AWorldManager::LocationToChunkIndex(FVector InLocation, bool bIgnoreZ /*= false*/)
+{
+	FIndex chunkIndex = FIndex(FMath::FloorToInt(InLocation.X / WorldData.GetChunkLength()),
+		FMath::FloorToInt(InLocation.Y / WorldData.GetChunkLength()),
+		bIgnoreZ ? 0 : FMath::FloorToInt(InLocation.Z / WorldData.GetChunkLength()));
+	return chunkIndex;
+}
+
+FVector AWorldManager::ChunkIndexToLocation(FIndex InIndex)
+{
+	return InIndex.ToVector() * WorldData.GetChunkLength();
+}
+
 void AWorldManager::LoadWorld(const FString& InWorldName)
 {
 	if(ADWGameState* GameState = UDWHelper::GetGameState(this))
@@ -136,7 +203,7 @@ void AWorldManager::LoadWorld(const FString& InWorldName)
 			if(UWorldDataSave* WorldDataSave = GameInstance->LoadWorldData(InWorldName))
 			{
 				DataSave = WorldDataSave;
-				WorldData = WorldDataSave->GetWorldData();
+				WorldData = DataSave->GetWorldData();
 				if(WorldData.Seed == 0)
 				{
 					WorldData.Seed = FMath::Rand();
@@ -173,6 +240,7 @@ void AWorldManager::UnloadWorld()
 
 	ChunkSpawnQueue.Empty();
 	ChunkMapBuildQueue.Empty();
+	ChunkMapGenerateQueue.Empty();
 	ChunkGenerateQueue.Empty();
 	ChunkDestroyQueue.Empty();
 
@@ -182,92 +250,6 @@ void AWorldManager::UnloadWorld()
 void AWorldManager::InitRandomStream(int32 InDeltaSeed)
 {
 	RandomStream.Initialize(WorldData.Seed + InDeltaSeed);
-}
-
-void AWorldManager::GenerateTerrain()
-{
-	if(ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this))
-	{
-		FIndex chunkIndex = LocationToChunkIndex(PlayerCharacter->GetActorLocation(), true);
-
-		if (FIndex::Distance(chunkIndex, LastGenerateIndex, true) >= ChunkSpawnDistance)
-		{
-			GenerateChunks(chunkIndex);
-		}
-
-		if (chunkIndex != LastStayChunkIndex)
-		{
-			LastStayChunkIndex = chunkIndex;
-			for (auto iter = ChunkMap.CreateConstIterator(); iter; ++iter)
-			{
-				FIndex index = iter->Key;
-				AChunk* chunk = iter->Value;
-				if (FIndex::Distance(chunkIndex, index, true) >= GetChunkDistance())
-				{
-					AddToDestroyQueue(chunk);
-				}
-				else if (ChunkDestroyQueue.Contains(chunk))
-				{
-					ChunkDestroyQueue.Remove(chunk);
-				}
-			}
-		}
-
-		if (ChunkDestroyQueue.Num() > 0)
-		{
-			int32 tmpNum = FMath::Min(ChunkDestroyQueue.Num(), ChunkDestroySpeed);
-			for (int32 i = 0; i < tmpNum; i++)
-			{
-				DestroyChunk(ChunkDestroyQueue[i]);
-			}
-			ChunkDestroyQueue.RemoveAt(0, tmpNum);
-		}
-		else if (ChunkSpawnQueue.Num() > 0)
-		{
-			int32 tmpNum = FMath::Min(ChunkSpawnQueue.Num(), ChunkSpawnSpeed);
-			for (int32 i = 0; i < tmpNum; i++)
-			{
-				SpawnChunk(ChunkSpawnQueue[i]);
-			}
-			ChunkSpawnQueue.RemoveAt(0, tmpNum);
-		}
-		else if (ChunkMapBuildQueue.Num() > 0)
-		{
-			int32 tmpNum = FMath::Min(ChunkMapBuildQueue.Num(), ChunkMapBuildSpeed);
-			for (int32 i = 0; i < tmpNum; i++)
-			{
-				BuildChunkMap(ChunkMapBuildQueue[i]);
-			}
-			ChunkMapBuildQueue.RemoveAt(0, tmpNum);
-		}
-		else if (ChunkGenerateQueue.Num() > 0)
-		{
-			int32 tmpNum = FMath::Min(ChunkGenerateQueue.Num(), ChunkGenerateSpeed);
-			for (int32 i = 0; i < tmpNum; i++)
-			{
-				GenerateChunk(ChunkGenerateQueue[i]);
-			}
-			ChunkGenerateQueue.RemoveAt(0, tmpNum);
-		}
-
-		if (!bBasicGenerated)
-		{
-			FHitResult hitResult;
-			FVector rayStart = FVector(PlayerCharacter->GetActorLocation().X, PlayerCharacter->GetActorLocation().Y, WorldData.ChunkHeightRange * WorldData.GetChunkLength() + 500);
-			FVector rayEnd = FVector(PlayerCharacter->GetActorLocation().X, PlayerCharacter->GetActorLocation().Y, 0);
-			if (ChunkTraceSingle(rayStart, rayEnd, PlayerCharacter->GetRadius(), PlayerCharacter->GetHalfHeight(), hitResult))
-			{
-				bBasicGenerated = true;
-
-				OnBasicGenerated.Broadcast(hitResult.Location);
-
-				if(ADWGameState* GameState = UDWHelper::GetGameState(this))
-				{
-					GameState->SetCurrentState(EGameState::Playing);
-				}
-			}
-		}
-	}
 }
 
 void AWorldManager::OnPlayerSpawned(ADWPlayerCharacter* InPlayerCharacter)
@@ -304,6 +286,137 @@ void AWorldManager::GeneratePreviews()
 			}
 
 			tmpIndex++;
+		}
+	}
+}
+
+void AWorldManager::GenerateTerrain()
+{
+	if(ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this))
+	{
+		FIndex chunkIndex = LocationToChunkIndex(PlayerCharacter->GetActorLocation(), true);
+
+		if (FIndex::Distance(chunkIndex, LastGenerateIndex, true) >= ChunkSpawnDistance)
+		{
+			GenerateChunks(chunkIndex);
+		}
+
+		if (chunkIndex != LastStayChunkIndex)
+		{
+			LastStayChunkIndex = chunkIndex;
+			for (auto iter = ChunkMap.CreateConstIterator(); iter; ++iter)
+			{
+				FIndex index = iter->Key;
+				AChunk* chunk = iter->Value;
+				if (FIndex::Distance(chunkIndex, index, true) >= GetChunkDistance())
+				{
+					AddToDestroyQueue(chunk);
+				}
+				else if (ChunkDestroyQueue.Contains(chunk))
+				{
+					ChunkDestroyQueue.Remove(chunk);
+				}
+			}
+		}
+
+		if (ChunkDestroyQueue.Num() > 0)
+		{
+			const int32 tmpNum = FMath::Min(ChunkDestroyQueue.Num(), ChunkDestroySpeed);
+			for (int32 i = 0; i < tmpNum; i++)
+			{
+				DestroyChunk(ChunkDestroyQueue[i]);
+			}
+			ChunkDestroyQueue.RemoveAt(0, tmpNum);
+		}
+		else if (ChunkSpawnQueue.Num() > 0)
+		{
+			const int32 tmpNum = FMath::Min(ChunkSpawnQueue.Num(), ChunkSpawnSpeed);
+			for (int32 i = 0; i < tmpNum; i++)
+			{
+				SpawnChunk(ChunkSpawnQueue[i]);
+			}
+			ChunkSpawnQueue.RemoveAt(0, tmpNum);
+		}
+		else if (ChunkMapBuildQueue.Num() > 0)
+		{
+			// TArray<AChunk*> tmpArr;
+			// for(int32 i = 0; i < ChunkMapBuildQueue.Num(); i++)
+			// {
+			// 	tmpArr.Add(ChunkMapBuildQueue[i]);
+			// 	if(tmpArr.Num() >= FMath::Min(ChunkMapBuildQueue.Num(), ChunkMapBuildSpeed))
+			// 	{
+			// 		FAsyncTask<ChunkMapBuildTask>* tmpTask = new FAsyncTask<ChunkMapBuildTask>(this, tmpArr);
+			// 		tmpTask->StartBackgroundTask();
+			// 		ChunkMapBuildTasks.Add(tmpTask);
+			// 		tmpArr.Empty();
+			// 	}
+			// }
+			//
+			// for(int32 i = 0; i < ChunkMapBuildTasks.Num(); i++)
+			// {
+			// 	FAsyncTask<ChunkMapBuildTask>* tmpTask = ChunkMapBuildTasks[i];
+			// 	if(tmpTask && tmpTask->IsDone())
+			// 	{
+			// 		for(auto iter : tmpTask->GetTask().GetQueue())
+			// 		{
+			// 			if(ChunkMapBuildQueue.Contains(iter))
+			// 			{
+			// 				ChunkMapBuildQueue.Remove(iter);
+			// 			}
+			// 		}
+			// 		delete tmpTask;
+			// 	}
+			// }
+			const int32 tmpNum = FMath::Min(ChunkMapBuildQueue.Num(), ChunkMapBuildSpeed);
+			for (int32 i = 0; i < tmpNum; i++)
+			{
+				BuildChunkMap(ChunkMapBuildQueue[i]);
+			}
+			ChunkMapBuildQueue.RemoveAt(0, tmpNum);
+		}
+		else if (ChunkMapGenerateQueue.Num() > 0)
+		{
+			// if(ChunkMapBuildTasks.Num() > 0)
+			// {
+			// 	ChunkMapBuildTasks.Empty();
+			// }
+			const int32 tmpNum = FMath::Min(ChunkMapGenerateQueue.Num(), ChunkMapGenerateSpeed);
+			for (int32 i = 0; i < tmpNum; i++)
+			{
+				GenerateChunkMap(ChunkMapGenerateQueue[i]);
+			}
+			ChunkMapGenerateQueue.RemoveAt(0, tmpNum);
+		}
+		else if (ChunkGenerateQueue.Num() > 0)
+		{
+			const int32 tmpNum = FMath::Min(ChunkGenerateQueue.Num(), ChunkGenerateSpeed);
+			for (int32 i = 0; i < tmpNum; i++)
+			{
+				GenerateChunk(ChunkGenerateQueue[i]);
+			}
+			ChunkGenerateQueue.RemoveAt(0, tmpNum);
+
+			if (!bBasicGenerated)
+			{
+				const float BasicNum = FMath::Square(ChunkSpawnRange * 2) * WorldData.ChunkHeightRange;
+				if(BasicNum - ChunkGenerateQueue.Num() >= BasicNum * BasicPercentage)
+				{
+					FHitResult hitResult;
+					const FVector rayStart = FVector(PlayerCharacter->GetActorLocation().X, PlayerCharacter->GetActorLocation().Y, WorldData.ChunkHeightRange * WorldData.GetChunkLength() + 500);
+					const FVector rayEnd = FVector(PlayerCharacter->GetActorLocation().X, PlayerCharacter->GetActorLocation().Y, 0);
+					if (ChunkTraceSingle(rayStart, rayEnd, PlayerCharacter->GetRadius(), PlayerCharacter->GetHalfHeight(), hitResult))
+					{
+						bBasicGenerated = true;
+
+						OnBasicGenerated.Broadcast(hitResult.Location);
+
+						if(ADWGameState* GameState = UDWHelper::GetGameState(this))
+						{
+							GameState->SetCurrentState(EGameState::Playing);
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -359,6 +472,15 @@ void AWorldManager::BuildChunkMap(AChunk* InChunk)
 		}
 	}
 
+	AddToMapGenerateQueue(InChunk);
+}
+
+void AWorldManager::GenerateChunkMap(AChunk* InChunk)
+{
+	if (!InChunk || !ChunkMap.Contains(InChunk->GetIndex())) return;
+
+	InChunk->GenerateMap();
+
 	AddToGenerateQueue(InChunk);
 }
 
@@ -376,6 +498,11 @@ void AWorldManager::DestroyChunk(AChunk* InChunk)
 	if (ChunkMapBuildQueue.Contains(InChunk))
 	{
 		ChunkMapBuildQueue.Remove(InChunk);
+	}
+
+	if (ChunkMapGenerateQueue.Contains(InChunk))
+	{
+		ChunkMapGenerateQueue.Remove(InChunk);
 	}
 
 	if (ChunkGenerateQueue.Contains(InChunk))
@@ -396,11 +523,19 @@ void AWorldManager::AddToSpawnQueue(FIndex InIndex)
 	}
 }
 
-void AWorldManager::AddToBuildMapQueue(AChunk* InChunk)
+void AWorldManager::AddToMapBuildQueue(AChunk* InChunk)
 {
 	if (ChunkMap.Contains(InChunk->GetIndex()) && !ChunkMapBuildQueue.Contains(InChunk))
 	{
 		ChunkMapBuildQueue.Add(InChunk);
+	}
+}
+
+void AWorldManager::AddToMapGenerateQueue(AChunk* InChunk)
+{
+	if (ChunkMap.Contains(InChunk->GetIndex()) && !ChunkMapGenerateQueue.Contains(InChunk))
+	{
+		ChunkMapGenerateQueue.Add(InChunk);
 	}
 }
 
@@ -436,7 +571,15 @@ AChunk* AWorldManager::SpawnChunk(FIndex InIndex, bool bAddToQueue)
 
 		if (bAddToQueue)
 		{
-			AddToBuildMapQueue(chunk);
+			AddToMapBuildQueue(chunk);
+
+			for(auto Iter : chunk->GetNeighbors())
+			{
+				if(Iter && Iter->GetBatch() != chunk->GetBatch())
+				{
+					AddToGenerateQueue(Iter);
+				}
+			}
 		}
 	}
 	return chunk;
@@ -480,71 +623,6 @@ float AWorldManager::GetWorldLength() const
 int32 AWorldManager::GetChunkDistance() const
 {
 	return ChunkSpawnRange + ChunkSpawnDistance;
-}
-
-EVoxelType AWorldManager::GetNoiseVoxelType(FIndex InIndex) const
-{
-	const FVector offsetIndex = FVector(InIndex.X + WorldData.Seed, InIndex.Y + WorldData.Seed, InIndex.Z);
-	
-	const int plainHeight = GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainPlainScale);
-	const int mountainHeight = GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainMountainScale);
-	
-	const int baseHeight = FMath::Clamp(FMath::Max(plainHeight, mountainHeight) + int32(WorldData.GetWorldHeight() * WorldData.TerrainBaseHeight), 0, WorldData.GetWorldHeight() - 1);
-
-	const int stoneHeight = FMath::Clamp(GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainStoneVoxelScale), 0, WorldData.GetWorldHeight() - 1);
-	const int sandHeight = FMath::Clamp(GetNoiseTerrainHeight(offsetIndex, WorldData.TerrainSandVoxelScale), 0, WorldData.GetWorldHeight() - 1);
-
-	const int waterHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainWaterVoxelHeight), 0, WorldData.GetWorldHeight() - 1);
-	const int bedrockHeight = FMath::Clamp(int32(WorldData.GetWorldHeight() * WorldData.TerrainBedrockVoxelHeight), 0, WorldData.GetWorldHeight() - 1);
-	
-	if (InIndex.Z < baseHeight)
-	{
-		if (InIndex.Z <= bedrockHeight)
-		{
-			return EVoxelType::Bedrock; //Bedrock
-		}
-		else if (InIndex.Z <= stoneHeight)
-		{
-			return EVoxelType::Stone; //Stone
-		}
-		return EVoxelType::Dirt; //Dirt
-	}
-	else if(InIndex.Z <= sandHeight)
-	{
-		return EVoxelType::Sand; //Sand
-	}
-	else if (InIndex.Z <= waterHeight)
-	{
-		return EVoxelType::Water; //Water
-	}
-	else if (InIndex.Z == baseHeight)
-	{
-		return EVoxelType::Grass; //Grass
-	}
-	return EVoxelType::Empty; //Empty
-}
-
-FVoxelData AWorldManager::GetNoiseVoxelData(FIndex InIndex)
-{
-	return UDWHelper::LoadVoxelData(*FString::Printf(TEXT("Voxel_%d"), (int32)GetNoiseVoxelType(InIndex)));
-}
-
-int AWorldManager::GetNoiseTerrainHeight(FVector InOffset, FVector InScale) const
-{
-	return (FMath::PerlinNoise2D(FVector2D(InOffset.X * InScale.X, InOffset.Y * InScale.Y)) + 1) * WorldData.GetWorldHeight() * InScale.Z;
-}
-
-FIndex AWorldManager::LocationToChunkIndex(FVector InLocation, bool bIgnoreZ /*= false*/) const
-{
-	FIndex chunkIndex = FIndex(FMath::FloorToInt(InLocation.X / WorldData.GetChunkLength()),
-		FMath::FloorToInt(InLocation.Y / WorldData.GetChunkLength()),
-		bIgnoreZ ? 0 : FMath::FloorToInt(InLocation.Z / WorldData.GetChunkLength()));
-	return chunkIndex;
-}
-
-FVector AWorldManager::ChunkIndexToLocation(FIndex InIndex) const
-{
-	return InIndex.ToVector() * WorldData.GetChunkLength();
 }
 
 bool AWorldManager::ChunkTraceSingle(AChunk* InChunk, float InRadius, float InHalfHeight, FHitResult& OutHitResult)
