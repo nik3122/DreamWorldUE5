@@ -5,6 +5,7 @@
 #include "DWPlayerCharacter.h"
 #include "WidgetInventoryBar.h"
 #include "WidgetModuleBPLibrary.h"
+#include "WidgetPrimaryPanel.h"
 #include "Inventory/Inventory.h"
 #include "Inventory/Slot/InventorySlot.h"
 
@@ -23,9 +24,10 @@ void UInventoryShortcutSlot::Refresh()
 	Super::Refresh();
 	if(ADWPlayerCharacter* PlayerCharacter = Cast<ADWPlayerCharacter>(GetOwner()->GetOwnerActor()))
 	{
-		if (UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlot() == this)
+		if (PlayerCharacter->GetInventory()->GetSelectedSlot() == this)
 		{
 			PlayerCharacter->UpdateVoxelMesh();
+			UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->RefreshOptions();
 		}
 	}
 }

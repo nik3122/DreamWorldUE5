@@ -1,0 +1,33 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Weather System",
+	"Description": "The weather system includes day and night changes, rain and snow weather and related sound effects.",
+	"Category": "Weather System",
+	"CreatedBy": "Frey",
+	"CreatedByURL": "https://www.youtube.com/watch?v=Hi-CGLDjwpo&t=665s",
+	"DocsURL": "",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/6a646be0d2194fdc91c211d3e288f044",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "WeatherSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		}
+	]
+}

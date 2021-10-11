@@ -2,7 +2,7 @@
 
 #include "Character/Player/DWPlayerCharacter.h"
 #include "Character/Player/DWPlayerCharacterAnim.h"
-#include "Character/Player/DWPlayerCharacterController.h"
+#include "Gameplay/DWPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -15,7 +15,7 @@
 #include "Voxel/Voxel.h"
 #include "World/WorldManager.h"
 #include "Voxel/Components/VoxelMeshComponent.h"
-#include "DWGameMode.h"
+#include "Gameplay/DWGameMode.h"
 #include "Perception/PawnSensingComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Widget/Components/WidgetCharacterHPComponent.h"
@@ -24,7 +24,7 @@
 #include "Widget/Inventory/WidgetInventoryPanel.h"
 #include "Inventory/CharacterInventory.h"
 #include "Inventory/Slot/InventorySlot.h"
-#include "DWGameState.h"
+#include "Gameplay/DWGameState.h"
 #include "ObjectPoolModuleBPLibrary.h"
 #include "WidgetModuleBPLibrary.h"
 #include "Equip/EquipWeapon.h"
@@ -50,6 +50,12 @@ ADWPlayerCharacter::ADWPlayerCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->AirControl = 0.3f;
 
+	TargetSystem = CreateDefaultSubobject<UTargetSystemComponent>(FName("TargetSystem"));
+	TargetSystem->bShouldControlRotation = true;
+	TargetSystem->TargetableActors = ADWCharacter::StaticClass();
+	TargetSystem->TargetableCollisionChannel = ECC_GameTraceChannel1;
+	TargetSystem->LockedOnWidgetParentSocket = FName("LockPoint");
+	
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(FName("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -93,27 +99,17 @@ ADWPlayerCharacter::ADWPlayerCharacter()
 	//MiniMapCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 	MiniMapCapture->SetupAttachment(RootComponent);
 	MiniMapCapture->SetRelativeLocationAndRotation(FVector(0, 0, 500), FRotator(0, 90, 0));
-	
-	InventoryData = FInventoryData();
-	InventoryData.Items.SetNum(70);
-	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 40));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Shortcut, FSplitSlotInfo(40, 10));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Auxiliary, FSplitSlotInfo(50, 1));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Generate, FSplitSlotInfo(51, 9));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(60, 6));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Skill, FSplitSlotInfo(66, 4));
 
 	// states
 	ControlMode = EControlMode::Fighting;
 	Nature = ECharacterNature::Player;
 
 	// stats
-	PreviewVoxel = nullptr;
+	VoxelItem = FVoxelItem::EmptyVoxel;
 
 	// inputs
 	bPressedAttack = false;
 	bPressedDefend = false;
-	bPressedSprint = false;
 
 	AttackAbilityQueue = 0;
 
@@ -134,23 +130,18 @@ void ADWPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 
 	PlayerInputComponent->SetTickableWhenPaused(true);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ADWPlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ADWPlayerCharacter::MoveRight);
+	PlayerInputComponent->BindAction("Interact1", IE_Pressed, this, &ADWPlayerCharacter::DoInteractOption1);
+	PlayerInputComponent->BindAction("Interact2", IE_Pressed, this, &ADWPlayerCharacter::DoInteractOption1);
+	PlayerInputComponent->BindAction("Interact3", IE_Pressed, this, &ADWPlayerCharacter::DoInteractOption1);
+	PlayerInputComponent->BindAction("Interact4", IE_Pressed, this, &ADWPlayerCharacter::DoInteractOption1);
+	PlayerInputComponent->BindAction("Interact5", IE_Pressed, this, &ADWPlayerCharacter::DoInteractOption1);
 
-	PlayerInputComponent->BindAction("Revival", IE_Pressed, this, &ADWPlayerCharacter::Revive);
-
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ADWPlayerCharacter::OnJumpPressed);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ADWPlayerCharacter::OnJumpReleased);
 	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &ADWPlayerCharacter::OnDodgePressed);
 	PlayerInputComponent->BindAction("Dodge", IE_Released, this, &ADWPlayerCharacter::OnDodgeReleased);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ADWPlayerCharacter::OnSprintPressed);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ADWPlayerCharacter::OnSprintReleased);
 
-	PlayerInputComponent->BindAction("ToggleFly", IE_Released, this, &ADWPlayerCharacter::ToggleFly);
 	PlayerInputComponent->BindAction("ToggleCrouch", IE_Released, this, &ADWPlayerCharacter::ToggleCrouch);
-	PlayerInputComponent->BindAction("ToggleAutoJump", IE_Pressed, this, &ADWPlayerCharacter::ToggleAutoJump);
 	PlayerInputComponent->BindAction("ToggleControlMode", IE_Pressed, this, &ADWPlayerCharacter::ToggleControlMode);
-	PlayerInputComponent->BindAction("ToggleLockSightTarget", IE_Pressed, this, &ADWPlayerCharacter::ToggleLockSightTarget);
+	PlayerInputComponent->BindAction("ToggleLockSightTarget", IE_Pressed, this, &ADWPlayerCharacter::ToggleLockTarget);
 
 	PlayerInputComponent->BindAction("Attack/Destroy", IE_Pressed, this, &ADWPlayerCharacter::OnAttackDestroyPressed);
 	PlayerInputComponent->BindAction("Attack/Destroy", IE_Released, this, &ADWPlayerCharacter::OnAttackDestroyReleased);
@@ -173,7 +164,7 @@ void ADWPlayerCharacter::BeginPlay()
 
 	PreviewCapture->ShowOnlyActors.Add(this);
 
-	//AWorldManager::GetCurrent()->CreateTeam(this);
+	//AWorldManager::GetCurrent()->CreateTeam();
 }
 
 // Called every frame
@@ -185,15 +176,6 @@ void ADWPlayerCharacter::Tick(float DeltaTime)
 
 	if (bActive)
 	{
-		if (bPressedSprint)
-		{
-			Sprint();
-		}
-		else
-		{
-			UnSprint();
-		}
-
 		if (bPressedAttack)
 		{
 			OnAttackDestroyRepeat();
@@ -232,7 +214,7 @@ void ADWPlayerCharacter::Tick(float DeltaTime)
 				// if (RaycastVoxel(voxelHitResult))
 				// {
 				// 	voxelHitResult.GetVoxel()->OnMouseHover(voxelHitResult);
-				// 	UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				// 	UVoxel::DespawnVoxel(voxelHitResult.GetVoxel());
 				// }
 				break;
 			}
@@ -240,43 +222,32 @@ void ADWPlayerCharacter::Tick(float DeltaTime)
 	}
 }
 
-void ADWPlayerCharacter::LoadData(FCharacterData InSaveData)
+void ADWPlayerCharacter::LoadData(FCharacterSaveData InSaveData)
 {
 	Super::LoadData(InSaveData);
-
-	if (!InSaveData.bSaved)
-	{
-		Name = InSaveData.Name;
-	}
 }
 
-FCharacterData ADWPlayerCharacter::ToData(bool bSaved)
+FCharacterSaveData ADWPlayerCharacter::ToData(bool bSaved)
 {
 	return Super::ToData(bSaved);
 }
 
-void ADWPlayerCharacter::LoadRecordData(FPlayerRecordData InRecordData)
+void ADWPlayerCharacter::LoadRecordData(FPlayerRecordSaveData InRecordData)
 {
 	SetActorLocationAndRotation(InRecordData.Location, InRecordData.Rotation);
 	GetPlayerController()->SetControlRotation(GetActorRotation());
 	GetPlayerController()->GetCameraManager()->SetCameraDistance(InRecordData.CamDistance, true);
 }
 
-FPlayerRecordData ADWPlayerCharacter::ToRecordData(bool bSaved)
+FPlayerRecordSaveData ADWPlayerCharacter::ToRecordData(bool bSaved)
 {
-	FPlayerRecordData PlayerRecordData;
+	FPlayerRecordSaveData PlayerRecordData;
 	PlayerRecordData.bSaved = bSaved;
-	PlayerRecordData.Name = GetName();
+	PlayerRecordData.Name = GetNameC();
 	PlayerRecordData.Location = GetActorLocation();
 	PlayerRecordData.Rotation = GetActorRotation();
 	PlayerRecordData.CamDistance = GetPlayerController()->GetCameraManager()->GetCameraDistance();
 	return PlayerRecordData;
-}
-
-void ADWPlayerCharacter::UnAttack()
-{
-	Super::UnAttack();
-	AttackAbilityQueue = 0;
 }
 
 void ADWPlayerCharacter::Active(bool bResetData)
@@ -301,6 +272,22 @@ void ADWPlayerCharacter::Revive()
 	SetControlMode(ControlMode);
 }
 
+void ADWPlayerCharacter::Death(ADWCharacter* InKiller)
+{
+	Super::Death(InKiller);
+	if(TargetSystem->IsLocked())
+	{
+		TargetSystem->TargetLockOff();
+	}
+}
+
+void ADWPlayerCharacter::DeathEnd()
+{
+	Super::DeathEnd();
+	SetInteractingTarget(this);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetCrosshairVisible(false);
+}
+
 void ADWPlayerCharacter::ResetData(bool bRefresh)
 {
 	Super::ResetData(bRefresh);
@@ -308,8 +295,11 @@ void ADWPlayerCharacter::ResetData(bool bRefresh)
 	ControlMode = EControlMode::Fighting;
 	bPressedAttack = false;
 	bPressedDefend = false;
-	bPressedSprint = false;
 	LockedTarget = nullptr;
+	if(GetPlayerController())
+	{
+		GetPlayerController()->ResetData();
+	}
 }
 
 void ADWPlayerCharacter::Interrupt(float InDuration /* = -1 */, bool bInPlayAnim /* = false */)
@@ -318,11 +308,29 @@ void ADWPlayerCharacter::Interrupt(float InDuration /* = -1 */, bool bInPlayAnim
 	AttackAbilityQueue = 0;
 }
 
+void ADWPlayerCharacter::Dodge()
+{
+	if(!bDodging)
+	{
+		TargetSystem->SetShouldControlRotation(false);
+	}
+	Super::Dodge();
+}
+
+void ADWPlayerCharacter::UnDodge()
+{
+	if(bDodging)
+	{
+		TargetSystem->SetShouldControlRotation(true);
+	}
+	Super::UnDodge();
+}
+
 void ADWPlayerCharacter::LookAtTarget(ADWCharacter* InTargetCharacter)
 {
 	Super::LookAtTarget(InTargetCharacter);
-	FVector tmpDirection = InTargetCharacter->GetActorLocation() + FVector::DownVector * InTargetCharacter->GetHalfHeight() - GetActorLocation();
-	FRotator tmpRotator = tmpDirection.ToOrientationRotator();
+	const FVector tmpDirection = InTargetCharacter->GetActorLocation() + FVector::DownVector * InTargetCharacter->GetHalfHeight() - GetActorLocation();
+	const FRotator tmpRotator = tmpDirection.ToOrientationRotator();
 	GetPlayerController()->SetControlRotation(tmpRotator);
 }
 
@@ -354,22 +362,31 @@ void ADWPlayerCharacter::SetControlMode(EControlMode InControlMode)
 	}
 }
 
+void ADWPlayerCharacter::UnAttack()
+{
+	Super::UnAttack();
+	AttackAbilityQueue = 0;
+}
+
 void ADWPlayerCharacter::AttackStart()
 {
 	Super::AttackStart();
 
-	switch (AttackType)
+	if(bAttacking)
 	{
-		case EAttackType::NormalAttack:
-		case EAttackType::FallingAttack:
+		switch (AttackType)
 		{
-			if (AttackAbilityQueue > 0)
+			case EAttackType::NormalAttack:
+			case EAttackType::FallingAttack:
 			{
-				AttackAbilityQueue--;
+				if (AttackAbilityQueue > 0)
+				{
+					AttackAbilityQueue--;
+				}
+				break;
 			}
-			break;
+			default: break;
 		}
-		default: break;
 	}
 }
 
@@ -395,207 +412,21 @@ void ADWPlayerCharacter::RefreshEquip(EEquipPartType InPartType, UInventoryEquip
 
 void ADWPlayerCharacter::UpdateVoxelMesh()
 {
-	auto tmpItem = UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedItem();
-	if (tmpItem.IsValid() && tmpItem.GetData().Type == EItemType::Voxel)
+	const FItem tmpItem = UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>()->GetSelectedItem();
+	if(!VoxelItem.IsValid() || !VoxelItem.EqualType(tmpItem))
 	{
-		PreviewVoxel = UVoxel::SpawnVoxel(this, tmpItem.ID);
-		VoxelMesh->BuildVoxel(PreviewVoxel->ToItem());
-		VoxelMesh->CreateMesh(0, false);
-	}
-	else
-	{
-		VoxelMesh->ClearMesh();
-		if (PreviewVoxel)
+		if (tmpItem.IsValid() && tmpItem.GetData().Type == EItemType::Voxel)
 		{
-			UVoxel::DespawnVoxel(this, PreviewVoxel);
-			PreviewVoxel = nullptr;
+			VoxelItem = FVoxelItem(tmpItem.ID);
+			VoxelMesh->BuildVoxel(VoxelItem);
+			VoxelMesh->CreateMesh(0, false);
+		}
+		else
+		{
+			VoxelMesh->ClearMesh();
+			VoxelItem = FVoxelItem::EmptyVoxel;
 		}
 	}
-}
-
-void ADWPlayerCharacter::HandleNameChanged(const FString& NewValue)
-{
-	Super::HandleNameChanged(NewValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHeadInfo(GetHeadInfo());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHeadInfo(GetHeadInfo());
-}
-
-void ADWPlayerCharacter::HandleTeamIDChanged(const FString& NewValue)
-{
-	Super::HandleTeamIDChanged(NewValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHeadInfo(GetHeadInfo());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHeadInfo(GetHeadInfo());
-}
-
-void ADWPlayerCharacter::HandleRaceIDChanged(const FString& NewValue)
-{
-	Super::HandleRaceIDChanged(NewValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHeadInfo(GetHeadInfo());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHeadInfo(GetHeadInfo());
-}
-
-void ADWPlayerCharacter::HandleLevelChanged(int32 NewValue, int32 DeltaValue /*= 0*/)
-{
-	Super::HandleLevelChanged(NewValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHeadInfo(GetHeadInfo());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHeadInfo(GetHeadInfo());
-}
-
-void ADWPlayerCharacter::HandleEXPChanged(int32 NewValue, int32 DeltaValue /*= 0*/)
-{
-	Super::HandleEXPChanged(NewValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHeadInfo(GetHeadInfo());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHeadInfo(GetHeadInfo());
-}
-
-void ADWPlayerCharacter::HandleHealthChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleHealthChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHealthPercent(NewValue, GetMaxHealth());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxHealth()));
-}
-
-void ADWPlayerCharacter::HandleMaxHealthChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleMaxHealthChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetHealthPercent(NewValue, GetMaxHealth());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxHealth()));
-}
-
-void ADWPlayerCharacter::HandleManaChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleManaChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetManaPercent(NewValue, GetMaxMana());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxMana()));
-}
-
-void ADWPlayerCharacter::HandleMaxManaChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleMaxManaChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetManaPercent(NewValue, GetMaxMana());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxMana()));
-}
-
-void ADWPlayerCharacter::HandleStaminaChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleStaminaChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetStaminaPercent(NewValue, GetMaxStamina());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxStamina()));
-}
-
-void ADWPlayerCharacter::HandleMaxStaminaChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleMaxStaminaChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>(this)->SetStaminaPercent(NewValue, GetMaxStamina());
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxStamina()));
-}
-
-void ADWPlayerCharacter::HandleMoveSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleMoveSpeedChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetMoveSpeed(FString::FromInt(NewValue));
-}
-
-void ADWPlayerCharacter::HandleSwimSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleSwimSpeedChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetSwimSpeed(FString::FromInt(NewValue));
-}
-
-void ADWPlayerCharacter::HandleRideSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleRideSpeedChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetRideSpeed(FString::FromInt(NewValue));
-}
-
-void ADWPlayerCharacter::HandleFlySpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleFlySpeedChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetFlySpeed(FString::FromInt(NewValue));
-}
-
-void ADWPlayerCharacter::HandleRotationSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleRotationSpeedChanged(NewValue, DeltaValue);
-}
-
-void ADWPlayerCharacter::HandleJumpForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleJumpForceChanged(NewValue, DeltaValue);
-}
-
-void ADWPlayerCharacter::HandleDodgeForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleDodgeForceChanged(NewValue, DeltaValue);
-}
-
-void ADWPlayerCharacter::HandleAttackForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleAttackForceChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetAttackForce(FString::FromInt(NewValue));
-}
-
-void ADWPlayerCharacter::HandleRepulseForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleRepulseForceChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetRepulseForce(FString::FromInt(NewValue));
-}
-
-void ADWPlayerCharacter::HandleAttackSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleAttackSpeedChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetAttackSpeed(FString::SanitizeFloat(NewValue, 1));
-}
-
-void ADWPlayerCharacter::HandleAttackCritRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleAttackCritRateChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetAttackCritRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
-}
-
-void ADWPlayerCharacter::HandleAttackStealRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleAttackStealRateChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetAttackStealRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
-}
-
-void ADWPlayerCharacter::HandleDefendRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleDefendRateChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetDefendRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
-}
-
-void ADWPlayerCharacter::HandleDefendScopeChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleDefendScopeChanged(NewValue, DeltaValue);
-}
-
-void ADWPlayerCharacter::HandlePhysicsDefRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandlePhysicsDefRateChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetPhysicsDefRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
-}
-
-void ADWPlayerCharacter::HandleMagicDefRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleMagicDefRateChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetMagicDefRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
-}
-
-void ADWPlayerCharacter::HandleToughnessRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleToughnessRateChanged(NewValue, DeltaValue);
-	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>(this)->SetToughnessRate(FString::Printf(TEXT("%d%"), (int32)(NewValue * 100)));
-}
-
-void ADWPlayerCharacter::HandleRegenSpeedAttribute(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleRegenSpeedAttribute(NewValue, DeltaValue);
-}
-
-void ADWPlayerCharacter::HandleExpendSpeedAttribute(float NewValue, float DeltaValue /*= 0.f*/)
-{
-	Super::HandleExpendSpeedAttribute(NewValue, DeltaValue);
 }
 
 bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
@@ -610,10 +441,10 @@ bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
 				AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
 				if (chunk != nullptr)
 				{
-					UVoxel* voxel = chunk->GetVoxel(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetWorldData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
-					if (UVoxel::IsValid(voxel))
+					const FVoxelItem& voxelItem = chunk->GetVoxelItem(chunk->LocationToIndex(hitResult.ImpactPoint - AWorldManager::GetWorldData().GetBlockSizedNormal(hitResult.ImpactNormal, 0.01f)));
+					if (voxelItem.IsValid())
 					{
-						OutHitResult = FVoxelHitResult(voxel, hitResult.ImpactPoint, hitResult.ImpactNormal);
+						OutHitResult = FVoxelHitResult(voxelItem, hitResult.ImpactPoint, hitResult.ImpactNormal);
 						return true;
 					}
 				}
@@ -623,91 +454,21 @@ bool ADWPlayerCharacter::RaycastVoxel(FVoxelHitResult& OutHitResult)
 	return false;
 }
 
-void ADWPlayerCharacter::MoveForward(float InValue)
+bool ADWPlayerCharacter::DoInteract(IInteraction* InTarget, EInteractOption InInteractOption)
 {
-	if (GetPlayerController() && !bBreakAllInput)
-	{
-		FVector Direction;
-		const FRotator Rotation = GetPlayerController()->GetControlRotation();
-		if (bFlying || bSwimming)
-		{
-			Direction = Rotation.Vector();
-		}
-		else
-		{
-			const FRotator YawRotation = FRotator(0, Rotation.Yaw, 0);
-			Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		}
-		AddMovementInput(Direction, InValue);
-	}
-}
-
-void ADWPlayerCharacter::MoveRight(float InValue)
-{
-	if (GetPlayerController() && !bBreakAllInput)
-	{
-		const FRotator Rotation = GetPlayerController()->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Direction, InValue);
-	}
-}
-
-void ADWPlayerCharacter::ToggleLockSightTarget()
-{
-	if (bBreakAllInput) return;
-
-	if (!LockedTarget)
-	{
-		TArray<FHitResult> hitResults;
-		if (UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 1000, UDWHelper::GetGameTrace(EGameTraceType::Sight), true, TArray<AActor*>(), EDrawDebugTrace::None, hitResults, true))
-		{
-			ADWCharacter* nearCharacter = nullptr;
-			for (int i = 0; i < hitResults.Num(); i++)
-			{
-				if (hitResults[i].GetActor()->IsA(ADWCharacter::StaticClass()))
-				{
-					ADWCharacter* character = Cast<ADWCharacter>(hitResults[i].GetActor());
-					if (!character->IsDead() && (!nearCharacter || Distance(character, false, false) < Distance(nearCharacter, false, false)))
-					{
-						nearCharacter = character;
-					}
-				}
-			}
-			if(nearCharacter)
-			{
-				SetLockedTarget(nearCharacter);
-			}
-		}
-	}
-	else
-	{
-		SetLockedTarget(nullptr);
-	}
+	if(!Super::DoInteract(InTarget, InInteractOption)) return false;
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->RefreshOptions();
+	return true;
 }
 
 void ADWPlayerCharacter::ToggleControlMode()
 {
-	if (bBreakAllInput || !bFreeToAnimate) return;
+	if (bBreakAllInput || !IsFreeToAnim()) return;
 
 	if (ControlMode == EControlMode::Fighting)
 		SetControlMode(EControlMode::Creating);
 	else
 		SetControlMode(EControlMode::Fighting);
-}
-
-void ADWPlayerCharacter::ToggleFly()
-{
-	if (bBreakAllInput) return;
-
-	if (!bFalling)
-	{
-		Fly();
-	}
-	else
-	{
-		UnFly();
-	}
 }
 
 void ADWPlayerCharacter::ToggleCrouch()
@@ -724,23 +485,39 @@ void ADWPlayerCharacter::ToggleCrouch()
 	}
 }
 
-void ADWPlayerCharacter::ToggleAutoJump()
+void ADWPlayerCharacter::ToggleLockTarget()
 {
 	if (bBreakAllInput) return;
 
-	bAutoJump = !bAutoJump;
-}
+	TargetSystem->TargetActor();
 
-void ADWPlayerCharacter::OnJumpPressed()
-{
-	if (bBreakAllInput) return;
-
-	Jump();
-}
-
-void ADWPlayerCharacter::OnJumpReleased()
-{
-	UnJump();
+	// if (!LockedTarget)
+	// {
+	// 	TArray<FHitResult> hitResults;
+	// 	if (UKismetSystemLibrary::SphereTraceMulti(this, GetActorLocation(), GetActorLocation(), 1000, UDWHelper::GetGameTrace(EGameTraceType::Sight), true, TArray<AActor*>(), EDrawDebugTrace::None, hitResults, true))
+	// 	{
+	// 		ADWCharacter* nearCharacter = nullptr;
+	// 		for (int i = 0; i < hitResults.Num(); i++)
+	// 		{
+	// 			if (hitResults[i].GetActor()->IsA(ADWCharacter::StaticClass()))
+	// 			{
+	// 				ADWCharacter* character = Cast<ADWCharacter>(hitResults[i].GetActor());
+	// 				if (!character->IsDead() && (!nearCharacter || Distance(character, false, false) < Distance(nearCharacter, false, false)))
+	// 				{
+	// 					nearCharacter = character;
+	// 				}
+	// 			}
+	// 		}
+	// 		if(nearCharacter)
+	// 		{
+	// 			SetLockedTarget(nearCharacter);
+	// 		}
+	// 	}
+	// }
+	// else
+	// {
+	// 	SetLockedTarget(nullptr);
+	// }
 }
 
 void ADWPlayerCharacter::OnDodgePressed()
@@ -755,19 +532,7 @@ void ADWPlayerCharacter::OnDodgeReleased()
 	//UnDodge();
 }
 
-void ADWPlayerCharacter::OnSprintPressed()
-{
-	if (bBreakAllInput) return;
-
-	bPressedSprint = true;
-}
-
-void ADWPlayerCharacter::OnSprintReleased()
-{
-	bPressedSprint = false;
-}
-
-bool ADWPlayerCharacter::OnUseItem(FItem& InItem)
+bool ADWPlayerCharacter::UseItem(FItem& InItem)
 {
 	switch (InItem.GetData().Type)
 	{
@@ -775,13 +540,13 @@ bool ADWPlayerCharacter::OnUseItem(FItem& InItem)
 		{
 			if(ControlMode == EControlMode::Creating)
 			{
-				return Super::OnUseItem(InItem);
+				return Super::UseItem(InItem);
 			}
 			break;
 		}
 		case EItemType::Prop:
 		{
-			return Super::OnUseItem(InItem);
+			return Super::UseItem(InItem);
 		}
 		default: break;
 	}
@@ -790,7 +555,7 @@ bool ADWPlayerCharacter::OnUseItem(FItem& InItem)
 
 void ADWPlayerCharacter::OnAttackDestroyPressed()
 {
-	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode() != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -815,7 +580,7 @@ void ADWPlayerCharacter::OnAttackDestroyPressed()
 			if (RaycastVoxel(voxelHitResult))
 			{
 				voxelHitResult.GetVoxel()->OnMouseDown(EMouseButton::Left, voxelHitResult);
-				// UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				// UVoxel::DespawnVoxel(voxelHitResult.GetVoxel());
 			}
 			break;
 		}
@@ -824,7 +589,7 @@ void ADWPlayerCharacter::OnAttackDestroyPressed()
 
 void ADWPlayerCharacter::OnAttackDestroyRepeat()
 {
-	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode() != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -838,8 +603,11 @@ void ADWPlayerCharacter::OnAttackDestroyRepeat()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.GetVoxel()->OnMouseHold(EMouseButton::Left, voxelHitResult);
-				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				if(UVoxel* voxel = voxelHitResult.GetVoxel())
+				{
+					voxel->OnMouseHold(EMouseButton::Left, voxelHitResult);
+					UVoxel::DespawnVoxel(voxel);
+				}
 			}
 			break;
 		}
@@ -848,6 +616,8 @@ void ADWPlayerCharacter::OnAttackDestroyRepeat()
 
 void ADWPlayerCharacter::OnAttackDestroyReleased()
 {
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode() != EInputMode::GameOnly) return;
+
 	switch (ControlMode)
 	{
 		case EControlMode::Fighting:
@@ -860,8 +630,11 @@ void ADWPlayerCharacter::OnAttackDestroyReleased()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.GetVoxel()->OnMouseUp(EMouseButton::Left, voxelHitResult);
-				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				if(UVoxel* voxel = voxelHitResult.GetVoxel())
+				{
+					voxel->OnMouseUp(EMouseButton::Left, voxelHitResult);
+					UVoxel::DespawnVoxel(voxel);
+				}
 			}
 			break;
 		}
@@ -870,7 +643,7 @@ void ADWPlayerCharacter::OnAttackDestroyReleased()
 
 void ADWPlayerCharacter::OnDefendGeneratePressed()
 {
-	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode() != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -887,8 +660,11 @@ void ADWPlayerCharacter::OnDefendGeneratePressed()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.GetVoxel()->OnMouseDown(EMouseButton::Right, voxelHitResult);
-				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				if(UVoxel* voxel = voxelHitResult.GetVoxel())
+				{
+					voxel->OnMouseDown(EMouseButton::Right, voxelHitResult);
+					UVoxel::DespawnVoxel(voxel);
+				}
 			}
 			break;
 		}
@@ -897,7 +673,7 @@ void ADWPlayerCharacter::OnDefendGeneratePressed()
 
 void ADWPlayerCharacter::OnDefendGenerateRepeat()
 {
-	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode(this) != EInputMode::GameOnly) return;
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode() != EInputMode::GameOnly) return;
 
 	switch (ControlMode)
 	{
@@ -911,8 +687,11 @@ void ADWPlayerCharacter::OnDefendGenerateRepeat()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.GetVoxel()->OnMouseHold(EMouseButton::Right, voxelHitResult);
-				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				if(UVoxel* voxel = voxelHitResult.GetVoxel())
+				{
+					voxel->OnMouseHold(EMouseButton::Right, voxelHitResult);
+					UVoxel::DespawnVoxel(voxel);
+				}
 			}
 			break;
 		}
@@ -921,6 +700,8 @@ void ADWPlayerCharacter::OnDefendGenerateRepeat()
 
 void ADWPlayerCharacter::OnDefendGenerateReleased()
 {
+	if (bBreakAllInput || UWidgetModuleBPLibrary::GetInputMode() != EInputMode::GameOnly) return;
+
 	switch (ControlMode)
 	{
 		case EControlMode::Fighting:
@@ -933,8 +714,11 @@ void ADWPlayerCharacter::OnDefendGenerateReleased()
 			FVoxelHitResult voxelHitResult;
 			if (RaycastVoxel(voxelHitResult))
 			{
-				voxelHitResult.GetVoxel()->OnMouseUp(EMouseButton::Right, voxelHitResult);
-				UVoxel::DespawnVoxel(this, voxelHitResult.GetVoxel());
+				if(UVoxel* voxel = voxelHitResult.GetVoxel())
+				{
+					voxel->OnMouseUp(EMouseButton::Right, voxelHitResult);
+					UVoxel::DespawnVoxel(voxel);
+				}
 			}
 			break;
 		}
@@ -943,6 +727,8 @@ void ADWPlayerCharacter::OnDefendGenerateReleased()
 
 void ADWPlayerCharacter::ReleaseSkillAbility1()
 {
+	if (bBreakAllInput) return;
+
 	if(Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill).IsValidIndex(0))
 	{
 		Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill)[0]->ActiveItem();
@@ -951,6 +737,8 @@ void ADWPlayerCharacter::ReleaseSkillAbility1()
 
 void ADWPlayerCharacter::ReleaseSkillAbility2()
 {
+	if (bBreakAllInput) return;
+
 	if(Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill).IsValidIndex(1))
 	{
 		Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill)[1]->ActiveItem();
@@ -959,6 +747,8 @@ void ADWPlayerCharacter::ReleaseSkillAbility2()
 
 void ADWPlayerCharacter::ReleaseSkillAbility3()
 {
+	if (bBreakAllInput) return;
+
 	if(Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill).IsValidIndex(2))
 	{
 		Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill)[2]->ActiveItem();
@@ -967,13 +757,246 @@ void ADWPlayerCharacter::ReleaseSkillAbility3()
 
 void ADWPlayerCharacter::ReleaseSkillAbility4()
 {
+	if (bBreakAllInput) return;
+
 	if(Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill).IsValidIndex(3))
 	{
 		Inventory->GetSplitSlots<UInventorySkillSlot>(ESplitSlotType::Skill)[3]->ActiveItem();
 	}
 }
 
-ADWPlayerCharacterController* ADWPlayerCharacter::GetPlayerController() const
+void ADWPlayerCharacter::DoInteractOption1()
 {
-	return GetController<ADWPlayerCharacterController>();
+	if(!InteractingTarget || !InteractingTarget->GetInteractOptions(this).IsValidIndex(0)
+		|| bBreakAllInput && InteractingTarget->GetInteractOptions(this)[0] != EInteractOption::Revive) return;
+
+	DoInteract(InteractingTarget, InteractingTarget->GetInteractOptions(this)[0]);
+}
+
+void ADWPlayerCharacter::DoInteractOption2()
+{
+	if(!InteractingTarget || !InteractingTarget->GetInteractOptions(this).IsValidIndex(1)
+		|| bBreakAllInput && InteractingTarget->GetInteractOptions(this)[1] != EInteractOption::Revive) return;
+
+	DoInteract(InteractingTarget, InteractingTarget->GetInteractOptions(this)[1]);
+}
+
+void ADWPlayerCharacter::DoInteractOption3()
+{
+	if(!InteractingTarget || !InteractingTarget->GetInteractOptions(this).IsValidIndex(2)
+		|| bBreakAllInput && InteractingTarget->GetInteractOptions(this)[2] != EInteractOption::Revive) return;
+	
+	DoInteract(InteractingTarget, InteractingTarget->GetInteractOptions(this)[2]);
+}
+
+void ADWPlayerCharacter::DoInteractOption4()
+{
+	if(!InteractingTarget || !InteractingTarget->GetInteractOptions(this).IsValidIndex(3)
+		|| bBreakAllInput && InteractingTarget->GetInteractOptions(this)[3] != EInteractOption::Revive) return;
+
+	DoInteract(InteractingTarget, InteractingTarget->GetInteractOptions(this)[3]);
+}
+
+void ADWPlayerCharacter::DoInteractOption5()
+{
+	if(!InteractingTarget || !InteractingTarget->GetInteractOptions(this).IsValidIndex(4)
+		|| bBreakAllInput && InteractingTarget->GetInteractOptions(this)[4] != EInteractOption::Revive) return;
+
+	DoInteract(InteractingTarget, InteractingTarget->GetInteractOptions(this)[4]);
+}
+
+void ADWPlayerCharacter::HandleNameChanged(const FString& NewValue)
+{
+	Super::HandleNameChanged(NewValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHeadInfo(GetHeadInfo());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHeadInfo(GetHeadInfo());
+}
+
+void ADWPlayerCharacter::HandleTeamIDChanged(const FString& NewValue)
+{
+	Super::HandleTeamIDChanged(NewValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHeadInfo(GetHeadInfo());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHeadInfo(GetHeadInfo());
+}
+
+void ADWPlayerCharacter::HandleRaceIDChanged(const FString& NewValue)
+{
+	Super::HandleRaceIDChanged(NewValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHeadInfo(GetHeadInfo());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHeadInfo(GetHeadInfo());
+}
+
+void ADWPlayerCharacter::HandleLevelChanged(int32 NewValue, int32 DeltaValue /*= 0*/)
+{
+	Super::HandleLevelChanged(NewValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHeadInfo(GetHeadInfo());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHeadInfo(GetHeadInfo());
+}
+
+void ADWPlayerCharacter::HandleEXPChanged(int32 NewValue, int32 DeltaValue /*= 0*/)
+{
+	Super::HandleEXPChanged(NewValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHeadInfo(GetHeadInfo());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHeadInfo(GetHeadInfo());
+}
+
+void ADWPlayerCharacter::HandleHealthChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleHealthChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHealthPercent(NewValue, GetMaxHealth());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxHealth()));
+}
+
+void ADWPlayerCharacter::HandleMaxHealthChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleMaxHealthChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetHealthPercent(NewValue, GetMaxHealth());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetHealthInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxHealth()));
+}
+
+void ADWPlayerCharacter::HandleManaChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleManaChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetManaPercent(NewValue, GetMaxMana());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxMana()));
+}
+
+void ADWPlayerCharacter::HandleMaxManaChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleMaxManaChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetManaPercent(NewValue, GetMaxMana());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetManaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxMana()));
+}
+
+void ADWPlayerCharacter::HandleStaminaChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleStaminaChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetStaminaPercent(NewValue, GetMaxStamina());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxStamina()));
+}
+
+void ADWPlayerCharacter::HandleMaxStaminaChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleMaxStaminaChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->SetStaminaPercent(NewValue, GetMaxStamina());
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetStaminaInfo(FString::Printf(TEXT("%d/%d"), (int32)NewValue, (int32)GetMaxStamina()));
+}
+
+void ADWPlayerCharacter::HandleMoveSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleMoveSpeedChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetMoveSpeed(FString::FromInt(NewValue));
+}
+
+void ADWPlayerCharacter::HandleSwimSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleSwimSpeedChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetSwimSpeed(FString::FromInt(NewValue));
+}
+
+void ADWPlayerCharacter::HandleRideSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleRideSpeedChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetRideSpeed(FString::FromInt(NewValue));
+}
+
+void ADWPlayerCharacter::HandleFlySpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleFlySpeedChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetFlySpeed(FString::FromInt(NewValue));
+}
+
+void ADWPlayerCharacter::HandleRotationSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleRotationSpeedChanged(NewValue, DeltaValue);
+}
+
+void ADWPlayerCharacter::HandleJumpForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleJumpForceChanged(NewValue, DeltaValue);
+}
+
+void ADWPlayerCharacter::HandleDodgeForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleDodgeForceChanged(NewValue, DeltaValue);
+}
+
+void ADWPlayerCharacter::HandleAttackForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleAttackForceChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetAttackForce(FString::FromInt(NewValue));
+}
+
+void ADWPlayerCharacter::HandleRepulseForceChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleRepulseForceChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetRepulseForce(FString::FromInt(NewValue));
+}
+
+void ADWPlayerCharacter::HandleAttackSpeedChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleAttackSpeedChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetAttackSpeed(FString::SanitizeFloat(NewValue, 1));
+}
+
+void ADWPlayerCharacter::HandleAttackCritRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleAttackCritRateChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetAttackCritRate(FString::Printf(TEXT("%d%%"), (int32)(NewValue * 100)));
+}
+
+void ADWPlayerCharacter::HandleAttackStealRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleAttackStealRateChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetAttackStealRate(FString::Printf(TEXT("%d%%"), (int32)(NewValue * 100)));
+}
+
+void ADWPlayerCharacter::HandleDefendRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleDefendRateChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetDefendRate(FString::Printf(TEXT("%d%%"), (int32)(NewValue * 100)));
+}
+
+void ADWPlayerCharacter::HandleDefendScopeChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleDefendScopeChanged(NewValue, DeltaValue);
+}
+
+void ADWPlayerCharacter::HandlePhysicsDefRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandlePhysicsDefRateChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetPhysicsDefRate(FString::Printf(TEXT("%d%%"), (int32)(NewValue * 100)));
+}
+
+void ADWPlayerCharacter::HandleMagicDefRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleMagicDefRateChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetMagicDefRate(FString::Printf(TEXT("%d%%"), (int32)(NewValue * 100)));
+}
+
+void ADWPlayerCharacter::HandleToughnessRateChanged(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleToughnessRateChanged(NewValue, DeltaValue);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryPanel>()->SetToughnessRate(FString::Printf(TEXT("%d%%"), (int32)(NewValue * 100)));
+}
+
+void ADWPlayerCharacter::HandleRegenSpeedAttribute(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleRegenSpeedAttribute(NewValue, DeltaValue);
+}
+
+void ADWPlayerCharacter::HandleExpendSpeedAttribute(float NewValue, float DeltaValue /*= 0.f*/)
+{
+	Super::HandleExpendSpeedAttribute(NewValue, DeltaValue);
+}
+
+ADWPlayerController* ADWPlayerCharacter::GetPlayerController() const
+{
+	return GetController<ADWPlayerController>();
+}
+
+void ADWPlayerCharacter::SetInteractingTarget(IInteraction* InTarget)
+{
+	Super::SetInteractingTarget(InTarget);
+	UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->RefreshOptions();
 }

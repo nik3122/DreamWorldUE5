@@ -2,6 +2,8 @@
 
 
 #include "Voxel/VoxelWater.h"
+
+#include "DWCharacterPart.h"
 #include "World/Chunk.h"
 #include "World/WorldManager.h"
 #include "Object.h"
@@ -13,11 +15,6 @@
 UVoxelWater::UVoxelWater()
 {
 	
-}
-
-void UVoxelWater::Initialize(FIndex InIndex, AChunk* InOwner)
-{
-	Super::Initialize(InIndex, InOwner);
 }
 
 void UVoxelWater::LoadData(const FString& InValue)
@@ -35,37 +32,61 @@ void UVoxelWater::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InH
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelWater::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelWater::OnTargetEnter(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
+	
+	if(ADWCharacter* Character = InTarget->GetOwnerCharacter())
+	{
+		switch (InTarget->GetCharacterPartType())
+		{
+			case ECharacterPartType::Chest:
+			{
+				Character->Swim();
+				break;
+			}
+			case ECharacterPartType::Neck:
+			{
+				Character->UnFloat();
+				break;
+			}
+			default: break;
+		}
+	}
 }
 
-void UVoxelWater::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelWater::OnTargetStay(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
-
-	UVoxel* Voxel = Owner->GetVoxel(Owner->LocationToIndex(InTarget->GetMesh()->GetSocketLocation(FName("Chest"))));
-	if(UVoxel::IsValid(Voxel) && Voxel->GetVoxelData().VoxelType == EVoxelType::Water && InTarget->IsA(ADWPlayerCharacter::StaticClass()))
-	{
-		InTarget->Swim();
-	}
-	else
-	{
-		InTarget->UnSwim();
-	}
-	UVoxel::DespawnVoxel(Owner, Voxel);
 }
 
-void UVoxelWater::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelWater::OnTargetExit(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 
-	UVoxel* Voxel = Owner->GetVoxel(Owner->LocationToIndex(InTarget->GetMesh()->GetSocketLocation(FName("Chest"))));
-	if(!UVoxel::IsValid(Voxel) || Voxel->GetVoxelData().VoxelType != EVoxelType::Water)
+	if(ADWCharacter* Character = InTarget->GetOwnerCharacter())
 	{
-		InTarget->UnSwim();
+		switch (InTarget->GetCharacterPartType())
+		{
+			case ECharacterPartType::Chest:
+			{
+				if(InHitResult.VoxelItem.GetVoxelData().VoxelType != EVoxelType::Water)
+				{
+					Character->UnSwim();
+				}
+				break;
+			}
+			case ECharacterPartType::Neck:
+			{
+				if(InHitResult.VoxelItem.GetVoxelData().VoxelType != EVoxelType::Water)
+				{
+					Character->Float(Owner->IndexToLocation(Index).Z + AWorldManager::GetWorldData().BlockSize);
+				}
+				break;
+			}
+			default: break;
+		}
 	}
-	UVoxel::DespawnVoxel(Owner, Voxel);
 }
 
 bool UVoxelWater::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult)

@@ -127,45 +127,13 @@ protected:
 		
 	void GenerateNeighbors(FIndex InIndex);
 
-	void GenerateNeighbors(int InX, int InY, int InZ);
+	void GenerateNeighbors(int32 InX, int32 InY, int32 InZ);
 
 	void UpdateNeighbors();
 
 	void BreakNeighbors();
 
 public:
-	UVoxel* GetVoxel(FIndex InIndex);
-
-	UVoxel* GetVoxel(int InX, int InY, int InZ);
-
-	FVoxelItem& GetVoxelItem(FIndex InIndex);
-
-	FVoxelItem& GetVoxelItem(int InX, int InY, int InZ);
-
-	bool CheckVoxel(FIndex InIndex, FVector InRange = FVector::OneVector, bool bIgnoreTransparent = true);
-
-	bool CheckVoxel(int InX, int InY, int InZ, FVector InRange = FVector::OneVector, bool bIgnoreTransparent = true);
-
-	bool CheckAdjacent(FIndex InIndex, EDirection InDirection);
-
-	bool CheckNeighbors(FIndex InIndex, EVoxelType InVoxelType, bool bIgnoreBottom = false, int InDistance = 1);
-
-	bool SetVoxelSample(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
-
-	bool SetVoxelSample(int InX, int InY, int InZ, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
-
-	bool SetVoxelComplex(FIndex InIndex, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
-
-	bool SetVoxelComplex(int InX, int InY, int InZ, UVoxel* InVoxel, bool bGenerateMesh = false, bool bAutoDespawn = true);
-
-	bool GenerateVoxel(FIndex InIndex, UVoxel* InVoxel);
-
-	bool DestroyVoxel(FIndex InIndex);
-
-	bool DestroyVoxel(UVoxel* InVoxel);
-
-	bool ReplaceVoxel(UVoxel* InOldVoxel, UVoxel* InNewVoxel);
-
 	bool IsOnTheChunk(FIndex InIndex) const;
 
 	bool IsOnTheChunk(FVector InLocation) const;
@@ -179,6 +147,42 @@ public:
 	FIndex WorldIndexToLocal(FIndex InIndex) const;
 
 	//////////////////////////////////////////////////////////////////////////
+	// Voxel
+public:
+	UVoxel* GetVoxel(FIndex InIndex);
+
+	UVoxel* GetVoxel(int32 InX, int32 InY, int32 InZ);
+
+	FVoxelItem& GetVoxelItem(FIndex InIndex);
+
+	FVoxelItem& GetVoxelItem(int32 InX, int32 InY, int32 InZ);
+
+public:
+	bool CheckVoxel(FIndex InIndex, FVector InRange = FVector::OneVector, bool bIgnoreTransparent = true);
+
+	bool CheckVoxel(int32 InX, int32 InY, int32 InZ, FVector InRange = FVector::OneVector, bool bIgnoreTransparent = true);
+
+	bool CheckAdjacent(const FVoxelItem& InVoxelItem, EDirection InDirection);
+
+	bool CheckNeighbors(const FVoxelItem& InVoxelItem, EVoxelType InVoxelType, bool bIgnoreBottom = false, int32 InDistance = 1);
+
+	bool SetVoxelSample(FIndex InIndex, const FVoxelItem& InVoxelItem, bool bGenerateMesh = false);
+
+	bool SetVoxelSample(int32 InX, int32 InY, int32 InZ, const FVoxelItem& InVoxelItem, bool bGenerateMesh = false);
+
+	bool SetVoxelComplex(FIndex InIndex, const FVoxelItem& InVoxelItem, bool bGenerateMesh = false);
+
+	bool SetVoxelComplex(int32 InX, int32 InY, int32 InZ, const FVoxelItem& InVoxelItem, bool bGenerateMesh = false);
+
+	bool GenerateVoxel(FIndex InIndex, const FVoxelItem& InVoxelItem);
+
+	bool DestroyVoxel(FIndex InIndex);
+
+	bool DestroyVoxel(const FVoxelItem& InVoxelItem);
+
+	bool ReplaceVoxel(const FVoxelItem& InOldVoxelItem, const FVoxelItem& InNewVoxelItem);
+
+	//////////////////////////////////////////////////////////////////////////
 	// Auxiliary
 public:
 	AVoxelAuxiliary* SpawnAuxiliary(FVoxelItem& InVoxelItem);
@@ -190,7 +194,7 @@ public:
 public:
 	APickUp* SpawnPickUp(FItem InItem, FVector InLocation);
 
-	APickUp* SpawnPickUp(FPickUpData InPickUpData);
+	APickUp* SpawnPickUp(FPickUpSaveData InPickUpData);
 
 	void AttachPickUp(APickUp* InPickUp);
 
@@ -201,7 +205,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Character
 public:
-	ADWCharacter* SpawnCharacter(FCharacterData InSaveData);
+	ADWCharacter* SpawnCharacter(FCharacterSaveData InSaveData);
 
 	void AttachCharacter(ADWCharacter* InCharacter);
 
@@ -212,7 +216,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// VitalityObject
 public:
-	AVitalityObject* SpawnVitalityObject(FVitalityObjectData InSaveData);
+	AVitalityObject* SpawnVitalityObject(FVitalityObjectSaveData InSaveData);
 
 	void AttachVitalityObject(AVitalityObject* InVitalityObject);
 

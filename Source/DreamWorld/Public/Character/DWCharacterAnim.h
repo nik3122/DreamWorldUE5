@@ -9,7 +9,7 @@
 class ADWCharacter;
 
 /**
- * ½ÇÉ«¶¯»­¿ØÖÆÆ÷
+ * è§’è‰²åŠ¨ç”»æŽ§åˆ¶å™¨
  */
 UCLASS()
 class DREAMWORLD_API UDWCharacterAnim : public UAnimInstance

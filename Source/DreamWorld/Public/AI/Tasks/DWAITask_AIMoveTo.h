@@ -25,6 +25,7 @@ protected:
 	float DurationTime;
 
 private:
+	UPROPERTY()
 	ADWCharacter* TargetCharacter;
 
 	FVector TargetLocation;

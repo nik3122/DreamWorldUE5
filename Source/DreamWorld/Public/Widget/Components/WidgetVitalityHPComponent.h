@@ -9,7 +9,7 @@
 class AVitalityObject;
 
 /**
- * ÉúÃüÌåÑªÌõ×é¼ş
+ * ç”Ÿå‘½ä½“è¡€æ¡ç»„ä»¶
  */
 UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
 class DREAMWORLD_API UWidgetVitalityHPComponent : public UWidgetComponent
@@ -30,5 +30,5 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
-	void RefreshVisibility();
+	void RefreshVisibility() const;
 };

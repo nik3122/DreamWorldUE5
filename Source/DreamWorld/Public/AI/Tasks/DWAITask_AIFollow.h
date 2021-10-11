@@ -9,7 +9,7 @@
 class ADWCharacter;
 
 /**
- * AIÈÎÎñ_¸úËæ
+ * AIä»»åŠ¡_è·Ÿéš
  */
 UCLASS()
 class DREAMWORLD_API UDWAITask_AIFollow : public UDWAITaskBase
@@ -24,6 +24,7 @@ protected:
 	FBlackboardKeySelector TargetDistanceKey;
 
 private:
+	UPROPERTY()
 	ADWCharacter* TargetCharacter;
 
 	float TargetDistance;

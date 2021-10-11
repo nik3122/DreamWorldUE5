@@ -8,6 +8,7 @@
 #include "Voxel.generated.h"
 
 class AChunk;
+class UDWCharacterPart;
 
 /**
  * ����
@@ -28,23 +29,21 @@ public:
 	static UVoxel* UnknownVoxel;
 
 public:
-	static UVoxel* SpawnVoxel(UObject* InWorldContext, EVoxelType InVoxelType);
+	static UVoxel* SpawnVoxel(EVoxelType InVoxelType);
 
-	static UVoxel* SpawnVoxel(UObject* InWorldContext, const FName& InVoxelID);
+	static UVoxel* SpawnVoxel(const FName& InVoxelID);
 
 	static UVoxel* LoadVoxel(AChunk* InOwner, const FVoxelItem& InVoxelItem);
 
 	static UVoxel* LoadVoxel(AChunk* InOwner, const FString& InVoxelData);
 	
-	static void DespawnVoxel(UObject* InWorldContext, UVoxel* InVoxel);
+	static void DespawnVoxel(UVoxel* InVoxel);
 
-	static bool IsValid(UVoxel* InVoxel, bool bCheckOwner = true);
+	static bool IsValid(UVoxel* InVoxel);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Defaults
 public:
-	virtual void Initialize(FIndex InIndex, AChunk* InOwner = nullptr);
-
 	virtual void LoadData(const FString& InValue);
 
 	virtual void LoadItem(const FVoxelItem& InVoxelItem);
@@ -62,11 +61,11 @@ public:
 
 	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
+	virtual void OnTargetEnter(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual void OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
+	virtual void OnTargetStay(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult);
 
-	virtual void OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult);
+	virtual void OnTargetExit(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult);
 
 	virtual bool OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult);
 

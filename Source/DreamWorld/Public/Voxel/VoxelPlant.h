@@ -23,8 +23,6 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// Defaults
 public:
-	virtual void Initialize(FIndex InIndex, AChunk* InOwner = nullptr) override;
-
 	virtual void LoadData(const FString& InValue) override;
 
 	virtual FString ToData() override;
@@ -34,11 +32,11 @@ public:
 public:
 	virtual void OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
+	virtual void OnTargetEnter(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
+	virtual void OnTargetStay(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult) override;
 
-	virtual void OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult) override;
+	virtual void OnTargetExit(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult) override;
 
 	virtual bool OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& InHitResult) override;
 

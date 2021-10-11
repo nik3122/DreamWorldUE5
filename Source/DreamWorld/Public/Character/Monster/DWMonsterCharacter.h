@@ -37,4 +37,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetDamaging(bool bInDamaging) override;
+
+	virtual bool OnInteract(IInteraction* InTrigger, EInteractOption InInteractOption) override;
+
+	virtual TArray<EInteractOption> GetInteractOptions(IInteraction* InTrigger) const override;
 };

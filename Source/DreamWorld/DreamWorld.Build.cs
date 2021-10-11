@@ -34,7 +34,8 @@ public class DreamWorld : ModuleRules
 				"GameplayTasks",
 				"ProceduralMeshComponent",
 				"WHFramework",
-				"AchievementSystem"
+				"AchievementSystem",
+				"TargetSystem"
 			}
 		);
 	}

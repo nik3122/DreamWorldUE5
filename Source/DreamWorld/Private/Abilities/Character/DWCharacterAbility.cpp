@@ -4,6 +4,7 @@
 UDWCharacterAbility::UDWCharacterAbility()
 {
 	AnimMontage = nullptr;
+	bAutoEndAbility = true;
 }
 
 ADWCharacter* UDWCharacterAbility::GetOwnerCharacter() const

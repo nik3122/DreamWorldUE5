@@ -4,7 +4,7 @@
 #include "Inventory/Slot/InventorySlot.h"
 #include "Widget/Inventory/WidgetInventoryBar.h"
 #include "Inventory/Slot/InventoryEquipSlot.h"
-#include "DWGameInstance.h"
+#include "Gameplay/DWGameInstance.h"
 #include "VitalityObject.h"
 #include "WidgetModuleBPLibrary.h"
 
@@ -18,12 +18,12 @@ void UVitalityInventory::Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplit
 	Super::Initialize(InOwner, InSplitInfos);
 }
 
-void UVitalityInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
+void UVitalityInventory::LoadData(FInventorySaveData InInventoryData, AActor* InOwner)
 {
 	Super::LoadData(InInventoryData, InOwner);
 }
 
-FInventoryData UVitalityInventory::ToData(bool bSaved)
+FInventorySaveData UVitalityInventory::ToData(bool bSaved)
 {
 	return Super::ToData();
 }

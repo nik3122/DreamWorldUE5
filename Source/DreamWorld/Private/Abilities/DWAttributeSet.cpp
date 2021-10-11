@@ -88,21 +88,21 @@ void UDWAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModC
 			FVector DamageDirection = SourceActor->GetActorLocation() - TargetActor->GetActorLocation();
 			if (FVector::DotProduct(DamageDirection, TargetActor->GetActorForwardVector()) / 90 > (1 - DefendScope))
 			{
-				DefendRateDone = DefendRate * (TargetCharacter->IsBlocking() ? 1 : 0);
+				DefendRateDone = DefendRate * (TargetCharacter->IsDefending() ? 1 : 0);
+				if(DefendRateDone > 0.f && !TargetCharacter->DoAction(ECharacterActionType::DefendBlock))
+				{
+					DefendRateDone = 0.f;
+				}
 			}
 		}
 
-		// Try to extract a hit result
-		FHitResult HitResult;
-		if (Context.GetHitResult())
-		{
-			HitResult = *Context.GetHitResult();
-		}
-
-		// Store a local copy of the amount of damage done and clear the damage attribute
 		if(Data.EvaluatedData.Attribute.GetName().StartsWith("Physics"))
 		{
 			LocalDamageDone = AttackForce * GetPhysicsDamage() * (1 - PhysicsDefRate) * (1 - DefendRateDone) * (FMath::FRand() <= AttackCritRate ? 2 : 1);
+			if(SourceCharacter)
+			{
+				SourceCharacter->DoAction(LocalDamageDone > 0.f ? ECharacterActionType::AttackHit : ECharacterActionType::AttackMiss);
+			}
 			SetPhysicsDamage(0.f);
 		}
 		else if(Data.EvaluatedData.Attribute.GetName().StartsWith("Magic"))
@@ -111,15 +111,23 @@ void UDWAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModC
 			SetMagicDamage(0.f);
 		}
 
-		if (LocalDamageDone > 0)
+		if (LocalDamageDone > 0.f)
 		{
 			if (TargetVitality && !TargetVitality->IsDead())
 			{
-				// Call for all health changes
 				TargetVitality->ModifyHealth(-LocalDamageDone);
 
-				// This is proper damage
+				FHitResult HitResult;
+				if (Context.GetHitResult())
+				{
+					HitResult = *Context.GetHitResult();
+				}
 				TargetVitality->HandleDamage(LocalDamageDone, HitResult, SourceTags, SourceCharacter, SourceActor);
+
+				if(TargetCharacter && DefendRateDone == 0.f)
+				{
+					TargetCharacter->DoAction(ECharacterActionType::GetHit);
+				}
 			}
 		}
 	}

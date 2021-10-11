@@ -7,7 +7,7 @@
 #include "DWAITask_AIDefend.generated.h"
 
 /**
- * AIÈÎÎñ_·ÀÓù
+ * AIä»»åŠ¡_é˜²å¾¡
  */
 UCLASS()
 class DREAMWORLD_API UDWAITask_AIDefend : public UDWAITaskBase
@@ -22,7 +22,8 @@ private:
 	float AIMoveRemainTime;
 
 	FVector AIMoveLocation;
-	
+
+	UPROPERTY()
 	ADWCharacter* DefendTarget;
 
 protected:

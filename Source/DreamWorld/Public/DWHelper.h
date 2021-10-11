@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "DWGameMode.h"
+#include "DreamWorld.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "DWHelper.generated.h"
 
@@ -28,7 +28,7 @@ private:
 
 	static class UDWGameInstance* CurrentGameInstance;
 
-	static class ADWPlayerCharacterController* CurrentPlayerController;
+	static class ADWPlayerController* CurrentPlayerController;
 
 public:
 	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
@@ -44,10 +44,10 @@ public:
 	static class ADWPlayerCharacter* GetPlayerCharacter(const UObject* InWorldContext);
 	
 	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
-	static class ADWPlayerCharacterController* GetPlayerController(const UObject* InWorldContext);
+	static class ADWPlayerController* GetPlayerController(const UObject* InWorldContext);
 
-	UFUNCTION(BlueprintPure, meta = (WorldContext = "InWorldContext"), Category = "DWHelper")
-	static class ADWMainModule* GetMainModule(const UObject* InWorldContext);
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static class ADWMainModule* GetMainModule();
 
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
 	static class AWorldManager* GetWorldManager();
@@ -66,6 +66,10 @@ private:
 	static UDataTable* ShieldsDataTable;
 
 	static UDataTable* ArmorsDataTable;
+
+	static UDataTable* VitalitiesDataTable;
+
+	static UDataTable* CharactersDataTable;
 
 	static UDataTable* VitalityRacesDataTable;
 
@@ -86,6 +90,10 @@ private:
 	static TMap<FName, FEquipShieldData> ShieldDatas;
 
 	static TMap<FName, FEquipArmorData> ArmorDatas;
+
+	static TMap<FName, FVitalityData> VitalityDatas;
+
+	static TMap<FName, FCharacterData> CharacterDatas;
 
 	static TMap<FName, FVitalityRaceData> VitalityRaceDatas;
 
@@ -139,7 +147,19 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
 	static FEquipArmorData LoadArmorData(const FName& InArmorID);
-			
+						
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TArray<FVitalityData> LoadVitalityDatas();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static FVitalityData LoadVitalityData(const FName& InVitalityID);
+		
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static TArray<FCharacterData> LoadCharacterDatas();
+
+	UFUNCTION(BlueprintPure, Category = "DWHelper")
+	static FCharacterData LoadCharacterData(const FName& InCharacterID);
+
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
 	static TArray<FVitalityRaceData> LoadVitalityRaceDatas();
 
@@ -233,18 +253,6 @@ public:
 	static TSubclassOf<class UWidgetWorldText> LoadWidgetWorldTextClass();
 
 	//////////////////////////////////////////////////////////////////////////
-	// Debug
-public:
-	UFUNCTION(BlueprintCallable, Category = "DWHelper")
-	static void Debug(const FString& Message, EDebugType DebugType = EDebugType::Screen, float Duration = 1.5f);
-
-	//////////////////////////////////////////////////////////////////////////
-	// Enum
-public:
-	UFUNCTION(BlueprintPure, Category = "DWHelper")
-	static FString EnumValueToString(const FString& InEnumName, const int32& InEnumValue);
-
-	//////////////////////////////////////////////////////////////////////////
 	// Index
 public:
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
@@ -264,13 +272,4 @@ public:
 public:
 	UFUNCTION(BlueprintPure, Category = "DWHelper")
 	static ETraceTypeQuery GetGameTrace(EGameTraceType InGameTraceType);
-
-	//////////////////////////////////////////////////////////////////////////
-	// DataSave
-public:
-	UFUNCTION(BlueprintCallable, Category = "DWHelper")
-	static void SaveObjectToMemory(UObject* InObject, TArray<uint8>& OutObjectData);
-
-	UFUNCTION(BlueprintCallable, Category = "DWHelper")
-	static void LoadObjectFromMemory(UObject* InObject, TArray<uint8> InObjectData);
 };

@@ -59,7 +59,7 @@ void UDWAIService_RefreshState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 				}
 				case ECharacterNature::AIHostile:
 				{
-					if (OwnerCharacter->ValidInteract(TargetCharacter, ECharacterInteract::Fighting))
+					if (OwnerCharacter->IsEnemy(TargetCharacter))
 					{
 						//if (OwnerCharacter->Distance(TargetCharacter, false, false) >= OwnerCharacter->GetAIFollowDistance())
 						//{

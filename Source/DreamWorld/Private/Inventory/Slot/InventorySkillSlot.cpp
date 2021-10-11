@@ -1,6 +1,10 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "Inventory/Slot/InventorySkillSlot.h"
+
+#include "DebugModuleTypes.h"
+#include "WidgetModuleBPLibrary.h"
+#include "WidgetPrimaryPanel.h"
 #include "Inventory/Inventory.h"
 #include "Inventory/Slot/InventorySlot.h"
 #include "Character/Player/DWPlayerCharacter.h"
@@ -50,7 +54,7 @@ bool UInventorySkillSlot::ActiveItem()
 		}
 		else if(CooldownInfo.bCooldowning)
 		{
-			UDWHelper::Debug(TEXT("该技能处于冷却中！"));
+			UWidgetModuleBPLibrary::GetUserWidget<UWidgetPrimaryPanel>()->ShowMessage(TEXT("该技能处于冷却中！"));
 		}
 	}
 	return false;
@@ -58,7 +62,7 @@ bool UInventorySkillSlot::ActiveItem()
 
 bool UInventorySkillSlot::CancelItem()
 {
-	if (GetSkillData().bCancelAble)
+	if (GetSkillData().bCancelable)
 	{
 		Super::CancelItem();
 		if(GetSkillData().GetItemData().SkillMode == ESkillMode::Initiative)

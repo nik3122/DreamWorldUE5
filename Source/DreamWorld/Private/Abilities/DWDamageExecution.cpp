@@ -108,19 +108,19 @@ void UDWDamageExecution::Execute_Implementation(const FGameplayEffectCustomExecu
 		MagicDamage = TargetVitality->GetMagicDamage();
 	}
 
-	FVector DamageDirection = SourceActor->GetActorLocation() - TargetActor->GetActorLocation();
+	const FVector DamageDirection = SourceActor->GetActorLocation() - TargetActor->GetActorLocation();
 	if (FVector::DotProduct(DamageDirection, -SourceActor->GetActorForwardVector()) > (1 - DefendScope))
 	{
-		DefendRateDone = DefendRate * (SourceCharacter->IsBlocking() ? 1 : 0);
+		DefendRateDone = DefendRate * (TargetCharacter->IsDefending() ? 1 : 0);
 	}
 
-	float PhysicsDamageDone = AttackForce * PhysicsDamage * (1 - PhysicsDefRate) * (1 - DefendRateDone) * (FMath::FRand() <= AttackCritRate ? 2 : 1);
+	const float PhysicsDamageDone = AttackForce * PhysicsDamage * (1 - PhysicsDefRate) * (1 - DefendRateDone) * (FMath::FRand() <= AttackCritRate ? 2 : 1);
 	if (PhysicsDamageDone > 0.f)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(DamageStatics().PhysicsDamageProperty, EGameplayModOp::Override, PhysicsDamageDone));
 	}
 
-	float MagicDamageDone = MagicDamage * (1 - MagicDefRate) * (1 - DefendRateDone) * (FMath::FRand() <= AttackCritRate ? 2 : 1);
+	const float MagicDamageDone = MagicDamage * (1 - MagicDefRate) * (1 - DefendRateDone) * (FMath::FRand() <= AttackCritRate ? 2 : 1);
 	if (MagicDamageDone > 0.f)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(DamageStatics().MagicDamageProperty, EGameplayModOp::Override, MagicDamageDone));

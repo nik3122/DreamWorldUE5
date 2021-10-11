@@ -6,4 +6,5 @@
 UWidgetVitalityHP::UWidgetVitalityHP(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	OwnerObject = nullptr;
+	Visibility = ESlateVisibility::Hidden;
 }

@@ -27,9 +27,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UAIPerceptionComponent* AIPerception;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Default")
-	ADWCharacter* PossessedCharacter;
-
 private:
 	bool bLostPerceptionTarget;
 
@@ -42,6 +39,9 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION()
+	virtual void OnTargetCharacterDead();
 
 	UFUNCTION()
 	virtual void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -77,7 +77,10 @@ public:
 	void SetPatrolDuration(float InPatrolDuration);
 
 	UFUNCTION(BlueprintPure)
-	ADWCharacter* GetPossessedCharacter() const {return PossessedCharacter; }
+	bool IsLostTarget() const;
+	
+	UFUNCTION(BlueprintCallable)
+	void SetLostTarget(bool bLostTarget, FVector InLostTargetLocation = FVector::ZeroVector);
 
 	UFUNCTION(BlueprintPure)
 	ADWCharacter* GetTargetCharacter() const;
@@ -86,8 +89,5 @@ public:
 	void SetTargetCharacter(ADWCharacter* InTargetCharacter);
 
 	UFUNCTION(BlueprintPure)
-	bool GetIsLostTarget() const;
-	
-	UFUNCTION(BlueprintCallable)
-	void SetIsLostTarget(bool bLostTarget, FVector InLostTargetLocation = FVector::ZeroVector);
+	ADWCharacter* GetPossessedCharacter() const;
 };

@@ -22,10 +22,7 @@ bool UDWAITask_AIAttack::InitTask(UBehaviorTreeComponent& OwnerComp)
 {
 	if(!Super::InitTask(OwnerComp)) return false;
 
-	if (AttackTarget == nullptr)
-	{
-		AttackTarget = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AttackTargetKey.SelectedKeyName));
-	}
+	AttackTarget = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AttackTargetKey.SelectedKeyName));
 	AttackDistance = OwnerComp.GetBlackboardComponent()->GetValueAsFloat(AttackDistanceKey.SelectedKeyName);
 
 	return AttackTarget && AttackTarget->IsValidLowLevel();
@@ -33,6 +30,8 @@ bool UDWAITask_AIAttack::InitTask(UBehaviorTreeComponent& OwnerComp)
 
 void UDWAITask_AIAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	if (!InitTask(OwnerComp)) return;
+
 	if(OwnerCharacter->Distance(AttackTarget, false, false) <= AttackDistance)
 	{
 		OwnerCharacter->Attack();

@@ -21,10 +21,7 @@ bool UDWAITask_AIDefend::InitTask(UBehaviorTreeComponent& OwnerComp)
 {
 	if(!Super::InitTask(OwnerComp)) return false;
 
-	if (DefendTarget == nullptr)
-	{
-		DefendTarget = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(DefendTargetKey.SelectedKeyName));
-	}
+	DefendTarget = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(DefendTargetKey.SelectedKeyName));
 	return DefendTarget && DefendTarget->IsValidLowLevel();
 }
 

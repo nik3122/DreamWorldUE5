@@ -44,15 +44,15 @@ protected:
 	static AWorldManager* Current;
 
 public:
-	static AWorldManager* GetCurrent() { return Current; }
+	static AWorldManager* Get() { return Current; }
 
 protected:
-	static FWorldData WorldData;
+	static FWorldSaveData WorldData;
 
 	static UWorldDataSave* DataSave;
 
 public:
-	static FWorldData& GetWorldData() { return WorldData; }
+	static FWorldSaveData& GetWorldData() { return WorldData; }
 
 	static UWorldDataSave* GetDataSave() { return DataSave; }
 
@@ -210,7 +210,7 @@ public:
 
 	bool ChunkTraceSingle(FVector RayStart, FVector RayEnd, float InRadius, float InHalfHeight, FHitResult& OutHitResult);
 
-	bool VoxelTraceSingle(UVoxel* InVoxel, FVector InPoint, FHitResult& OutHitResult);
+	bool VoxelTraceSingle(const FVoxelItem& InVoxelItem, FVector InPoint, FHitResult& OutHitResult);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Team

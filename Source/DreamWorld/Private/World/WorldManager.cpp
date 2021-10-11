@@ -7,7 +7,7 @@
 #include "Voxel/Voxel.h"
 #include "Engine/World.h"
 #include "Character/Player/DWPlayerCharacter.h"
-#include "Character/Player/DWPlayerCharacterController.h"
+#include "Gameplay/DWPlayerController.h"
 #include "PickUp/PickUpVoxel.h"
 #include "Voxel/Components/VoxelMeshComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -15,10 +15,10 @@
 #include "Components/BoxComponent.h"
 #include "Widget/Inventory/WidgetInventoryPanel.h"
 #include "Vitality/VitalityObject.h"
-#include "DWGameInstance.h"
+#include "Gameplay/DWGameInstance.h"
 #include "DataSave/WorldDataSave.h"
 #include "Inventory/CharacterInventory.h"
-#include "DWGameState.h"
+#include "Gameplay/DWGameState.h"
 #include "DataSave/PlayerDataSave.h"
 #include "World/Components/WorldTimerComponent.h"
 #include "World/Components/WorldWeatherComponent.h"
@@ -27,7 +27,7 @@
 
 AWorldManager* AWorldManager::Current = nullptr;
 UWorldDataSave* AWorldManager::DataSave = nullptr;
-FWorldData AWorldManager::WorldData = FWorldData::Empty;
+FWorldSaveData AWorldManager::WorldData = FWorldSaveData::Empty;
 
 // Sets default values
 AWorldManager::AWorldManager()
@@ -59,7 +59,7 @@ AWorldManager::AWorldManager()
 	BoundsMesh->SetRelativeRotation(FRotator(0, 0, 0));
 	BoundsMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	WorldData = FWorldData();
+	WorldData = FWorldSaveData();
 
 	ChunkSpawnRange = 7;
 	ChunkSpawnDistance = 3;
@@ -91,7 +91,7 @@ void AWorldManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(ADWPlayerCharacterController* PlayerController = UDWHelper::GetPlayerController(this))
+	if(ADWPlayerController* PlayerController = UDWHelper::GetPlayerController(this))
 	{
 		PlayerController->OnPlayerSpawned.AddDynamic(this, &AWorldManager::OnPlayerSpawned);
 	}
@@ -220,7 +220,7 @@ void AWorldManager::UnloadWorld()
 	{
 		if(iter.Value)
 		{
-			USpawnPoolModuleBPLibrary::DespawnActor(this, iter.Value);
+			USpawnPoolModuleBPLibrary::DespawnActor(iter.Value);
 		}
 	}
 	ChunkMap.Empty();
@@ -231,7 +231,7 @@ void AWorldManager::UnloadWorld()
 	}
 
 	DataSave = nullptr;
-	WorldData = FWorldData();
+	WorldData = FWorldSaveData();
 	
 	ChunkSpawnBatch = 0;
 	bBasicGenerated = false;
@@ -351,7 +351,6 @@ void AWorldManager::GenerateTerrain()
 			// 		tmpArr.Empty();
 			// 	}
 			// }
-			//
 			// for(int32 i = 0; i < ChunkMapBuildTasks.Num(); i++)
 			// {
 			// 	FAsyncTask<ChunkMapBuildTask>* tmpTask = ChunkMapBuildTasks[i];
@@ -512,7 +511,7 @@ void AWorldManager::DestroyChunk(AChunk* InChunk)
 
 	ChunkMap.Remove(InChunk->GetIndex());
 
-	USpawnPoolModuleBPLibrary::DespawnActor(this, InChunk);
+	USpawnPoolModuleBPLibrary::DespawnActor(InChunk);
 }
 
 void AWorldManager::AddToSpawnQueue(FIndex InIndex)
@@ -559,7 +558,7 @@ AChunk* AWorldManager::SpawnChunk(FIndex InIndex, bool bAddToQueue)
 {
 	if (ChunkMap.Contains(InIndex)) return ChunkMap[InIndex];
 
-	auto chunk = USpawnPoolModuleBPLibrary::SpawnActor<AChunk>(this);
+	auto chunk = USpawnPoolModuleBPLibrary::SpawnActor<AChunk>();
 	if (chunk)
 	{
 		chunk->SetActorLocationAndRotation(InIndex.ToVector() * WorldData.GetChunkLength(), FRotator::ZeroRotator);
@@ -641,9 +640,9 @@ bool AWorldManager::ChunkTraceSingle(FVector RayStart, FVector RayEnd, float InR
 	return false;
 }
 
-bool AWorldManager::VoxelTraceSingle(UVoxel* InVoxel, FVector InPoint, FHitResult& OutHitResult)
+bool AWorldManager::VoxelTraceSingle(const FVoxelItem& InVoxelItem, FVector InPoint, FHitResult& OutHitResult)
 {
-	FVector size = InVoxel->GetVoxelData().GetCeilRange(InVoxel) * WorldData.BlockSize * 0.5f;
+	FVector size = InVoxelItem.GetVoxelData().GetCeilRange(InVoxelItem.Rotation, InVoxelItem.Scale) * WorldData.BlockSize * 0.5f;
 	return UKismetSystemLibrary::BoxTraceSingle(this, InPoint + size, InPoint + size, size * 0.95f, FRotator::ZeroRotator, UDWHelper::GetGameTrace(EGameTraceType::Voxel), false, TArray<AActor*>(), EDrawDebugTrace::None, OutHitResult, true);
 }
 
@@ -660,7 +659,7 @@ bool AWorldManager::CreateTeam(ADWCharacter* InCaptain, FName InTeamName /*= NAM
 		tmpData.ID = *FString::Printf(TEXT("Team_%d"), TeamMap.Num());
 		if (!IsExistTeam(tmpData.ID))
 		{
-			tmpData.Name = !InTeamName.IsNone() ? InTeamName : *FString::Printf(TEXT("%s �� Team"), *InCaptain->GetName());
+			tmpData.Name = !InTeamName.IsNone() ? InTeamName : *FString::Printf(TEXT("%s �� Team"), *InCaptain->GetNameC());
 			tmpData.Detail = !InTeamDetail.IsEmpty() ? InTeamDetail : tmpData.Name.ToString();
 			tmpData.Captain = InCaptain;
 			tmpData.AddMember(InCaptain);

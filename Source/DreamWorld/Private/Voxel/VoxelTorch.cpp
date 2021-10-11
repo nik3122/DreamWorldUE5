@@ -10,11 +10,6 @@ UVoxelTorch::UVoxelTorch()
 	
 }
 
-void UVoxelTorch::Initialize(FIndex InIndex, AChunk* InOwner)
-{
-	Super::Initialize(InIndex, InOwner);
-}
-
 void UVoxelTorch::LoadData(const FString& InValue)
 {
 	Super::LoadData(InValue);
@@ -30,17 +25,17 @@ void UVoxelTorch::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InH
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelTorch::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelTorch::OnTargetEnter(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
 }
 
-void UVoxelTorch::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelTorch::OnTargetStay(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
 }
 
-void UVoxelTorch::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelTorch::OnTargetExit(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 }

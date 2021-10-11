@@ -23,11 +23,8 @@ bool UDWAITask_AIFollow::InitTask(UBehaviorTreeComponent& OwnerComp)
 {
 	if(!Super::InitTask(OwnerComp)) return false;
 
-	if (TargetCharacter == nullptr)
-	{
-		TargetCharacter = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TargetCharacterKey.SelectedKeyName));
-		TargetDistance = OwnerComp.GetBlackboardComponent()->GetValueAsFloat(TargetDistanceKey.SelectedKeyName);
-	}
+	TargetCharacter = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TargetCharacterKey.SelectedKeyName));
+	TargetDistance = OwnerComp.GetBlackboardComponent()->GetValueAsFloat(TargetDistanceKey.SelectedKeyName);
 	return TargetCharacter && TargetCharacter->IsValidLowLevel();
 }
 

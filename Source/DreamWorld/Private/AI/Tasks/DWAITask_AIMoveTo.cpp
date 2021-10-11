@@ -28,16 +28,16 @@ bool UDWAITask_AIMoveTo::InitTask(UBehaviorTreeComponent& OwnerComp)
 {
 	if (!Super::InitTask(OwnerComp)) return false;
 
+	TargetDistance = OwnerComp.GetBlackboardComponent()->GetValueAsFloat(DistanceKey.SelectedKeyName);
 	if (TargetKey.SelectedKeyType == UBlackboardKeyType_Vector::StaticClass())
 	{
 		TargetLocation = OwnerComp.GetBlackboardComponent()->GetValueAsVector(TargetKey.SelectedKeyName);
 	}
-	else if (TargetCharacter == nullptr)
+	else
 	{
 		TargetCharacter = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TargetKey.SelectedKeyName));
 		return TargetCharacter && TargetCharacter->IsValidLowLevel();
 	}
-	TargetDistance = OwnerComp.GetBlackboardComponent()->GetValueAsFloat(DistanceKey.SelectedKeyName);
 	return true;
 }
 

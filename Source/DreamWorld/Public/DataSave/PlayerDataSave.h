@@ -21,15 +21,15 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FCharacterData PlayerData;
+	FCharacterSaveData PlayerData;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	void RefreshPlayerData();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FCharacterData& GetPlayerData() { return PlayerData; }
+	FCharacterSaveData& GetPlayerData() { return PlayerData; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetPlayerData(FCharacterData InPlayerData) {PlayerData = InPlayerData;}
+	void SetPlayerData(FCharacterSaveData InPlayerData) {PlayerData = InPlayerData;}
 };

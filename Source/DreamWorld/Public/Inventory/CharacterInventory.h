@@ -23,9 +23,9 @@ public:
 public:
 	virtual void Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSlotInfo> InSplitInfos) override;
 	
-	virtual void LoadData(FInventoryData InInventoryData, AActor* InOwner) override;
+	virtual void LoadData(FInventorySaveData InInventoryData, AActor* InOwner) override;
 
-	virtual FInventoryData ToData(bool bSaved = true) override;
+	virtual FInventorySaveData ToData(bool bSaved = true) override;
 
 	virtual void DiscardAll() override;
 

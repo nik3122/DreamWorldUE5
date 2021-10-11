@@ -21,7 +21,7 @@ bool UDWAIDecorator_CheckFriend::CalculateRawConditionValue(UBehaviorTreeCompone
 	ADWCharacter* TargetCharacter = Cast<ADWCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TargetCharacterKey.SelectedKeyName));
 	if(OwnerCharacter && TargetCharacter)
 	{
-		return !OwnerCharacter->ValidInteract(TargetCharacter, ECharacterInteract::Fighting);
+		return !OwnerCharacter->IsEnemy(TargetCharacter);
 	}
 	return false;
 }

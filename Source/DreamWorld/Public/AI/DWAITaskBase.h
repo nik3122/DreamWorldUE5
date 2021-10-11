@@ -10,7 +10,7 @@ class ADWAIController;
 class ADWCharacter;
 
 /**
- * AI任务基类
+ * AI浠诲姟鍩虹被
  */
 UCLASS()
 class DREAMWORLD_API UDWAITaskBase : public UBTTaskNode
@@ -18,10 +18,10 @@ class DREAMWORLD_API UDWAITaskBase : public UBTTaskNode
 	GENERATED_UCLASS_BODY()
 
 protected:
-	UPROPERTY(Transient)
+	UPROPERTY()
 	ADWAIController* OwnerController;
 
-	UPROPERTY(Transient)
+	UPROPERTY()
 	ADWCharacter* OwnerCharacter;
 	
 protected:

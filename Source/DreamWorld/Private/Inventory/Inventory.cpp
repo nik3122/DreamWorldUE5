@@ -15,6 +15,7 @@ UInventory::UInventory()
 {
 	OwnerActor = nullptr;
 	ConnectInventory = nullptr;
+	SelectedSlot = nullptr;
 	Slots = TArray<UInventorySlot*>();
 }
 
@@ -89,7 +90,7 @@ void UInventory::Refresh(float DeltaSeconds)
 	}
 }
 
-void UInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
+void UInventory::LoadData(FInventorySaveData InInventoryData, AActor* InOwner)
 {
 	Initialize(InOwner, InInventoryData.SplitInfos);
 	for (int32 i = 0; i < Slots.Num(); i++)
@@ -98,9 +99,9 @@ void UInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
 	}
 }
 
-FInventoryData UInventory::ToData(bool bSaved)
+FInventorySaveData UInventory::ToData(bool bSaved)
 {
-	auto data = FInventoryData();
+	auto data = FInventorySaveData();
 
 	data.bSaved = bSaved;
 	data.SplitInfos = SplitInfos;
@@ -262,6 +263,15 @@ TArray<UInventorySlot*> UInventory::GetValidatedList(EInventoryActionType InActi
 {
 	const FSplitSlotInfo SplitSlotInfo = GetSplitSlotInfo(InSplitSlotType);
 	return GetValidatedList(InActionType, InItem, SplitSlotInfo.StartIndex, SplitSlotInfo.StartIndex + SplitSlotInfo.TotalCount);
+}
+
+FItem& UInventory::GetSelectedItem() const
+{
+	if(GetSelectedSlot())
+	{
+		return GetSelectedSlot()->GetItem();
+	}
+	return FItem::Empty;
 }
 
 bool UInventory::HasSplitSlotInfo(ESplitSlotType InSplitSlotType) const

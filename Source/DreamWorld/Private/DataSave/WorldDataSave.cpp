@@ -10,14 +10,14 @@ UWorldDataSave::UWorldDataSave()
 {
 	// set default pawn class to our Blueprinted character
 	
-	WorldData = FWorldData();
+	WorldData = FWorldSaveData();
 	ChunkDatas = TMap<FVector, FChunkData>();
-	PlayerRecordDatas = TMap<FString, FPlayerRecordData>();
+	PlayerRecordDatas = TMap<FString, FPlayerRecordSaveData>();
 }
 
 void UWorldDataSave::RefreshWorldData()
 {
-	if(AWorldManager* WorldManager = AWorldManager::GetCurrent())
+	if(AWorldManager* WorldManager = AWorldManager::Get())
 	{
 		WorldData = WorldManager->GetWorldData();
 		WorldData.bSaved = true;
@@ -29,7 +29,7 @@ bool UWorldDataSave::IsExistPlayerRecord(const FString& InPlayerName)
 	return PlayerRecordDatas.Contains(InPlayerName);
 }
 
-void UWorldDataSave::SavePlayerRecord(FPlayerRecordData InPlayerRecordData)
+void UWorldDataSave::SavePlayerRecord(FPlayerRecordSaveData InPlayerRecordData)
 {
 	if (!PlayerRecordDatas.Contains(InPlayerRecordData.Name))
 		PlayerRecordDatas.Add(InPlayerRecordData.Name, InPlayerRecordData);
@@ -37,13 +37,13 @@ void UWorldDataSave::SavePlayerRecord(FPlayerRecordData InPlayerRecordData)
 		PlayerRecordDatas[InPlayerRecordData.Name] = InPlayerRecordData;
 }
 
-FPlayerRecordData UWorldDataSave::LoadPlayerRecord(const FString& InPlayerName)
+FPlayerRecordSaveData UWorldDataSave::LoadPlayerRecord(const FString& InPlayerName)
 {
 	if (IsExistPlayerRecord(InPlayerName))
 	{
 		return PlayerRecordDatas[InPlayerName];
 	}
-	return FPlayerRecordData();
+	return FPlayerRecordSaveData();
 }
 
 void UWorldDataSave::RemovePlayerRecord(const FString& InPlayerName)

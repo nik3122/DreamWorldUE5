@@ -7,10 +7,10 @@
 #include "DWMainModule.generated.h"
 
 /**
- * 游戏模式基类
+ * 
  */
 UCLASS()
-class ADWMainModule : public AMainModule
+class DREAMWORLD_API ADWMainModule : public AMainModule
 {
 	GENERATED_BODY()
 

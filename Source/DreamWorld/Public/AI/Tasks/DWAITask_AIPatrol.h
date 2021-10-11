@@ -7,7 +7,7 @@
 #include "DWAITask_AIPatrol.generated.h"
 
 /**
- * AIÈÎÎñ_Ñ²Âß
+ * AIä»»åŠ¡_å·¡é€»
  */
 UCLASS()
 class DREAMWORLD_API UDWAITask_AIPatrol : public UDWAITaskBase

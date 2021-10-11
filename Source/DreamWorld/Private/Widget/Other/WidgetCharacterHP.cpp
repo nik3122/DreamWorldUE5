@@ -6,4 +6,5 @@
 UWidgetCharacterHP::UWidgetCharacterHP(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	OwnerCharacter = nullptr;
+	Visibility = ESlateVisibility::Hidden;
 }

@@ -11,11 +11,6 @@ UVoxelDoor::UVoxelDoor()
 	
 }
 
-void UVoxelDoor::Initialize(FIndex InIndex, AChunk* InOwner)
-{
-	Super::Initialize(InIndex, InOwner);
-}
-
 void UVoxelDoor::LoadData(const FString& InValue)
 {
 	Super::LoadData(InValue);
@@ -23,7 +18,7 @@ void UVoxelDoor::LoadData(const FString& InValue)
 	TArray<FString> data;
 	InValue.ParseIntoArray(data, TEXT(";"));
 	
-	SetOpened(FCString::Atoi(*data[3]));
+	SetOpened((bool)FCString::Atoi(*data[3]));
 }
 
 FString UVoxelDoor::ToData()
@@ -47,7 +42,6 @@ void UVoxelDoor::OpenTheDoor()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, GetVoxelData().OperationSounds[0], Owner->IndexToLocation(Index));
 	}
-	Owner->SetVoxelSample(Index, this);
 }
 
 void UVoxelDoor::CloseTheDoor()
@@ -60,7 +54,6 @@ void UVoxelDoor::CloseTheDoor()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, GetVoxelData().OperationSounds[1], Owner->IndexToLocation(Index));
 	}
-	Owner->SetVoxelSample(Index, this);
 }
 
 bool UVoxelDoor::IsOpened() const
@@ -83,17 +76,17 @@ void UVoxelDoor::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InHi
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelDoor::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelDoor::OnTargetEnter(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
 }
 
-void UVoxelDoor::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelDoor::OnTargetStay(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
 }
 
-void UVoxelDoor::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelDoor::OnTargetExit(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 }
@@ -109,7 +102,7 @@ bool UVoxelDoor::OnMouseDown(EMouseButton InMouseButton, const FVoxelHitResult& 
 		case EMouseButton::Right:
 		{
 			FHitResult hitResult;
-			if (!AWorldManager::GetCurrent()->VoxelTraceSingle(this, Owner->IndexToLocation(Index), hitResult))
+			if (!AWorldManager::Get()->VoxelTraceSingle(InHitResult.VoxelItem, Owner->IndexToLocation(Index), hitResult))
 			{
 				OpenOrClose();
 				return true;

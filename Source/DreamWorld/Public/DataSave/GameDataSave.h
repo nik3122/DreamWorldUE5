@@ -22,22 +22,22 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FGameData GameData;
+	FGameSaveData GameData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TMap<FString, FWorldBasicData> WorldDatas;
+	TMap<FString, FWorldBasicSaveData> WorldDatas;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TMap<FString, FCharacterBasicData> PlayerDatas;
+	TMap<FString, FCharacterBasicSaveData> PlayerDatas;
 
 public:
 	void RefreshGameData();
 
-	FGameData& GetGameData() { return GameData; }
+	FGameSaveData& GetGameData() { return GameData; }
 
-	void SetGameData(FGameData InGameData) { GameData = InGameData; }
+	void SetGameData(FGameSaveData InGameData) { GameData = InGameData; }
 
-	TMap<FString, FWorldBasicData>& GetWorldDatas() { return WorldDatas; }
+	TMap<FString, FWorldBasicSaveData>& GetWorldDatas() { return WorldDatas; }
 
-	TMap<FString, FCharacterBasicData>& GetPlayerDatas() { return PlayerDatas; }
+	TMap<FString, FCharacterBasicSaveData>& GetPlayerDatas() { return PlayerDatas; }
 };

@@ -36,8 +36,11 @@ AVitalityObject::AVitalityObject()
 	WidgetVitalityHP->SetDrawSize(FVector2D(220, 60));
 	WidgetVitalityHP->SetPivot(FVector2D(0.5f, 1));
 	WidgetVitalityHP->SetRelativeLocation(FVector(0, 0, 50));
-	WidgetVitalityHP->SetVisibility(false);
-	
+
+	Interaction = CreateDefaultSubobject<UInteractionComponent>(FName("Interaction"));
+	Interaction->SetupAttachment(RootComponent);
+	Interaction->SetRelativeLocation(FVector(0, 0, 0));
+
 	AbilitySystem = CreateDefaultSubobject<UDWAbilitySystemComponent>(FName("AbilitySystem"));
 
 	AttributeSet = CreateDefaultSubobject<UDWAttributeSet>(FName("AttributeSet"));
@@ -46,18 +49,15 @@ AVitalityObject::AVitalityObject()
 
 	// states
 	bDead = true;
-
+	
 	// stats
+	ID = NAME_None;
 	Name = TEXT("");
 	RaceID = TEXT("");
 	Level = 0;
 	EXP = 50;
 	BaseEXP = 100;
 	EXPFactor = 2.f;
-
-	InventoryData = FInventoryData();
-	InventoryData.Items.SetNum(5);
-	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 4));
 
 	OwnerChunk = nullptr;
 }
@@ -87,11 +87,12 @@ void AVitalityObject::Tick(float DeltaTime)
 	Inventory->Refresh(DeltaTime);
 }
 
-void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
+void AVitalityObject::LoadData(FVitalityObjectSaveData InSaveData)
 {
 	if (InSaveData.bSaved)
 	{
-		SetName(InSaveData.Name);
+		ID = InSaveData.ID;
+		SetNameC(InSaveData.Name);
 		SetRaceID(InSaveData.RaceID);
 		SetLevelC(InSaveData.Level);
 		SetEXP(InSaveData.EXP);
@@ -103,26 +104,37 @@ void AVitalityObject::LoadData(FVitalityObjectData InSaveData)
 	}
 	else
 	{
+		ID = InSaveData.ID;
+		SetNameC(InSaveData.Name);
 		SetRaceID(InSaveData.RaceID);
+		SetLevelC(InSaveData.Level);
 
 		SetActorLocation(InSaveData.SpawnLocation);
 		SetActorRotation(InSaveData.SpawnRotation);
 
-		const auto ItemDatas = UDWHelper::LoadItemDatas();
-		if(ItemDatas.Num() > 0 && FMath::FRand() < 0.2f)
+		const FVitalityData vitalityData = GetVitalityData();
+		if(vitalityData.IsValid())
 		{
-			InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID, 1));
+			InSaveData.InventoryData = vitalityData.InventoryData;
 		}
-		Inventory->LoadData(InventoryData, this);
+
+		// const auto ItemDatas = UDWHelper::LoadItemDatas();
+		// if(ItemDatas.Num() > 0 && FMath::FRand() < 0.2f)
+		// {
+		// 	InSaveData.InventoryData.Items.Add(FItem(ItemDatas[FMath::RandRange(0, ItemDatas.Num() - 1)].ID, 1));
+		// }
+		
+		Inventory->LoadData(InSaveData.InventoryData, this);
 	}
 }
 
-FVitalityObjectData AVitalityObject::ToData(bool bSaved)
+FVitalityObjectSaveData AVitalityObject::ToData(bool bSaved)
 {
-	FVitalityObjectData SaveData;
+	FVitalityObjectSaveData SaveData;
 
 	SaveData.bSaved = bSaved;
 
+	SaveData.ID = ID;
 	SaveData.Name = Name;
 	SaveData.RaceID = RaceID;
 	SaveData.Level = Level;
@@ -132,8 +144,6 @@ FVitalityObjectData AVitalityObject::ToData(bool bSaved)
 
 	SaveData.SpawnLocation = GetActorLocation();
 	SaveData.SpawnRotation = GetActorRotation();
-
-	SaveData.SpawnClass = GetClass();
 
 	return SaveData;
 }
@@ -178,7 +188,7 @@ void AVitalityObject::ResetData(bool bRefresh)
 void AVitalityObject::RefreshData()
 {
 	HandleHealthChanged(GetHealth());
-	HandleNameChanged(GetName());
+	HandleNameChanged(GetNameC());
 	HandleRaceIDChanged(GetRaceID());
 }
 
@@ -187,7 +197,7 @@ bool AVitalityObject::IsDead() const
 	return bDead;
 }
 
-void AVitalityObject::SetName(const FString& InName)
+void AVitalityObject::SetNameC(const FString& InName)
 {
 	Name = InName;
 	HandleNameChanged(InName);
@@ -264,6 +274,11 @@ float AVitalityObject::GetPhysicsDamage() const
 float AVitalityObject::GetMagicDamage() const
 {
 	return AttributeSet->GetMagicDamage();
+}
+
+FVitalityData AVitalityObject::GetVitalityData() const
+{
+	return UDWHelper::LoadVitalityData(ID);
 }
 
 void AVitalityObject::SpawnWidgetWorldText(EWorldTextType InContextType, FString InContext)
@@ -381,7 +396,22 @@ void AVitalityObject::ModifyEXP(float InDeltaValue)
 	HandleEXPChanged(EXP);
 }
 
-UWidgetVitalityHP* AVitalityObject::GetWidgetVitalityHPWidget()
+bool AVitalityObject::OnInteract(IInteraction* InTrigger, EInteractOption InInteractOption)
+{
+	if (!InTrigger) return false;
+
+	if(InteractOptions.Contains(InInteractOption))
+	{
+		// switch (InInteractOption)
+		// {
+		// 	default: break;
+		// }
+		return true;
+	}
+	return false;
+}
+
+UWidgetVitalityHP* AVitalityObject::GetWidgetVitalityHPWidget() const
 {
 	if (WidgetVitalityHP->GetUserWidgetObject())
 	{

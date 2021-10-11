@@ -4,12 +4,12 @@
 #include "DWHelper.h"
 #include "World/WorldManager.h"
 #include "Character/Player/DWPlayerCharacter.h"
-#include "Character/Player/DWPlayerCharacterController.h"
-#include "DWGameMode.h"
+#include "Gameplay/DWPlayerController.h"
+#include "Gameplay/DWGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
-#include "DWGameInstance.h"
-#include "DWGameState.h"
+#include "Gameplay/DWGameInstance.h"
+#include "Gameplay/DWGameState.h"
 #include "DWMainModule.h"
 #include "MainModuleBPLibrary.h"
 #include "Engine/DataTable.h"
@@ -36,7 +36,7 @@ ADWGameMode* UDWHelper::CurrentGameMode = nullptr;
 
 UDWGameInstance* UDWHelper::CurrentGameInstance = nullptr;
 
-ADWPlayerCharacterController* UDWHelper::CurrentPlayerController = nullptr;
+ADWPlayerController* UDWHelper::CurrentPlayerController = nullptr;
 
 ADWGameMode* UDWHelper::GetGameMode(const UObject* InWorldContext)
 {
@@ -65,32 +65,32 @@ UDWGameInstance* UDWHelper::GetGameInstance(const UObject* InWorldContext)
 	return CurrentGameInstance;
 }
 
-ADWPlayerCharacterController* UDWHelper::GetPlayerController(const UObject* InWorldContext)
+ADWPlayerController* UDWHelper::GetPlayerController(const UObject* InWorldContext)
 {
 	if ((!CurrentPlayerController || !CurrentPlayerController->IsValidLowLevel()) && (InWorldContext && InWorldContext->IsValidLowLevel()))
 	{
-		CurrentPlayerController = Cast<ADWPlayerCharacterController>(UGameplayStatics::GetPlayerController(InWorldContext, 0));
+		CurrentPlayerController = Cast<ADWPlayerController>(UGameplayStatics::GetPlayerController(InWorldContext, 0));
 	}
 	return CurrentPlayerController;
 }
 
 ADWPlayerCharacter* UDWHelper::GetPlayerCharacter(const UObject* InWorldContext)
 {
-	if (ADWPlayerCharacterController* PlayerController = GetPlayerController(InWorldContext))
+	if (ADWPlayerController* PlayerController = GetPlayerController(InWorldContext))
 	{
-		return PlayerController->GetPossessedCharacter();
+		return PlayerController->GetPlayerCharacter();
 	}
 	return nullptr;
 }
 
-ADWMainModule* UDWHelper::GetMainModule(const UObject* InWorldContext)
+ADWMainModule* UDWHelper::GetMainModule()
 {
-	return Cast<ADWMainModule>(UMainModuleBPLibrary::GetMainModule(InWorldContext));
+	return Cast<ADWMainModule>(UMainModuleBPLibrary::GetMainModule());
 }
 
 AWorldManager* UDWHelper::GetWorldManager()
 {
-	return AWorldManager::GetCurrent();
+	return AWorldManager::Get();
 }
 
 TSubclassOf<UWidgetMainMenu> UDWHelper::WidgetMainMenuClass = nullptr;
@@ -224,7 +224,7 @@ TSubclassOf<UWidgetCharacterHP> UDWHelper::LoadWidgetCharacterHPClass()
 {
 	if (!WidgetCharacterHPClass)
 	{
-		WidgetCharacterHPClass = LoadClass<UWidgetCharacterHP>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/World/WB_CharacterHP.WB_CharacterHP_C'"));
+		WidgetCharacterHPClass = LoadClass<UWidgetCharacterHP>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/Other/WB_CharacterHP.WB_CharacterHP_C'"));
 	}
 	return WidgetCharacterHPClass;
 }
@@ -233,7 +233,7 @@ TSubclassOf<UWidgetVitalityHP> UDWHelper::LoadWidgetVitalityHPClass()
 {
 	if (!WidgetVitalityHPClass)
 	{
-		WidgetVitalityHPClass = LoadClass<UWidgetVitalityHP>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/World/WB_VitalityHP.WB_VitalityHP_C'"));
+		WidgetVitalityHPClass = LoadClass<UWidgetVitalityHP>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/Other/WB_VitalityHP.WB_VitalityHP_C'"));
 	}
 	return WidgetVitalityHPClass;
 }
@@ -242,7 +242,7 @@ TSubclassOf<UWidgetWorldText> UDWHelper::LoadWidgetWorldTextClass()
 {
 	if (!WidgetWorldTextClass)
 	{
-		WidgetWorldTextClass = LoadClass<UWidgetWorldText>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/World/WB_WorldText.WB_WorldText_C'"));
+		WidgetWorldTextClass = LoadClass<UWidgetWorldText>(nullptr, TEXT("WidgetBlueprint'/Game/Blueprints/Widget/Other/WB_WorldText.WB_WorldText_C'"));
 	}
 	return WidgetWorldTextClass;
 }
@@ -258,6 +258,10 @@ UDataTable* UDWHelper::WeaponsDataTable = nullptr;
 UDataTable* UDWHelper::ShieldsDataTable = nullptr;
 
 UDataTable* UDWHelper::ArmorsDataTable = nullptr;
+
+UDataTable* UDWHelper::VitalitiesDataTable = nullptr;
+
+UDataTable* UDWHelper::CharactersDataTable = nullptr;
 
 UDataTable* UDWHelper::VitalityRacesDataTable = nullptr;
 
@@ -279,6 +283,10 @@ TMap<FName, FEquipShieldData> UDWHelper::ShieldDatas = TMap<FName, FEquipShieldD
 
 TMap<FName, FEquipArmorData> UDWHelper::ArmorDatas = TMap<FName, FEquipArmorData>();
 
+TMap<FName, FVitalityData> UDWHelper::VitalityDatas = TMap<FName, FVitalityData>();
+
+TMap<FName, FCharacterData> UDWHelper::CharacterDatas = TMap<FName, FCharacterData>();
+
 TMap<FName, FVitalityRaceData> UDWHelper::VitalityRaceDatas = TMap<FName, FVitalityRaceData>();
 
 TMap<FName, FCharacterRaceData> UDWHelper::CharacterRaceDatas = TMap<FName, FCharacterRaceData>();
@@ -291,6 +299,8 @@ TArray<FItemData> UDWHelper::LoadItemDatas()
 		LoadPropDatas();
 		LoadSkillDatas();
 		LoadEquipDatas();
+		LoadVitalityDatas();
+		LoadCharacterDatas();
 	}
 	TArray<FItemData> TmpArr;
 	ItemDatas.GenerateValueArray(TmpArr);
@@ -527,6 +537,66 @@ FEquipArmorData UDWHelper::LoadArmorData(const FName& InArmorID)
 	return FEquipArmorData();
 }
 
+TArray<FVitalityData> UDWHelper::LoadVitalityDatas()
+{
+	if (VitalitiesDataTable == nullptr)
+	{
+		VitalitiesDataTable = LoadObject<UDataTable>(nullptr, TEXT("DataTable'/Game/DataTables/Vitality/DT_Vitalities.DT_Vitalities'"));
+		if (VitalitiesDataTable != nullptr)
+		{
+			FString ContextString;
+			VitalitiesDataTable->ForeachRow<FVitalityData>(ContextString, [](FName Key, FVitalityData Value) {
+				Value.ID = Key;
+				VitalityDatas.Add(Key, Value);
+			});
+		}
+	}
+	TArray<FVitalityData> TmpArr;
+	VitalityDatas.GenerateValueArray(TmpArr);
+	return TmpArr;
+}
+
+FVitalityData UDWHelper::LoadVitalityData(const FName& InVitalityID)
+{
+	if (VitalityDatas.Num() == 0) LoadVoxelDatas();
+
+	if (VitalityDatas.Contains(InVitalityID))
+	{
+		return VitalityDatas[InVitalityID];
+	}
+	return FVitalityData();
+}
+
+TArray<FCharacterData> UDWHelper::LoadCharacterDatas()
+{
+	if (CharactersDataTable == nullptr)
+	{
+		CharactersDataTable = LoadObject<UDataTable>(nullptr, TEXT("DataTable'/Game/DataTables/Character/DT_Characters.DT_Characters'"));
+		if (CharactersDataTable != nullptr)
+		{
+			FString ContextString;
+			CharactersDataTable->ForeachRow<FCharacterData>(ContextString, [](FName Key, FCharacterData Value) {
+				Value.ID = Key;
+				CharacterDatas.Add(Key, Value);
+			});
+		}
+	}
+	TArray<FCharacterData> TmpArr;
+	CharacterDatas.GenerateValueArray(TmpArr);
+	return TmpArr;
+}
+
+FCharacterData UDWHelper::LoadCharacterData(const FName& InCharacterID)
+{
+	if (CharacterDatas.Num() == 0) LoadVoxelDatas();
+
+	if (CharacterDatas.Contains(InCharacterID))
+	{
+		return CharacterDatas[InCharacterID];
+	}
+	return FCharacterData();
+}
+
 TArray<FVitalityRaceData> UDWHelper::LoadVitalityRaceDatas()
 {
 	if (VitalityRacesDataTable == nullptr)
@@ -630,44 +700,12 @@ FCharacterRaceData UDWHelper::RandomCharacterRaceData()
 	return FCharacterRaceData();
 }
 
-void UDWHelper::Debug(const FString& Message, EDebugType DebugType, float Duration)
-{
-	switch (DebugType)
-	{
-		case EDebugType::Screen:
-		{
-			GEngine->AddOnScreenDebugMessage(-1, Duration, FColor::Cyan, Message, false);
-			break;
-		}
-		case EDebugType::Console:
-		{
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
-			break;
-		}
-		case EDebugType::Both:
-		{
-			Debug(Message, EDebugType::Screen, Duration);
-			Debug(Message, EDebugType::Console);
-			break;
-		}
-	}
-}
-
-FString UDWHelper::EnumValueToString(const FString& InEnumName, const int32& InEnumValue)
-{
-	if(UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *InEnumName, true))
-	{
-		return EnumPtr->GetAuthoredNameStringByValue(InEnumValue);
-	}
-	return TEXT("");
-}
-
 EDirection UDWHelper::InvertDirection(EDirection InDirection)
 {
-	if ((int)InDirection % 2 == 0)
-		return (EDirection)((int)InDirection + 1);
+	if ((int32)InDirection % 2 == 0)
+		return (EDirection)((int32)InDirection + 1);
 	else
-		return (EDirection)((int)InDirection - 1);
+		return (EDirection)((int32)InDirection - 1);
 }
 
 FVector UDWHelper::DirectionToVector(EDirection InDirection, FRotator InRotation /*= FRotator::ZeroRotator*/)
@@ -703,24 +741,4 @@ FIndex UDWHelper::GetAdjacentIndex(FIndex InIndex, EDirection InDirection, FRota
 ETraceTypeQuery UDWHelper::GetGameTrace(EGameTraceType InGameTraceType)
 {
 	return UEngineTypes::ConvertToTraceType((ECollisionChannel)InGameTraceType);
-}
-
-void UDWHelper::SaveObjectToMemory(UObject* InObject, TArray<uint8>& OutObjectData)
-{
-	if(InObject)
-	{
-		FMemoryWriter MemoryWriter(OutObjectData, true);
-		FSaveDataArchive Ar(MemoryWriter);
-		InObject->Serialize(Ar);
-	}
-}
-
-void UDWHelper::LoadObjectFromMemory(UObject* InObject, TArray<uint8> InObjectData)
-{
-	if(InObject && InObjectData.Num() > 0)
-	{
-		FMemoryReader MemoryReader(InObjectData, true);
-		FSaveDataArchive Ar(MemoryReader);
-		InObject->Serialize(Ar);
-	}
 }

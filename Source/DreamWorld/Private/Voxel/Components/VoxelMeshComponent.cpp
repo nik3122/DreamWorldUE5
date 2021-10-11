@@ -27,13 +27,27 @@ void UVoxelMeshComponent::Initialize(EVoxelMeshType InMeshType, ETransparency In
 {
 	MeshType = InMeshType;
 	Transparency = InTransparency;
-	switch (InMeshType)
+	switch (MeshType)
 	{
 		case EVoxelMeshType::Chunk:
 		{
 			BlockScale = 1.f;
 			OffsetScale = 1.f;
 			CenterOffset = FVector(0.5f);
+			switch (Transparency)
+			{
+				case ETransparency::Solid:
+				case ETransparency::SemiTransparent:
+				{
+					SetCollisionProfileName(TEXT("DW_SolidVoxel"));
+					break;
+				}
+				case ETransparency::Transparent:
+				{
+					SetCollisionProfileName(TEXT("DW_TransVoxel"));
+					break;
+				}
+			}
 			break;
 		}
 		case EVoxelMeshType::PickUp:
@@ -86,7 +100,7 @@ void UVoxelMeshComponent::BuildVoxel(const FVoxelItem& InVoxelItem)
 	{
 		for (int i = 0; i < 6; i++)
 		{
-			if (GetOwnerChunk()->CheckAdjacent(InVoxelItem.Index, (EDirection)i))
+			if (!GetOwnerChunk() || GetOwnerChunk()->CheckAdjacent(InVoxelItem, (EDirection)i))
 			{
 				BuildFace(InVoxelItem, (EFacing)i);
 			}
@@ -153,16 +167,6 @@ void UVoxelMeshComponent::ClearData()
 	UVs.Empty();
 	VertexColors.Empty();
 	Tangents.Empty();
-}
-
-bool UVoxelMeshComponent::IsEmpty() const
-{
-	return Vertices.Num() == 0;
-}
-
-AChunk* UVoxelMeshComponent::GetOwnerChunk() const
-{
-	return Cast<AChunk>(GetOwner());
 }
 
 void UVoxelMeshComponent::BuildFace(const FVoxelItem& InVoxelItem, EFacing InFacing)
@@ -255,4 +259,14 @@ void UVoxelMeshComponent::BuildFace(const FVoxelItem& InVoxelItem, FVector InVer
 	Normals.Add(InNormal);
 	Normals.Add(InNormal);
 	Normals.Add(InNormal);
+}
+
+bool UVoxelMeshComponent::IsEmpty() const
+{
+	return Vertices.Num() == 0;
+}
+
+AChunk* UVoxelMeshComponent::GetOwnerChunk() const
+{
+	return Cast<AChunk>(GetOwner());
 }

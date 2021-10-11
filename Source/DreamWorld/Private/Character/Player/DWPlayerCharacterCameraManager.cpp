@@ -2,7 +2,7 @@
 
 
 #include "Character/Player/DWPlayerCharacterCameraManager.h"
-#include "Character/Player/DWPlayerCharacterController.h"
+#include "Gameplay/DWPlayerController.h"
 #include "Character/Player/DWPlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -54,7 +54,7 @@ void ADWPlayerCharacterCameraManager::ZoomCamera(float InDeltaValue)
 
 USpringArmComponent* ADWPlayerCharacterCameraManager::GetCameraBoom() const
 {
-	if (ADWPlayerCharacterController* PlayerController = Cast<ADWPlayerCharacterController>(GetOwningPlayerController()))
+	if (ADWPlayerController* PlayerController = Cast<ADWPlayerController>(GetOwningPlayerController()))
 	{
 		if (ADWPlayerCharacter* PlayerCharacter = Cast<ADWPlayerCharacter>(PlayerController->GetPawn()))
 		{

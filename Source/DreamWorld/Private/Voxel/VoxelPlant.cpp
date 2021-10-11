@@ -6,12 +6,7 @@
 
 UVoxelPlant::UVoxelPlant()
 {
-
-}
-
-void UVoxelPlant::Initialize(FIndex InIndex, AChunk* InOwner)
-{
-	Super::Initialize(InIndex, InOwner);
+	
 }
 
 void UVoxelPlant::LoadData(const FString& InValue)
@@ -29,17 +24,17 @@ void UVoxelPlant::OnTargetHit(ADWCharacter* InTarget, const FVoxelHitResult& InH
 	Super::OnTargetHit(InTarget, InHitResult);
 }
 
-void UVoxelPlant::OnTargetEnter(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelPlant::OnTargetEnter(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetEnter(InTarget, InHitResult);
 }
 
-void UVoxelPlant::OnTargetStay(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelPlant::OnTargetStay(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetStay(InTarget, InHitResult);
 }
 
-void UVoxelPlant::OnTargetExit(ADWCharacter* InTarget, const FVoxelHitResult& InHitResult)
+void UVoxelPlant::OnTargetExit(UDWCharacterPart* InTarget, const FVoxelHitResult& InHitResult)
 {
 	Super::OnTargetExit(InTarget, InHitResult);
 }

@@ -37,21 +37,13 @@ bool UDWCharacterAnim::HandleNotify(const FAnimNotifyEvent& AnimNotifyEvent)
 	{
 		OwnerCharacter->AttackStart();
 	}
+	else if (notifyName.IsEqual(FName("AnimNotify_Attack hurt")))
+	{
+		OwnerCharacter->AttackHurt();
+	}
 	else if (notifyName.IsEqual(FName("AnimNotify_Attack end")))
 	{
 		OwnerCharacter->AttackEnd();
-	}
-	else if (notifyName.IsEqual(FName("AnimNotify_Defend start")))
-	{
-		OwnerCharacter->DefendStart();
-	}
-	else if (notifyName.IsEqual(FName("AnimNotify_Defend end")))
-	{
-		OwnerCharacter->DefendEnd();
-	}
-	else if (notifyName.IsEqual(FName("AnimNotify_Anim action end")))
-	{
-		OwnerCharacter->StopAction();
 	}
 	return false;
 }
@@ -80,8 +72,8 @@ void UDWCharacterAnim::UpdateAnimParams(float DeltaSeconds)
 	bCrouching = OwnerCharacter->IsCrouching();
 	bSwimming = OwnerCharacter->IsSwimming();
 
-	VerticalSpeed = OwnerCharacter->GetMoveVelocity().Z;
-	HorizontalSpeed = OwnerCharacter->GetMoveVelocity().Size2D();
+	VerticalSpeed = OwnerCharacter->GetMoveVelocity(false).Z;
+	HorizontalSpeed = OwnerCharacter->GetMoveVelocity().Size();
 
 	MoveDirection = FMath::FindDeltaAngleDegrees(OwnerCharacter->GetMoveDirection().ToOrientationRotator().Yaw, OwnerCharacter->GetActorRotation().Yaw);
 }

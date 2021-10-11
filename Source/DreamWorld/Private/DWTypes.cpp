@@ -17,11 +17,11 @@ const FIndex FIndex::OneIndex = FIndex(1, 1, 1);
 
 FTeamData FTeamData::Empty = FTeamData();
 
-const FWorldData FWorldData::Empty = FWorldData();
-
-FVoxelItem FVoxelItem::UnknownVoxel = FVoxelItem(FName("Unknown"));
+const FWorldSaveData FWorldSaveData::Empty = FWorldSaveData();
 
 FVoxelItem FVoxelItem::EmptyVoxel = FVoxelItem(FName("Empty"));
+
+FVoxelItem FVoxelItem::UnknownVoxel = FVoxelItem(FName("Unknown"));
 
 FItemData FItem::GetData() const
 {
@@ -33,8 +33,35 @@ FSkillData FDWCharacterSkillAbilityData::GetItemData() const
 	return UDWHelper::LoadSkillData(AbilityName);
 }
 
+FVitalityData FVitalityObjectSaveData::GetVitalityData() const
+{
+	return UDWHelper::LoadVitalityData(ID);
+}
+
+FCharacterData FCharacterSaveData::GetCharacterData() const
+{
+	return UDWHelper::LoadCharacterData(ID);
+}
+
+bool FVoxelItem::IsValid() const
+{
+	return Super::IsValid() && !IsEmpty() && !IsUnknown();
+}
+
+bool FVoxelItem::IsEmpty() const
+{
+	return *this == EmptyVoxel;
+}
+
+bool FVoxelItem::IsUnknown() const
+{
+	return *this == UnknownVoxel;
+}
+
 UVoxel* FVoxelItem::GetVoxel() const
 {
+	if(IsEmpty()) return UVoxel::EmptyVoxel;
+	if(IsUnknown()) return UVoxel::UnknownVoxel;
 	return UVoxel::LoadVoxel(Owner, *this);
 }
 
@@ -49,7 +76,7 @@ FString FVoxelItem::GetStringData() const
 	if(UVoxel* tmpVoxel = GetVoxel())
 	{
 		tmpData = tmpVoxel->ToData();
-		UVoxel::DespawnVoxel(Owner, tmpVoxel);
+		UVoxel::DespawnVoxel(tmpVoxel);
 	}
 	return tmpData;
 }
@@ -105,36 +132,27 @@ TArray<ADWCharacter*> FTeamData::GetMembers(ADWCharacter* InMember)
 FVoxelHitResult::FVoxelHitResult()
 {
 	FMemory::Memzero(this, sizeof(FVoxelHitResult));
-	Voxel = nullptr;
+	VoxelItem = FVoxelItem();
 	Point = FVector();
 	Normal = FVector();
 }
 
-FVoxelHitResult::FVoxelHitResult(UVoxel* InVoxel, FVector InPoint, FVector InNormal)
+FVoxelHitResult::FVoxelHitResult(const FVoxelItem& InVoxelItem, FVector InPoint, FVector InNormal)
 {
 	FMemory::Memzero(this, sizeof(FVoxelHitResult));
-	Voxel = InVoxel;
+	VoxelItem = InVoxelItem;
 	Point = InPoint;
 	Normal = InNormal;
 }
 
+UVoxel* FVoxelHitResult::GetVoxel() const
+{
+	return VoxelItem.GetVoxel();
+}
+
 AChunk* FVoxelHitResult::GetOwner() const
 {
-	if (Voxel.Get())
-	{
-		return Voxel.Get()->GetOwner();
-	}
-	return nullptr;
-}
-
-FVector FVoxelData::GetCeilRange(UVoxel* InVoxel) const
-{
-	return GetCeilRange(InVoxel->GetRotation(), InVoxel->GetScale());
-}
-
-FVector FVoxelData::GetFinalRange(UVoxel* InVoxel) const
-{
-	return GetFinalRange(InVoxel->GetRotation(), InVoxel->GetScale());
+	return VoxelItem.Owner;
 }
 
 bool FVoxelData::GetMeshDatas(TArray<FVector>& OutMeshVertices, TArray<FVector>& OutMeshNormals, FRotator InRotation, FVector InScale) const

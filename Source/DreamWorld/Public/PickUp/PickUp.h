@@ -53,9 +53,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void LoadData(FPickUpData InPickUpData);
+	void LoadData(FPickUpSaveData InPickUpData);
 
-	FPickUpData ToData(bool bSaved = true) const;
+	FPickUpSaveData ToData(bool bSaved = true) const;
 
 	virtual void Initialize(FItem InItem, bool bPreview = false);
 

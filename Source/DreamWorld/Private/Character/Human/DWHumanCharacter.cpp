@@ -26,17 +26,6 @@ ADWHumanCharacter::ADWHumanCharacter()
 	GetCharacterMovement()->AirControl = 0.3f;
 
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -70));
-
-	InventoryData = FInventoryData();
-	InventoryData.Items.SetNum(22);
-	InventoryData.SplitInfos.Add(ESplitSlotType::Default, FSplitSlotInfo(0, 10));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Shortcut, FSplitSlotInfo(10, 1));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Auxiliary, FSplitSlotInfo(11, 1));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Equip, FSplitSlotInfo(12, 6));
-	InventoryData.SplitInfos.Add(ESplitSlotType::Skill, FSplitSlotInfo(18, 4));
-
-	BehaviorTreeAsset = LoadObject<UBehaviorTree>(nullptr, TEXT("BehaviorTree'/Game/Blueprints/Character/Human/BT_Human_Sample.BT_Human_Sample'"));
-	BlackboardAsset = LoadObject<UDWAIBlackboard>(nullptr, TEXT("Blackboard'/Game/Blueprints/Character/Human/BD_Human_Base.BD_Human_Base'"));
 }
 
 // Called when the game starts or when spawned
@@ -50,8 +39,6 @@ void ADWHumanCharacter::BeginPlay()
 void ADWHumanCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (bDead) return;
 
 }
 

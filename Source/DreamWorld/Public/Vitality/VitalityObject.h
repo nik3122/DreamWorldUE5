@@ -6,7 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "Vitality/Vitality.h"
 #include "AbilitySystemInterface.h"
+#include "Interaction.h"
 #include "Abilities/DWAbilitySystemComponent.h"
+#include "Components/InteractionComponent.h"
+
 #include "VitalityObject.generated.h"
 
 class AChunk;
@@ -20,7 +23,7 @@ class UDWAttributeSet;
  * ������������
  */
 UCLASS()
-class DREAMWORLD_API AVitalityObject : public AActor, public IVitality, public IAbilitySystemInterface
+class DREAMWORLD_API AVitalityObject : public AActor, public IVitality, public IInteraction, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -34,34 +37,42 @@ protected:
 
 protected:
 	// stats
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VitalityStats")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
+	FName ID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	FString Name;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	FString RaceID;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VitalityStats")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	int32 Level;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VitalityStats")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	int32 EXP;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VitalityStats")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	int32 BaseEXP;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VitalityStats")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	int32 EXPFactor;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VitalityStats")
-	FInventoryData InventoryData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
 	AChunk* OwnerChunk;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "VitalityStats")
+	TArray<EInteractOption> InteractOptions;
+
+	IInteraction* InteractingTarget;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* BoxComponent;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UInteractionComponent* Interaction;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UWidgetVitalityHPComponent* WidgetVitalityHP;
 	
@@ -83,10 +94,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void LoadData(FVitalityObjectData InSaveData);
+	void LoadData(FVitalityObjectSaveData InSaveData);
 
 	UFUNCTION(BlueprintPure)
-	FVitalityObjectData ToData(bool bSaved = true);
+	FVitalityObjectSaveData ToData(bool bSaved = true);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SpawnWidgetWorldText(EWorldTextType InContextType, FString InContext) override;
@@ -125,6 +136,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void ModifyEXP(float InDeltaValue) override;
 
+	virtual bool OnInteract(IInteraction* InTrigger, EInteractOption InInteractOption) override;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetData(bool bRefresh = false) override;
@@ -136,10 +149,10 @@ public:
 	bool IsDead() const override;
 
 	UFUNCTION(BlueprintPure)
-	FString GetName() const override { return Name; }
+	FString GetNameC() const override { return Name; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetName(const FString& InName) override;
+	void SetNameC(const FString& InName) override;
 	
 	UFUNCTION(BlueprintPure)
 	FString GetRaceID() const override { return RaceID; }
@@ -191,6 +204,9 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	float GetMagicDamage() const override;
+						
+	UFUNCTION(BlueprintPure)
+	FVitalityData GetVitalityData() const;
 
 	UFUNCTION(BlueprintPure)
 	AChunk* GetOwnerChunk() const { return OwnerChunk; }
@@ -202,10 +218,16 @@ public:
 	UInventory* GetInventory() const override { return Inventory; }
 		
 	UFUNCTION(BlueprintPure)
-	UWidgetVitalityHP* GetWidgetVitalityHPWidget();
+	UWidgetVitalityHP* GetWidgetVitalityHPWidget() const;
 
 	UFUNCTION(BlueprintPure)
-	UAbilitySystemComponent* GetAbilitySystemComponent() const {return AbilitySystem;}
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override {return AbilitySystem;}
+
+	virtual TArray<EInteractOption> GetInteractOptions(IInteraction* InTrigger) const override { return InteractOptions; }
+
+	virtual IInteraction* GetInteractingTarget() const override { return InteractingTarget; }
+
+	virtual void SetInteractingTarget(IInteraction* InTarget) override { InteractingTarget = InTarget; }
 
 public:
 	virtual void HandleDamage(const float LocalDamageDone, FHitResult HitResult, const struct FGameplayTagContainer& SourceTags, ADWCharacter* SourceCharacter, AActor* SourceActor) override;

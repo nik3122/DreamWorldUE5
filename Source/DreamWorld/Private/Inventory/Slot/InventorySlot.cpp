@@ -69,7 +69,7 @@ void UInventorySlot::EndSet()
 		IVitality* vitality = Cast<IVitality>(Owner->GetOwnerActor());
 		if (vitality && Item.GetData().AbilityClass)
 		{
-			AbilityHandle = vitality->AcquireAbility(Item.GetData().AbilityClass, Item.GetData().Level);
+			AbilityHandle = vitality->AcquireAbility(Item.GetData().AbilityClass, Item.Level);
 		}
 	}
 	else
@@ -214,7 +214,7 @@ void UInventorySlot::MoveItem(int InCount /*= -1*/)
 		}
 	}
 
-	tmpItem.Count = Item.Count - tmpItem.Count;
+	tmpItem.Count = InCount - tmpItem.Count;
 	SubItem(tmpItem);
 }
 
@@ -233,8 +233,9 @@ void UInventorySlot::UseItem(int InCount /*= -1*/)
 				for(int32 i = 0; i < InCount; i ++)
 				{
 					FItem tmpItem = FItem::Clone(Item, 1);
-					if(OwnerCharacter->OnUseItem(tmpItem))
+					if(OwnerCharacter->UseItem(tmpItem))
 					{
+						OwnerCharacter->DoAction(ECharacterActionType::Use);
 						SubItem(tmpItem);
 					}
 					else break;
@@ -249,8 +250,9 @@ void UInventorySlot::UseItem(int InCount /*= -1*/)
 				for(int32 i = 0; i < InCount; i ++)
 				{
 					FItem tmpItem = FItem::Clone(Item, 1);
-					if(OwnerCharacter->OnUseItem(tmpItem) && ActiveItem())
+					if(OwnerCharacter->UseItem(tmpItem) && ActiveItem())
 					{
+						OwnerCharacter->DoAction(ECharacterActionType::Use);
 						SubItem(tmpItem);
 					}
 					else break;
@@ -278,10 +280,14 @@ void UInventorySlot::DiscardItem(int InCount /*= -1*/)
 
 	if (InCount == -1) InCount = Item.Count;
 	FItem tmpItem = FItem::Clone(Item, InCount);
-	auto chunk = AWorldManager::GetCurrent()->FindChunk(Owner->GetOwnerActor()->GetActorLocation());
+	auto chunk = AWorldManager::Get()->FindChunk(Owner->GetOwnerActor()->GetActorLocation());
 	if (chunk != nullptr)
 	{
 		chunk->SpawnPickUp(tmpItem, Owner->GetOwnerActor()->GetActorLocation() + FMath::RandPointInBox(FBox(FVector(-20, -20, -10), FVector(20, 20, 10))));
+	}
+	if(ADWCharacter* OwnerCharacter = Cast<ADWCharacter>(GetOwner()->GetOwnerActor()))
+	{
+		OwnerCharacter->DoAction(ECharacterActionType::Use);
 	}
 	SubItem(tmpItem);
 }

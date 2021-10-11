@@ -16,12 +16,12 @@ void UCharacterInventory::Initialize(AActor* InOwner, TMap<ESplitSlotType, FSpli
 	Super::Initialize(InOwner, InSplitInfos);
 }
 
-void UCharacterInventory::LoadData(FInventoryData InInventoryData, AActor* InOwner)
+void UCharacterInventory::LoadData(FInventorySaveData InInventoryData, AActor* InOwner)
 {
 	Super::LoadData(InInventoryData, InOwner);
 }
 
-FInventoryData UCharacterInventory::ToData(bool bSaved)
+FInventorySaveData UCharacterInventory::ToData(bool bSaved)
 {
 	return Super::ToData();
 }
@@ -38,9 +38,9 @@ void UCharacterInventory::ClearAll()
 
 TArray<UInventorySlot*> UCharacterInventory::GetValidatedList(EInventoryActionType InActionType, FItem& InItem, int32 InStartIndex, int32 InEndIndex)
 {
-	if (InStartIndex == -1 && HasSplitSlotInfo(ESplitSlotType::Shortcut) && GetOwnerCharacter() && GetOwnerCharacter()->GetNature() == ECharacterNature::Player)
+	if (InStartIndex == -1 && HasSplitSlotInfo(ESplitSlotType::Shortcut) && GetOwnerCharacter() && GetOwnerCharacter()->IsPlayer())
 	{
-		InStartIndex = GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex + UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>(this)->GetSelectedSlotIndex();
+		InStartIndex = GetSplitSlotInfo(ESplitSlotType::Shortcut).StartIndex + UWidgetModuleBPLibrary::GetUserWidget<UWidgetInventoryBar>()->GetSelectedSlotIndex();
 	}
 	return Super::GetValidatedList(InActionType, InItem, InStartIndex, InEndIndex);
 }

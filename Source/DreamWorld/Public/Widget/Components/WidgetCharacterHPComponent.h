@@ -9,7 +9,7 @@
 class ADWCharacter;
 
 /**
- * ½ÇÉ«ÑªÌõ×é¼ş
+ * è§’è‰²è¡€æ¡ç»„ä»¶
  */
 UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
 class DREAMWORLD_API UWidgetCharacterHPComponent : public UWidgetComponent
@@ -30,5 +30,5 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
-	void RefreshVisibility();
+	void RefreshVisibility() const;
 };

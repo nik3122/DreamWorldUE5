@@ -2,7 +2,7 @@
 
 
 #include "PickUp/PickUp.h"
-#include "DWGameMode.h"
+#include "Gameplay/DWGameMode.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Components/BoxComponent.h"
 #include "World/Chunk.h"
@@ -68,7 +68,7 @@ void APickUp::OnPickUp(ADWCharacter* InPicker)
 	}
 }
 
-void APickUp::LoadData(FPickUpData InPickUpData)
+void APickUp::LoadData(FPickUpSaveData InPickUpData)
 {
 	if (!InPickUpData.bSaved) return;
 
@@ -76,9 +76,9 @@ void APickUp::LoadData(FPickUpData InPickUpData)
 	Item = InPickUpData.Item;
 }
 
-FPickUpData APickUp::ToData(bool bSaved) const
+FPickUpSaveData APickUp::ToData(bool bSaved) const
 {
-	auto data = FPickUpData();
+	auto data = FPickUpSaveData();
 
 	data.bSaved = bSaved;
 

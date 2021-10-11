@@ -29,9 +29,12 @@ void APickUpVoxel::Initialize(FItem InItem, bool bPreview /*= false*/)
 {
 	Super::Initialize(InItem, bPreview);
 	BoxComponent->SetBoxExtent(GetVoxelData().Range * AWorldManager::GetWorldData().BlockSize * (1 / GetVoxelData().Range.Z) * 0.2f);
-	Cast<UVoxelMeshComponent>(MeshComponent)->Initialize(!bPreview ? EVoxelMeshType::PickUp : EVoxelMeshType::PreviewItem);
-	Cast<UVoxelMeshComponent>(MeshComponent)->BuildVoxel(FVoxelItem(Item.ID));
-	Cast<UVoxelMeshComponent>(MeshComponent)->CreateMesh(0, false);
+	if(UVoxelMeshComponent* VoxelMeshComponent = Cast<UVoxelMeshComponent>(MeshComponent))
+	{
+		VoxelMeshComponent->Initialize(!bPreview ? EVoxelMeshType::PickUp : EVoxelMeshType::PreviewItem);
+		VoxelMeshComponent->BuildVoxel(FVoxelItem(Item.ID));
+		VoxelMeshComponent->CreateMesh(0, false);
+	}
 }
 
 FVoxelData APickUpVoxel::GetVoxelData() const

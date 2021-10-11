@@ -57,13 +57,13 @@ public:
 
 	void ClearData();
 
-public:
-	bool IsEmpty() const;
-
-	AChunk* GetOwnerChunk() const;
-
 private:
 	void BuildFace(const FVoxelItem& InVoxelItem, EFacing InFacing);
 
 	void BuildFace(const FVoxelItem& InVoxelItem, FVector InVertices[4], int InFaceIndex, FVector InNormal);
+
+public:
+	bool IsEmpty() const;
+
+	AChunk* GetOwnerChunk() const;
 };

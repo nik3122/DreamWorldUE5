@@ -12,7 +12,6 @@ UWidgetVitalityHPComponent::UWidgetVitalityHPComponent()
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawSize(FVector2D(220, 60));
 	SetPivot(FVector2D(0.5f, 1));
-	SetVisibility(false);
 }
 
 void UWidgetVitalityHPComponent::BeginPlay()
@@ -31,8 +30,18 @@ void UWidgetVitalityHPComponent::TickComponent(float DeltaTime, enum ELevelTick 
 	RefreshVisibility();
 }
 
-void UWidgetVitalityHPComponent::RefreshVisibility()
+void UWidgetVitalityHPComponent::RefreshVisibility() const
 {
-	ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this);
-	SetVisibility(!OwnerVitality->IsDead() && PlayerCharacter && FVector::Distance(OwnerVitality->GetActorLocation(), PlayerCharacter->GetActorLocation()) < 1000);
+	if(GetUserWidgetObject())
+	{
+		ADWPlayerCharacter* PlayerCharacter = UDWHelper::GetPlayerCharacter(this);
+		if(!OwnerVitality->IsDead() && PlayerCharacter && FVector::Distance(OwnerVitality->GetActorLocation(), PlayerCharacter->GetActorLocation()) < 1000)
+		{
+			GetUserWidgetObject()->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+		else
+		{
+			GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 }

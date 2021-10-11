@@ -21,8 +21,8 @@ void ADWMainModule::InitializeModules_Implementation()
 {
 	Super::InitializeModules_Implementation();
 	
-	UVoxel::EmptyVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Empty);
-	UVoxel::UnknownVoxel = UVoxel::SpawnVoxel(this, EVoxelType::Unknown);
+	UVoxel::EmptyVoxel = UVoxel::SpawnVoxel(EVoxelType::Empty);
+	UVoxel::UnknownVoxel = UVoxel::SpawnVoxel(EVoxelType::Unknown);
 	
-	USpawnPoolModuleBPLibrary::DespawnActor(this, USpawnPoolModuleBPLibrary::SpawnActor<AChunk>(this));
+	USpawnPoolModuleBPLibrary::DespawnActor(USpawnPoolModuleBPLibrary::SpawnActor<AChunk>());
 }

@@ -13,9 +13,10 @@ class UCameraComponent;
 class UVoxelMeshComponent;
 class USkeletalMeshComponent;
 class USceneCaptureComponent2D;
-class ADWPlayerCharacterController;
+class ADWPlayerController;
 class UPawnSensingComponent;
 class ADWPlayerCharacterCameraManager;
+class UTargetSystemComponent;
 
 /**
  * ��ҽ�ɫ
@@ -37,7 +38,7 @@ protected:
 	// stats
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CharacterStats")
-	UVoxel* PreviewVoxel;
+	FVoxelItem VoxelItem;
 
 	// inputs
 	
@@ -47,14 +48,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterInputs")
 	bool bPressedDefend;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterInputs")
-	bool bPressedSprint;
-
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	UTargetSystemComponent* TargetSystem;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* FollowCamera;
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -81,6 +82,15 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void LoadData(FCharacterSaveData InSaveData) override;
+
+	virtual FCharacterSaveData ToData(bool bSaved = true) override;
+
+	virtual void LoadRecordData(FPlayerRecordSaveData InRecordData);
+
+	virtual FPlayerRecordSaveData ToRecordData(bool bSaved = true);
+
+public:
 	virtual void Active(bool bResetData = false) override;
 
 	virtual void Disable(bool bDisableMovement = false, bool bDisableCollision = false) override;
@@ -89,33 +99,77 @@ public:
 
 	virtual void Revive() override;
 
+	virtual void Death(ADWCharacter* InKiller) override;
+
+	virtual void DeathEnd() override;
+
 	virtual void ResetData(bool bRefresh) override;
 
 	virtual void Interrupt(float InDuration  = -1, bool bInPlayAnim  = false) override;
 
+	virtual void Dodge() override;
+
+	virtual void UnDodge() override;
+
 	virtual void LookAtTarget(ADWCharacter* InTargetCharacter) override;
-
-	virtual FString GetHeadInfo() const override;
-
-	virtual void LoadData(FCharacterData InSaveData) override;
-
-	virtual FCharacterData ToData(bool bSaved = true) override;
-
-	virtual void LoadRecordData(FPlayerRecordData InRecordData);
-
-	virtual FPlayerRecordData ToRecordData(bool bSaved = true);
 
 	virtual void UnAttack() override;
 
 	virtual void AttackStart() override;
 
-	virtual bool OnUseItem(FItem& InItem) override;
+	virtual bool UseItem(FItem& InItem) override;
 
 	virtual void RefreshEquip(EEquipPartType InPartType, UInventoryEquipSlot* EquipSlot) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateVoxelMesh();
 	
+	virtual bool RaycastVoxel(FVoxelHitResult& OutHitResult) override;
+
+	virtual bool DoInteract(IInteraction* InTarget, EInteractOption InInteractOption) override;
+
+protected:
+	virtual void ToggleControlMode();
+
+	virtual void ToggleCrouch();
+
+	virtual void ToggleLockTarget();
+
+	virtual void OnDodgePressed();
+
+	virtual void OnDodgeReleased();
+
+	virtual void OnAttackDestroyPressed();
+
+	virtual void OnAttackDestroyRepeat();
+
+	virtual void OnAttackDestroyReleased();
+
+	virtual void OnDefendGeneratePressed();
+
+	virtual void OnDefendGenerateRepeat();
+
+	virtual void OnDefendGenerateReleased();
+
+	virtual void ReleaseSkillAbility1();
+
+	virtual void ReleaseSkillAbility2();
+
+	virtual void ReleaseSkillAbility3();
+
+	virtual void ReleaseSkillAbility4();
+
+	virtual void DoInteractOption1();
+
+	virtual void DoInteractOption2();
+
+	virtual void DoInteractOption3();
+
+	virtual void DoInteractOption4();
+
+	virtual void DoInteractOption5();
+
+public:
 	virtual void HandleNameChanged(const FString& NewValue) override;
 
 	virtual void HandleTeamIDChanged(const FString& NewValue) override;
@@ -176,56 +230,9 @@ public:
 
 	virtual void HandleExpendSpeedAttribute(float NewValue, float DeltaValue = 0.f) override;
 
-protected:
-	virtual bool RaycastVoxel(FVoxelHitResult& OutHitResult) override;
-
-	virtual void MoveForward(float InValue);
-
-	virtual void MoveRight(float InValue);
-
-	virtual void ToggleControlMode();
-	
-	virtual void ToggleFly();
-
-	virtual void ToggleCrouch();
-		
-	virtual void ToggleAutoJump();
-
-	virtual void ToggleLockSightTarget();
-
-	virtual void OnJumpPressed();
-
-	virtual void OnJumpReleased();
-
-	virtual void OnDodgePressed();
-
-	virtual void OnDodgeReleased();
-
-	virtual void OnSprintPressed();
-
-	virtual void OnSprintReleased();
-
-	virtual void OnAttackDestroyPressed();
-
-	virtual void OnAttackDestroyRepeat();
-
-	virtual void OnAttackDestroyReleased();
-
-	virtual void OnDefendGeneratePressed();
-
-	virtual void OnDefendGenerateRepeat();
-
-	virtual void OnDefendGenerateReleased();
-
-	virtual void ReleaseSkillAbility1();
-
-	virtual void ReleaseSkillAbility2();
-
-	virtual void ReleaseSkillAbility3();
-
-	virtual void ReleaseSkillAbility4();
-
 public:
+	virtual FString GetHeadInfo() const override;
+
 	UFUNCTION(BlueprintPure)
 	EControlMode GetControlMode() const { return ControlMode; }
 		
@@ -234,15 +241,9 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	float GetInteractDistance() const { return InteractDistance; }
-
+	
 	UFUNCTION(BlueprintPure)
-	bool IsPressedAttack() const { return bPressedAttack; }
-
-	UFUNCTION(BlueprintPure)
-	bool IsPressedDefend() const { return bPressedDefend; }
-
-	UFUNCTION(BlueprintPure)
-	bool IsPressedSprint() const { return bPressedSprint; }
+	UTargetSystemComponent* GetTargetSystem() const { return TargetSystem; }
 
 	UFUNCTION(BlueprintPure)
 	USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -251,5 +252,7 @@ public:
 	UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 		
 	UFUNCTION(BlueprintPure)
-	ADWPlayerCharacterController* GetPlayerController() const;
+	ADWPlayerController* GetPlayerController() const;
+
+	virtual void SetInteractingTarget(IInteraction* InTarget) override;
 };

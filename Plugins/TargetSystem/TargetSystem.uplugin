@@ -1,0 +1,27 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.27.0",
+	"FriendlyName": "TargetSystem",
+	"Description": "Dark Souls inspired Camera Lock On / Targeting system",
+	"Category": "Targeting",
+	"CreatedBy": "Mickael Daniel <mklabs>",
+	"CreatedByURL": "https://mklabs.github.io",
+	"DocsURL": "https://github.com/mklabs/ue4-targetsystemplugin/wiki",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/6bd21ce58d6e4cb295f71bd370233f53",
+	"SupportURL": "https://github.com/mklabs/ue4-targetsystemplugin/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "TargetSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		}
+	]
+}

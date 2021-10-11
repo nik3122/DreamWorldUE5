@@ -2,6 +2,8 @@
 
 
 #include "VoxelAuxiliary/VoxelAuxiliary.h"
+
+#include "InteractionComponent.h"
 #include "Voxel/Voxel.h"
 #include "World/Chunk.h"
 
@@ -12,6 +14,10 @@ AVoxelAuxiliary::AVoxelAuxiliary()
 	PrimaryActorTick.bCanEverTick = false;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
+	Interaction = CreateDefaultSubobject<UInteractionComponent>(FName("Interaction"));
+	Interaction->SetupAttachment(RootComponent);
+	Interaction->SetRelativeLocation(FVector(0, 0, 0));
 
 	VoxelIndex = FIndex::ZeroIndex;
 }
@@ -28,7 +34,22 @@ void AVoxelAuxiliary::Initialize(AChunk* InOwnerChunk, FIndex InVoxelIndex)
 	VoxelIndex = InVoxelIndex;
 }
 
-FVoxelItem& AVoxelAuxiliary::GetVoxelItem()
+bool AVoxelAuxiliary::OnInteract(IInteraction* InTrigger, EInteractOption InInteractOption)
+{
+	if (!InTrigger) return false;
+
+	if(InteractOptions.Contains(InInteractOption))
+	{
+		// switch (InInteractOption)
+		// {
+		// 	default: break;
+		// }
+		return true;
+	}
+	return false;
+}
+
+FVoxelItem& AVoxelAuxiliary::GetVoxelItem() const
 {
 	if(OwnerChunk)
 	{

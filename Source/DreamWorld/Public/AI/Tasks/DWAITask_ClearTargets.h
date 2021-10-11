@@ -7,7 +7,7 @@
 #include "DWAITask_ClearTargets.generated.h"
 
 /**
- * AI任务_清除目标
+ * AI浠诲姟_娓呴櫎鐩爣
  */
 UCLASS()
 class DREAMWORLD_API UDWAITask_ClearTargets : public UDWAITaskBase

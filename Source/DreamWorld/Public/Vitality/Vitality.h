@@ -36,9 +36,9 @@ public:
 
 	virtual bool IsDead() const = 0;
 	
-	virtual FString GetName() const = 0;
+	virtual FString GetNameC() const = 0;
 
-	virtual void SetName(const FString& InName) = 0;
+	virtual void SetNameC(const FString& InName) = 0;
 		
 	virtual FString GetRaceID() const = 0;
 

@@ -12,7 +12,7 @@ UPlayerDataSave::UPlayerDataSave()
 {
 	// set default pawn class to our Blueprinted character
 	
-	PlayerData = FCharacterData();
+	PlayerData = FCharacterSaveData();
 }
 
 void UPlayerDataSave::RefreshPlayerData()

@@ -19,32 +19,32 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	FWorldData WorldData;
+	FWorldSaveData WorldData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TMap<FVector, FChunkData> ChunkDatas;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TMap<FString, FPlayerRecordData> PlayerRecordDatas;
+	TMap<FString, FPlayerRecordSaveData> PlayerRecordDatas;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	void RefreshWorldData();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FWorldData GetWorldData() const { return WorldData; }
+	FWorldSaveData GetWorldData() const { return WorldData; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetWorldData(FWorldData InWorldData) { WorldData = InWorldData; }
+	void SetWorldData(FWorldSaveData InWorldData) { WorldData = InWorldData; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsExistPlayerRecord(const FString& InPlayerName);
 
 	UFUNCTION(BlueprintCallable)
-	void SavePlayerRecord(FPlayerRecordData InPlayerRecordData);
+	void SavePlayerRecord(FPlayerRecordSaveData InPlayerRecordData);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FPlayerRecordData LoadPlayerRecord(const FString& InPlayerName);
+	FPlayerRecordSaveData LoadPlayerRecord(const FString& InPlayerName);
 
 	UFUNCTION(BlueprintCallable)
 	void RemovePlayerRecord(const FString& InPlayerName);

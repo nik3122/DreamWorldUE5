@@ -30,15 +30,18 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
 	UInventory* ConnectInventory;
+				
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Default")
+	UInventorySlot* SelectedSlot;
 
 public:
 	virtual void Initialize(AActor* InOwner, TMap<ESplitSlotType, FSplitSlotInfo> InSplitInfos);
 	
 	virtual void Refresh(float DeltaSeconds);
 
-	virtual void LoadData(FInventoryData InInventoryData, AActor* InOwner);
+	virtual void LoadData(FInventorySaveData InInventoryData, AActor* InOwner);
 
-	virtual FInventoryData ToData(bool bSaved = true);
+	virtual FInventorySaveData ToData(bool bSaved = true);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void AdditionItems(FItem& InItem, int32 InStartIndex = 0, int32 InEndIndex = -1);
@@ -79,7 +82,16 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	TArray<UInventorySlot*> GetSlots() const { return Slots; }
-				
+					
+	UFUNCTION(BlueprintPure)
+	UInventorySlot* GetSelectedSlot() const { return SelectedSlot; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetSelectedSlot(UInventorySlot* InSelectedSlot) { this->SelectedSlot = InSelectedSlot; }
+	
+	UFUNCTION(BlueprintPure)
+	FItem& GetSelectedItem() const;
+
 	UFUNCTION(BlueprintPure)
 	bool HasSplitSlotInfo(ESplitSlotType InSplitSlotType) const;
 
